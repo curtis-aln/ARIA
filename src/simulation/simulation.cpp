@@ -23,6 +23,7 @@ Simulation::Simulation() : m_world_(&m_window_)
 
 void Simulation::run_simulation()
 {
+
     m_sim_thread_ = std::thread([this]()
         {
             Random::set_seed(0);
@@ -60,7 +61,7 @@ void Simulation::update_one_frame()
         running = false;
         std::cout << m_total_time_elapsed_ << " time elapsed \n";
 		std::cout << m_world_.get_statistics().iterations_ << " iterations \n";
-        std::cout << m_world_.entity_count << " entity count \n";
+        std::cout << m_world_.get_statistics().entity_count << " entity count \n";
     }
 
     camera_follow_selected_protozoa();
@@ -238,18 +239,21 @@ void Simulation::render()
     float dt = static_cast<float>(m_delta_time_.get_delta());
     m_total_time_elapsed_ += dt;
 
+    if (snap.stats.iterations_ <= 1)
+        return;
+    m_window_.clear(GraphicalSettings::window_color);
+    if (m_world_.toggles.m_rendering_)
+    {
+        const sf::Vector2f pos = camera_.get_world_mouse_pos();
+        m_world_.render(snap, &cell_statistic_font, pos);
+    }
+
     update_line_graphs(snap);
     handle_imGUI(snap, dt);
 
     m_sim_buffer_.end_read();
 
-    m_window_.clear(GraphicalSettings::window_color);
-
-    if (m_world_.toggles.m_rendering_)
-    {
-        const sf::Vector2f pos = camera_.get_world_mouse_pos();
-        m_world_.render(&cell_statistic_font, pos);
-    }
+    
 
     ImGui::SFML::Render(m_window_);
     m_window_.display();

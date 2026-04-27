@@ -8,6 +8,11 @@
 #include "../settings.h"
 #include "../Utils/Graphics/spatial_grid/simple_spatial_grid.h"
 #include "../Utils/Graphics/spatial_grid/spatial_grid_renderer.h"
+#include "simulation/sim_snapshot.h"
+#include "simulation/sim_snapshot.h"
+#include "world/world_state.h"
+
+struct SimSnapshot;
 
 class FoodManager : FoodSettings
 {
@@ -17,11 +22,7 @@ class FoodManager : FoodSettings
     CircleBatchRenderer food_renderer;
     o_vector<Food> food_vector{ max_food };
 
-    std::vector<float> food_positions_x;
-    std::vector<float> food_positions_y;
-
-    std::vector<sf::Color>    food_colors;
-    std::vector<float> food_radii;
+	FoodData food_data{};
 
 public:
     const float           bounds_radius = world_bounds_->radius;
@@ -37,8 +38,10 @@ public:
 
     int    get_size()               const;
     void update_food_grid_renderer();
+    void fill_data(FoodData& other_food_data);
     void   update();
-    void   render();
+    void   render(const SimSnapshot& snapshot);
+    void update_position_data();
     void   remove_food(int food_id);
     Food* at(int idx);
     void   draw_food_grid(sf::Vector2f mouse_pos) const;

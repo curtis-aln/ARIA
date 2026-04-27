@@ -95,6 +95,15 @@ Multithreadding GUI:
 - if the cell grid and the food grid are different sizes then the cells index the wrong location in the food grid and they cant resolve
 - food grid tracking in imgui has bugs
 
+-----------------------------------------------------------------------
+##### Debugging Todo
+- When selecting a protozoa it should track all the cells nearby
+- When selecting a protozoa it should track all the food nearby
+
+
+
+
+
 # performance tracking by the number of frames ran in 30 seconds:
 Starting: 
 228 iters

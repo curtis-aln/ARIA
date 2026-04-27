@@ -1,7 +1,5 @@
 #include "../Protozoa.h"
 
-#include "../../Food/food_manager.h"
-
 Protozoa::Protozoa(const int id_)
 	: id(id_)
 {

@@ -7,7 +7,6 @@
 
 #include "genetics/CellGenome.h"
 #include "../Utils/Graphics/Circle.h"
-#include "../Food/food_manager.h"
 
 // Each organism consists of cells which work together via springs
 // Each cell has their own radius and friction coefficient, as well as cosmetic factors such as color
@@ -52,9 +51,8 @@ struct Cell : public CellGenome
 		++food_eaten;
 	}
 
-	static bool consume_food_check(const Cell& cell, const Food* food)
+	static bool consume_food_check(const Cell& cell, const sf::Vector2f food_pos)
 	{
-		sf::Vector2f food_pos = food->position;
 		const float distance_sq = (food_pos - cell.position_).lengthSquared();
 		const float rad = cell.radius + FoodSettings::food_radius;
 

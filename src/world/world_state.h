@@ -42,6 +42,7 @@ struct WorldStatistics
     int   peak_protozoa_ever = 0;
     int   highest_generation_ever = 0;
 	int   most_offspring_ever = 0;
+	int   entity_count = 0;
 
     float average_generation = 0.f;
     float average_cells_per_protozoa = 0.f;
@@ -110,4 +111,13 @@ struct SpatialGridData
 
     int total = 0, max_in = 0, full = 0, empty = 0; 
     float inv = 0.f;
+};
+
+
+struct FoodData
+{
+	std::vector<float> positions_x;
+	std::vector<float> positions_y;
+	std::vector<sf::Color> colors;
+	std::vector<float> radii;
 };

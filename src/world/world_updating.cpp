@@ -38,15 +38,15 @@ void World::update_position_container()
 	spatial_hash_grid_.clear();
 
 	// Single pass: count cells
-	entity_count = 0;
+	statistics_.entity_count = 0;
 	for (const Protozoa* protozoa : all_protozoa_)
-		entity_count += protozoa->get_cells().size();
+		statistics_.entity_count += protozoa->get_cells().size();
 
 	// Resize all containers once, only when outside the buffer band
 	const int container_size = static_cast<int>(collision_resolutions.size());
-	if (entity_count > container_size || entity_count < container_size - 100)
+	if (statistics_.entity_count > container_size || statistics_.entity_count < container_size - 100)
 	{
-		const int new_size = entity_count + 100;
+		const int new_size = statistics_.entity_count + 100;
 		collision_resolutions.resize(new_size);
 		render_data_.outer_colors.resize(new_size);
 		render_data_.inner_colors.resize(new_size);
@@ -95,6 +95,7 @@ void World::update_statistics()
 	}
 
 	float protozoa_count = static_cast<float>(all_protozoa_.size());
+
 	if (protozoa_count == 0)
 		return;
 

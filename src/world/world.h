@@ -75,8 +75,6 @@ public:
     // accessing them; copy into SharedState before handing to the update thread.
     WorldToggles toggles;
 
-    int entity_count = 0;
-
 public:
     explicit World(sf::RenderWindow* window = nullptr);
 
@@ -87,7 +85,7 @@ public:
     void resolve_collisions();
 
     // ── Render ───────────────────────────────────────────────────────────────
-    void render(Font* font, sf::Vector2f mouse_pos);
+    void render(const SimSnapshot& snapshot, Font* font, sf::Vector2f mouse_pos);
 
     // ── Accessors — spatial grids / food ─────────────────────────────────────
     SimpleSpatialGrid* get_spatial_grid() { return &spatial_hash_grid_; }
@@ -108,7 +106,7 @@ public:
     const std::vector<sf::Color>& get_outer_colors() const { return render_data_.outer_colors; }
     const std::vector<sf::Color>& get_inner_colors() const { return render_data_.inner_colors; }
     const std::vector<float>& get_radii()        const { return render_data_.radii; }
-    int                              get_entity_count() const { return entity_count; }
+    int                              get_entity_count() const { return statistics_.entity_count; }
     const RenderData& get_render_data()  const { return render_data_; }
 
     // ── Statistics getters — read by ImGui from snapshot ─────────────────────
@@ -133,7 +131,7 @@ private:
     void update_position_container();
     void update_statistics();
 
-    void render_protozoa(Font* font);
+    void render_protozoa(const SimSnapshot& snapshot, Font* font);
     void init_organisms();
     void init_food_jobs();
     void resolve_food_interactions();

@@ -6,8 +6,6 @@
 #include "spring.h"
 
 
-#include "../Food/food_manager.h"
-
 // this is the organisms in the simulation, they are made up of cells which all act independently, attached by springs
 // the protozoa class is responsible for connecting the springs and cells
 
@@ -111,7 +109,6 @@ private:
 
 	// organic
 	void reproduce_check();
-	void consume(const Food* food, FoodManager& food_manager);
 	
 
 	// mutating

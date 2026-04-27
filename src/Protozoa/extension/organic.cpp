@@ -1,16 +1,7 @@
 #include "../Protozoa.h"
-#include "../../Food/food_manager.h"
 #include "../genetics/CellGenome.h"
 
 #include <vector>
-
-void Protozoa::consume(const Food* food, FoodManager& food_manager)
-{
-    food_manager.remove_food(food->id);
-    total_food_eaten++;
-    stomach++;
-    energy += food->nutrients;
-}
 
 void Protozoa::reproduce_check()
 {

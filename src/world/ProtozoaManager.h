@@ -2,6 +2,8 @@
 #include <algorithm>
 
 #include "../Protozoa/Protozoa.h"
+#include "../Utils/o_vector.hpp"
+#include "../Food/food_manager.h"
 
 // A Class which handles all protozoa related stuff in the world. updating, collisions, reproduction, etc.
 class ProtozoaManager : protected WorldSettings
@@ -80,16 +82,16 @@ public:
 		}
 	}
 
-	void render_protozoa_springs(Protozoa* protozoa);
-	void render_debug(Protozoa* protozoa, Font* font, bool skeleton_mode, bool show_connections,
+	void render_protozoa_springs(const Protozoa* protozoa);
+	void render_debug(const Protozoa* protozoa, Font* font, bool skeleton_mode, bool show_connections,
 	                  bool show_bounding_boxes);
-	void draw_cell_outlines(Protozoa* protozoa);
-	void nearby_food_information(Protozoa* protozoa) const;
-	void render_cell_connections(Protozoa* protozoa, Cell& cell, bool thick_lines) const;
-	void draw_cell_physics(Protozoa* protozoa, Font* font);
-	void draw_spring_information(Protozoa* protozoa, Font* font) const;
-	int check_mouse_press(Protozoa* protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
-	Cell* get_selected_cell(Protozoa* protozoa, sf::Vector2f mouse_pos);
+	void draw_cell_outlines(const Protozoa* protozoa);
+	void nearby_food_information(const Protozoa* protozoa) const;
+	void render_cell_connections(const Protozoa* protozoa, const Cell& cell, bool thick_lines) const;
+	void draw_cell_physics(const Protozoa* protozoa, Font* font);
+	void draw_spring_information(const Protozoa* protozoa, Font* font) const;
+	int check_mouse_press(const Protozoa* protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
+	const Cell* get_selected_cell(const Protozoa* protozoa, sf::Vector2f mouse_pos);
 
 	inline static constexpr int max_evolutionary_iterations = 5;
 	inline static constexpr int desired_cell_count = 4;

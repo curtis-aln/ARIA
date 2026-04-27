@@ -1,4 +1,6 @@
 #include "world.h"
+
+#include <algorithm>
 #include "../Utils/utility_SFML.h"
 #include "../Utils/Graphics/CircleBatchRenderer.h"
 #include "../protozoa/genetics/CellGenome.h"
@@ -23,57 +25,53 @@ World::World(sf::RenderWindow* window)
     cell_pointers_.resize(maximum_cells);
     inner_radii_.resize(maximum_cells);
     collision_resolutions.resize(maximum_cells);
-
-    inner_circle_renderer_.set_colors(&render_data_.outer_colors);
-    inner_circle_renderer_.set_positions_x(&render_data_.positions_x);
-    inner_circle_renderer_.set_positions_y(&render_data_.positions_y);
-    inner_circle_renderer_.set_radii(&inner_radii_);
-    outer_circle_renderer_.set_colors(&render_data_.outer_colors);
-    outer_circle_renderer_.set_positions_x(&render_data_.positions_x);
-    outer_circle_renderer_.set_positions_y(&render_data_.positions_y);
-    outer_circle_renderer_.set_radii(&inner_radii_);
 }
 
-void World::render(Font* font, const sf::Vector2f mouse_pos)
+void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f mouse_pos)
 {
-    if (toggles.draw_cell_grid)
+    if (snapshot.toggles.draw_cell_grid)
         cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
 
     if (toggles.draw_food_grid)
         food_manager_.draw_food_grid(mouse_pos);
 
-    food_manager_.render();
-    render_protozoa(font);
+    food_manager_.render(snapshot);
+    render_protozoa(snapshot, font);
 
     m_window_->draw(world_border_renderer_);
 }
 
-void World::render_protozoa(Font* font)
+void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 {
-    outer_circle_renderer_.set_size(entity_count);
+    outer_circle_renderer_.set_colors(snapshot.render.outer_colors);
+    outer_circle_renderer_.set_positions_x(snapshot.render.positions_x);
+    outer_circle_renderer_.set_positions_y(snapshot.render.positions_y);
+    outer_circle_renderer_.set_radii(snapshot.render.radii);
+
+    outer_circle_renderer_.set_size(snapshot.stats.entity_count);
 	outer_circle_renderer_.update();
     outer_circle_renderer_.render();
 
     if (!toggles.simple_mode)
     {
-        for (int i = 0; i < entity_count; ++i)
-            inner_radii_[i] = render_data_.radii[i] / GraphicalSettings::cell_outline_thickness;
+        for (int i = 0; i < snapshot.stats.entity_count; ++i)
+            inner_radii_[i] = snapshot.render.radii[i] / GraphicalSettings::cell_outline_thickness;
 
-        
-        inner_circle_renderer_.set_size(entity_count);
+        inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
+        inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
+        inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
+        inner_circle_renderer_.set_radii(inner_radii_);
+        inner_circle_renderer_.set_size(snapshot.stats.entity_count);
         inner_circle_renderer_.update();
         inner_circle_renderer_.render();
     }
 
-    if (selected_protozoa_ != nullptr && toggles.debug_mode)
+    if (snapshot.protozoa.id != -1 && snapshot.toggles.debug_mode)
     {
-        render_debug(selected_protozoa_, font, toggles.skeleton_mode,
-            toggles.show_connections,
-            toggles.show_bounding_boxes);
+        render_debug(&snapshot.protozoa, font, snapshot.toggles.skeleton_mode,
+            snapshot.toggles.show_connections,
+            snapshot.toggles.show_bounding_boxes);
     }
-
-   // for (Protozoa* protozoa : all_protozoa_)
-   //     protozoa->cell_positions_nearby.clear();
 }
 
 void World::init_organisms()
@@ -198,8 +196,7 @@ void World::advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data)
 	{
 		const uint8_t cell_capacity = grid->cell_capacities[i];
 		data.total += cell_capacity;
-		if (cell_capacity > data.max_in)
-			data.max_in = cell_capacity;
+		data.max_in = std::max<int>(cell_capacity, data.max_in);
 		if (cell_capacity == grid->cell_max_capacity)
 			data.full++;
 		if (cell_capacity == 0)
@@ -219,6 +216,7 @@ void World::fill_snapshot(SimSnapshot& snapshot)
     snapshot.stats.average_lifetime = average_lifetime_;
     snapshot.stats.longest_lived_ever = longest_lived_ever_;
 
+    food_manager_.fill_data(snapshot.food_data);
 
     if (selected_protozoa_ != nullptr)
     {
@@ -241,11 +239,9 @@ sf::Rect<float> World::calc_protozoa_bounds(Protozoa* protozoa)
     sf::Rect<float> bounds;
     for (const Cell& cell : protozoa->get_cells())
     {
-        if (cell.position_.x < bounds.position.x)
-            bounds.position.x = cell.position_.x;
-        if (cell.position_.y < bounds.position.y)
-            bounds.position.y = cell.position_.y;
-        if (cell.position_.x > bounds.position.x + bounds.size.x)
+	    bounds.position.x = std::min(cell.position_.x, bounds.position.x);
+	    bounds.position.y = std::min(cell.position_.y, bounds.position.y);
+	    if (cell.position_.x > bounds.position.x + bounds.size.x)
             bounds.size.x = cell.position_.x - bounds.position.x;
         if (cell.position_.y > bounds.position.y + bounds.size.y)
             bounds.size.y = cell.position_.y - bounds.position.y;

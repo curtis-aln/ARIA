@@ -68,7 +68,7 @@ void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby
 		{
 			Food* food = food_manager_.at(nearby_food[i]);
 			// Check proximity BEFORE claiming
-			if (!Cell::consume_food_check(*cell, food))
+			if (!Cell::consume_food_check(*cell, food->position))
 				continue;  // too far, try next food
 
 			// Close enough — now race to claim it

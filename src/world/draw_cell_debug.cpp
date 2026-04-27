@@ -3,15 +3,15 @@
 #include "../settings.h"
 #include "../Utils/utility_SFML.h"
 
-void ProtozoaManager::render_protozoa_springs(Protozoa* protozoa)
+void ProtozoaManager::render_protozoa_springs(const Protozoa* protozoa)
 {
-    for (Cell& cell : protozoa->get_cells())
+    for (const Cell& cell : protozoa->get_cells())
     {
         render_cell_connections(protozoa, cell, true);
     }
 }
 
-void ProtozoaManager::render_debug(Protozoa* protozoa, Font* font, const bool skeleton_mode, const bool show_connections, const bool show_bounding_boxes)
+void ProtozoaManager::render_debug(const Protozoa* protozoa, Font* font, const bool skeleton_mode, const bool show_connections, const bool show_bounding_boxes)
 {
     // skeleton mode just hides the cell bodies and leaves only the outlines of the cells
     if (skeleton_mode)
@@ -36,11 +36,11 @@ void ProtozoaManager::render_debug(Protozoa* protozoa, Font* font, const bool sk
     }
 }
 
-void ProtozoaManager::draw_cell_outlines(Protozoa* protozoa)
+void ProtozoaManager::draw_cell_outlines(const Protozoa* protozoa)
 {
     sf::CircleShape circle_outline;
     circle_outline.setPointCount(30); // Reduce aliasing, set once
-    for (Cell& cell : protozoa->get_cells())
+    for (const Cell& cell : protozoa->get_cells())
     {
         const sf::Vector2f pos = cell.position_;
         const float rad = cell.radius + GraphicalSettings::cell_outline_thickness;
@@ -57,7 +57,7 @@ void ProtozoaManager::draw_cell_outlines(Protozoa* protozoa)
     }
 }
 
-void ProtozoaManager::nearby_food_information(Protozoa* protozoa) const
+void ProtozoaManager::nearby_food_information(const Protozoa* protozoa) const
 {
     //const sf::Vector2f center = get_center();
     //static const sf::Color food_line_color{ 50, 153, 204, 100 };
@@ -73,7 +73,7 @@ void ProtozoaManager::nearby_food_information(Protozoa* protozoa) const
 }
 
 
-void ProtozoaManager::render_cell_connections(Protozoa* protozoa, Cell& cell, const bool thick_lines) const
+void ProtozoaManager::render_cell_connections(const Protozoa* protozoa, const Cell& cell, const bool thick_lines) const
 {
     for (const Spring& spring : protozoa->get_springs())
     {
@@ -97,10 +97,10 @@ void ProtozoaManager::render_cell_connections(Protozoa* protozoa, Cell& cell, co
 }
 
 
-void ProtozoaManager::draw_cell_physics(Protozoa* protozoa, Font* font)
+void ProtozoaManager::draw_cell_physics(const Protozoa* protozoa, Font* font)
 {
     // for each cell we draw its bounding box
-    for (Cell& cell : protozoa->get_cells())
+    for (const Cell& cell : protozoa->get_cells())
     {
         const sf::Vector2f& pos = cell.position_;
         const float rad = cell.radius;
@@ -126,13 +126,13 @@ void ProtozoaManager::draw_cell_physics(Protozoa* protozoa, Font* font)
 
 
 
-void ProtozoaManager::draw_spring_information(Protozoa* protozoa, Font* font) const
+void ProtozoaManager::draw_spring_information(const Protozoa* protozoa, Font* font) const
 {
 
 }
 
 
-int ProtozoaManager::check_mouse_press(Protozoa* protozoa, const sf::Vector2f mousePosition, const bool tolerance_check) const
+int ProtozoaManager::check_mouse_press(const Protozoa* protozoa, const sf::Vector2f mousePosition, const bool tolerance_check) const
 {
     for (const Cell& cell : protozoa->get_cells())
     {
@@ -149,12 +149,12 @@ int ProtozoaManager::check_mouse_press(Protozoa* protozoa, const sf::Vector2f mo
 }
 
 
-Cell* ProtozoaManager::get_selected_cell(Protozoa* protozoa, const sf::Vector2f mouse_pos)
+const Cell* ProtozoaManager::get_selected_cell(const Protozoa* protozoa, const sf::Vector2f mouse_pos)
 {
     if (!check_mouse_press(protozoa, mouse_pos, true))
         return nullptr;
 
-    for (Cell& cell : protozoa->get_cells())
+    for (const Cell& cell : protozoa->get_cells())
     {
         const float dist_sq = (cell.position_ - mouse_pos).lengthSquared();
         const float rad = cell.radius;
