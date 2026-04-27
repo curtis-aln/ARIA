@@ -186,10 +186,11 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const Protozoa& p)
 
     for (int i = 0; i < cell_count; ++i)
     {
+		sf::Color outer = cells[i].get_outer_color();
         const Cell& ci = cells[i];
-        const ImVec4 dot = { ci.cell_outer_color.r / 255.f,
-                             ci.cell_outer_color.g / 255.f,
-                             ci.cell_outer_color.b / 255.f, 1.f };
+        const ImVec4 dot = { outer.r / 255.f,
+                             outer.g / 255.f,
+                             outer.b / 255.f, 1.f };
         ImGui::PushStyleColor(ImGuiCol_Text, dot);
         ImGui::Text("●");
         ImGui::PopStyleColor();
@@ -208,14 +209,14 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const Protozoa& p)
         for (int i = 0; i < (int)springs.size(); ++i)
         {
             const Spring& si = springs[i];
-            if (si.broken) ImGui::PushStyleColor(ImGuiCol_Text, { 1.f, 0.3f, 0.3f, 1.f });
+            //if (si.broken) ImGui::PushStyleColor(ImGuiCol_Text, { 1.f, 0.3f, 0.3f, 1.f });
             char lbl[32]; snprintf(lbl, sizeof(lbl), "%d->%d##sp%d", si.cell_A_id, si.cell_B_id, i);
             if (ImGui::Selectable(lbl, m_sel_is_spring_ && m_sel_spring_idx_ == i))
             {
                 m_sel_spring_idx_ = i;
                 m_sel_is_spring_ = true;
             }
-            if (si.broken) ImGui::PopStyleColor();
+            //if (si.broken) ImGui::PopStyleColor();
         }
     }
 
@@ -288,11 +289,14 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Protozoa& p, const C
     colored_progress(fric, fc, "", { -1.f, 5.f });
 
     // Color swatches + radius slider
+    sf::Color outer = c.get_outer_color();
+	sf::Color inner = c.get_inner_color();
+
     ImGui::Spacing();
-    const ImVec4 oc = { c.cell_outer_color.r / 255.f, c.cell_outer_color.g / 255.f,
-                        c.cell_outer_color.b / 255.f, c.cell_outer_color.a / 255.f };
-    const ImVec4 ic = { c.cell_inner_color.r / 255.f, c.cell_inner_color.g / 255.f,
-                        c.cell_inner_color.b / 255.f, c.cell_inner_color.a / 255.f };
+    const ImVec4 oc = { outer.r / 255.f, outer.g / 255.f,
+                        outer.b / 255.f, outer.a / 255.f };
+    const ImVec4 ic = { inner.r / 255.f, inner.g / 255.f,
+                        inner.b / 255.f, inner.a / 255.f };
     ImGui::ColorButton("##cout", oc, 0, { 26.f, 13.f }); ImGui::SameLine(); ImGui::Text("Out");
     ImGui::SameLine(0, 10.f);
     ImGui::ColorButton("##cin", ic, 0, { 26.f, 13.f }); ImGui::SameLine(); ImGui::Text("In");
@@ -345,21 +349,19 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const Protozoa& p, const
     float ext_min, ext_max;
     wave_range(s.amplitude, s.vertical_shift, 0.f, 1.f, ext_min, ext_max);
 
-    const float ma = s.direction_A_force.length();
-    const float mb = s.direction_B_force.length();
 
     // ── Stats ─────────────────────────────────────────────────────────────
     ImGui::BeginChild("SL_stat", { 230.f, -1.f }, true);
 
     ImGui::TextDisabled("Spring %d->%d", s.cell_A_id, s.cell_B_id);
-    if (s.broken)
-    {
-        ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Text, { 1.f, 0.3f, 0.3f, 1.f });
-        ImGui::Text("[BROKEN]");
-        ImGui::PopStyleColor();
-    }
-    ImGui::Text("Rest length  %.3f", s.spring_length);
+    //if (s.broken)
+    //{
+    //    ImGui::SameLine();
+    //    ImGui::PushStyleColor(ImGuiCol_Text, { 1.f, 0.3f, 0.3f, 1.f });
+    //    ImGui::Text("[BROKEN]");
+    //    ImGui::PopStyleColor();
+    //}
+    //ImGui::Text("Rest length  %.3f", s.spring_length);
     ImGui::Text("Period       %d fr", period);
     ImGui::Text("Ext min      %.3f  max %.3f", ext_min, ext_max);
     ImGui::Text("Gen          %d", s.generation);
@@ -367,13 +369,13 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const Protozoa& p, const
 
     ImGui::Spacing();
     ImGui::TextDisabled("Forces");
-    ImGui::Text("A (%.2f, %.2f)  |%.3f|", s.direction_A_force.x, s.direction_A_force.y, ma);
-    ImGui::Text("B (%.2f, %.2f)  |%.3f|", s.direction_B_force.x, s.direction_B_force.y, mb);
+    //ImGui::Text("A (%.2f, %.2f)  |%.3f|", s.direction_A_force.x, s.direction_A_force.y, ma);
+    //ImGui::Text("B (%.2f, %.2f)  |%.3f|", s.direction_B_force.x, s.direction_B_force.y, mb);
     const float force_scale = SpringGenome::max_spring_const > 0.f
         ? 1.f / SpringGenome::max_spring_const : 1.f;
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, { 0.4f, 0.8f, 1.f, 1.f });
-    ImGui::ProgressBar(std::clamp(ma * force_scale, 0.f, 1.f), { -1.f, 4.f }, "");
-    ImGui::ProgressBar(std::clamp(mb * force_scale, 0.f, 1.f), { -1.f, 4.f }, "");
+    //ImGui::ProgressBar(std::clamp(ma * force_scale, 0.f, 1.f), { -1.f, 4.f }, "");
+    //ImGui::ProgressBar(std::clamp(mb * force_scale, 0.f, 1.f), { -1.f, 4.f }, "");
     ImGui::PopStyleColor();
 
 	float fake_value = 0.f; // todo

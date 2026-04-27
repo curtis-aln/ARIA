@@ -109,7 +109,7 @@ void World::update_cells_in_grid_cell(const int grid_cell_id, FixedSpan<uint32_t
 }
 
 
-void World::update_nearby_container(int32_t neighbour_index_x, int32_t neighbour_index_y, FixedSpan<uint32_t>& nearby_ids)
+void World::update_nearby_container(const int32_t neighbour_index_x, const int32_t neighbour_index_y, FixedSpan<uint32_t>& nearby_ids)
 {
 	// Out of bounds check, no wrapping needed
 	if (neighbour_index_x < 0 || neighbour_index_x >= static_cast<int>(spatial_hash_grid_.CellsX) ||

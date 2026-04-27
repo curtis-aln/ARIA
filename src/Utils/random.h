@@ -23,6 +23,8 @@ namespace Random
     inline int   rand01_int() { return int01_dist(rng); }
     inline int   rand11_int() { return int11_dist(rng); }
 
+
+
     // more complex random generation. specified ranges
     template <typename Type>
     Type rand_range(const Type min, const Type max)
@@ -45,6 +47,8 @@ namespace Random
             return min + t * (max - min);
         }
     }
+
+    inline uint8_t rand_byte() { return static_cast<uint8_t>(rand_range(0, 255)); }
 
     template <typename Type>
     Type rand_val_in_vector(const std::vector<Type>& vector)
@@ -105,4 +109,6 @@ namespace Random
     {
         return rng;
     }
+
+    
 }

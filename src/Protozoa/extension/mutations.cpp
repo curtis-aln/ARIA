@@ -38,47 +38,14 @@ void Protozoa::mutate(const bool artificial_add_cell, const float artificial_mut
 
 void Protozoa::mutate_existing_cells(float mut_rate, float mut_range)
 {
-
     for (Cell& cell : m_cells_)
-    {
         cell.mutate(mut_rate, mut_range);
-
-        cell.cell_inner_color = mutate_color(cell.cell_inner_color, cell.colour_mutation_range);
-        cell.cell_outer_color = mutate_color(cell.cell_outer_color, cell.colour_mutation_range);
-
-    }
 }
 
 void Protozoa::mutate_existing_springs(float mut_rate, float mut_range)
 {
-    auto chance = [](float rate) { return Random::rand01_float() < rate; };
-    auto rand_sym = [](float range) { return Random::rand_range(-range, range); };
-
     for (Spring& spring : m_springs_)
-    {
-        // if the defualt mr is zero we set it t othe cells mr
-        mut_rate = (mut_rate == 0.f) ? spring.mutation_rate : mut_rate;
-        mut_range = (mut_range == 0.f) ? spring.mutation_range : mut_range;
-
-        spring.amplitude += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-        spring.frequency += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-        spring.offset += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-        spring.vertical_shift += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-
-        spring.spring_const += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-        spring.damping += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-
-        spring.mutation_range += chance(spring.mutation_rate_rate) ? rand_sym(spring.mutation_rate_range) : 0.f;
-        spring.mutation_rate += chance(spring.mutation_rate_rate) ? rand_sym(spring.mutation_rate_range) : 0.f;
-
-        // handle clamping of the params
-		spring.spring_const = std::clamp(spring.spring_const, 0.f, spring.max_spring_const);
-		spring.damping = std::clamp(spring.damping, 0.f, spring.max_damping);
-        spring.amplitude = std::clamp(spring.amplitude, 0.f, spring.max_amplitude);
-		spring.frequency = std::clamp(spring.frequency, -spring.max_frequency, spring.max_frequency);
-		spring.offset = std::clamp(spring.offset, -spring.max_offset, spring.max_offset);
-		spring.vertical_shift = std::clamp(spring.vertical_shift, -spring.max_vertical_shift, spring.max_vertical_shift);
-    }
+        spring.mutate(mut_rate, mut_range);
 }
 
 

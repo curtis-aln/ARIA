@@ -19,6 +19,7 @@ class o_vector
 public:
     // this tracks the amount of objects there are active
     int active_objs = 0;
+    int resize_buffering = 300; // if the array is full, we add this amount of empty slots to the end of the array 
 
 private:
     // this array contains all the items and is never directly modified
@@ -98,6 +99,45 @@ public:
         free_list.push_back(-1);
         ++array_size;
         ++active_objs;
+    }
+
+    void smart_resize()
+    {
+        // Grow when almost full
+        if (free_count < resize_buffering / 2)
+        {
+            const uint32_t old_size = array_size;
+            objectStore.reserve(objectStore.size() + resize_buffering);
+            for (int i = 0; i < resize_buffering; ++i)
+            {
+                objectStore.emplace_back();
+                array.push_back(&objectStore.back());
+                free_list.push_back(old_size + i);
+                ++free_count;
+            }
+            array_size += resize_buffering;
+        }
+
+        // Shrink when too much slack — only trim inactive tail slots
+        else if (free_count > resize_buffering * 2)
+        {
+            int trimmed = 0;
+            while (trimmed < resize_buffering && array_size > 0 && !array[array_size - 1]->active)
+            {
+                array.pop_back();
+                --array_size;
+                // remove the corresponding entry from free_list
+                for (int i = 0; i < free_count; ++i)
+                {
+                    if (free_list[i] == array_size)
+                    {
+                        free_list[i] = free_list[--free_count];
+                        break;
+                    }
+                }
+                ++trimmed;
+            }
+        }
     }
 
 

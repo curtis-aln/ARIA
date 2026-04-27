@@ -33,6 +33,9 @@ struct Cell : public CellGenome
 		
 	}
 
+	sf::Color get_outer_color() const { return { outer_r, outer_g, outer_b, transparency }; }
+	sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, transparency }; }
+
 	void reset()
 	{
 		generation = 0;
@@ -42,18 +45,18 @@ struct Cell : public CellGenome
 		food_eaten = 0;
 	}
 
-	void eat(Food* food)
+	void eat(const float nutrients)
 	{
-		nutrients_eaten += food->nutrients;
+		nutrients_eaten += nutrients;
 		time_since_last_ate = 0;
 		++food_eaten;
 	}
 
-	bool consume_food_check(Food* food)
+	static bool consume_food_check(const Cell& cell, const Food* food)
 	{
 		sf::Vector2f food_pos = food->position;
-		const float distance_sq = (food_pos - position_).lengthSquared();
-		const float rad = radius + FoodSettings::food_radius;
+		const float distance_sq = (food_pos - cell.position_).lengthSquared();
+		const float rad = cell.radius + FoodSettings::food_radius;
 
 		if (distance_sq > rad * rad)
 			return false;
@@ -65,7 +68,6 @@ struct Cell : public CellGenome
 	{
 		time_since_last_ate++;
 		// updating velocity and position vectors
-		//clamp_velocity(); todo: just gonna see what happens if we dont clamp vel
 
 		sinwave_current_friction_ = amplitude * sinf(frequency * internal_clock + offset) + vertical_shift;
 
@@ -108,14 +110,14 @@ struct Cell : public CellGenome
 
 
 private:
-	void clamp_velocity()
+	static void clamp_velocity(sf::Vector2f& velocity)
 	{
-		const float speed_squared = velocity_.x * velocity_.x + velocity_.y * velocity_.y;
+		const float speed_squared = velocity.x * velocity.x + velocity.y * velocity.y;
 
 		if (speed_squared > WorldSettings::max_speed * WorldSettings::max_speed)
 		{
 			const float speed = sqrt(speed_squared);
-			velocity_ *= WorldSettings::max_speed / speed;
+			velocity *= WorldSettings::max_speed / speed;
 		}
 	}
 };

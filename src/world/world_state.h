@@ -86,7 +86,7 @@ struct RenderData
     alignas(64) std::vector<float>        radii;
     int                       entity_count = 0;
 
-    void reserve(int max_cells)
+    void reserve(const int max_cells)
     {
         positions_x.resize(max_cells);
         positions_y.resize(max_cells);

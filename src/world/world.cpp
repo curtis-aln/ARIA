@@ -8,7 +8,7 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{100};
 
 World::World(sf::RenderWindow* window)
     : m_window_(window),
-    world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center))
+	world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center)), ProtozoaManager(m_window_)
 {
     claim_buffer.reserve(FoodSettings::max_food);
 
@@ -34,7 +34,7 @@ World::World(sf::RenderWindow* window)
     outer_circle_renderer_.set_radii(&inner_radii_);
 }
 
-void World::render(Font* font, sf::Vector2f mouse_pos)
+void World::render(Font* font, const sf::Vector2f mouse_pos)
 {
     if (toggles.draw_cell_grid)
         cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
@@ -67,7 +67,7 @@ void World::render_protozoa(Font* font)
 
     if (selected_protozoa_ != nullptr && toggles.debug_mode)
     {
-        selected_protozoa_->render_debug(font, toggles.skeleton_mode,
+        render_debug(selected_protozoa_, font, toggles.skeleton_mode,
             toggles.show_connections,
             toggles.show_bounding_boxes);
     }
@@ -79,7 +79,7 @@ void World::render_protozoa(Font* font)
 void World::init_organisms()
 {
     for (int i = 0; i < max_protozoa; ++i)
-        all_protozoa_.emplace({ i, &world_circular_bounds_, m_window_ });
+        all_protozoa_.emplace({ i });
 
     for (int i = initial_protozoa; i < max_protozoa; ++i)
     {
@@ -96,7 +96,9 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
     for (Protozoa* protozoa : all_protozoa_)
     {
-        if (protozoa->check_mouse_press(mouse_position, true) != -1)
+		sf::Rect<float> bounds = calc_protozoa_bounds(protozoa);
+		bool in_bounds = bounds.contains(mouse_position);
+        if (in_bounds)
         {
             selected_protozoa_ = protozoa;
             return true;
@@ -232,4 +234,21 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 		advanced_grid_data(get_food_spatial_grid(), snapshot.food_grid);
         advanced_grid_data(get_spatial_grid(), snapshot.cell_grid);
 	}
+}
+
+sf::Rect<float> World::calc_protozoa_bounds(Protozoa* protozoa)
+{
+    sf::Rect<float> bounds;
+    for (const Cell& cell : protozoa->get_cells())
+    {
+        if (cell.position_.x < bounds.position.x)
+            bounds.position.x = cell.position_.x;
+        if (cell.position_.y < bounds.position.y)
+            bounds.position.y = cell.position_.y;
+        if (cell.position_.x > bounds.position.x + bounds.size.x)
+            bounds.size.x = cell.position_.x - bounds.position.x;
+        if (cell.position_.y > bounds.position.y + bounds.size.y)
+            bounds.size.y = cell.position_.y - bounds.position.y;
+    }
+    return bounds;
 }

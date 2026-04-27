@@ -17,7 +17,7 @@ public:
     FoodClaimBuffer(const FoodClaimBuffer&) = delete;
     FoodClaimBuffer& operator=(const FoodClaimBuffer&) = delete;
 
-    void reserve(int n)
+    void reserve(const int n)
     {
         if (n <= capacity_)
             return;
@@ -26,7 +26,7 @@ public:
     }
 
     // Call once per frame before the parallel food phase
-    void reset(int active_count)
+    void reset(const int active_count)
     {
         if (active_count > capacity_)
             reserve(active_count * 2);  // grow with headroom
@@ -37,7 +37,7 @@ public:
 
     // Returns true if this thread claimed the slot.
     // Uses a real atomic CAS so it is safe across threads.
-    [[nodiscard]] bool claim(int index)
+    [[nodiscard]] bool claim(const int index)
     {
         // Cast to atomic for the CAS without storing atomic in the array.
         // This is valid on x86/x64 for naturally-aligned bytes.
@@ -49,7 +49,7 @@ public:
             std::memory_order_relaxed);
     }
 
-    [[nodiscard]] bool is_claimed(int index) const
+    [[nodiscard]] bool is_claimed(const int index) const
     {
         return flags_[index] != 0;
     }

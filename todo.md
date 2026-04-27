@@ -123,3 +123,9 @@ chanegd ints to smaller types like int8 in the protozoa class
 
 removed more redundent code in the protozoa class
 554 iters
+
+removed redundant spring data and the genome class
+580 iters
+
+removed the rendering from the protozoa and moevd it to protozoa manager
+597 iters

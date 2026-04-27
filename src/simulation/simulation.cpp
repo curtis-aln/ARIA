@@ -205,7 +205,7 @@ void Simulation::camera_follow_selected_protozoa()
     if (selected == nullptr)
         return;
 
-    const sf::Rect<float> bounds = selected->get_bounds();
+    const sf::Rect<float> bounds = m_world_.calc_protozoa_bounds(selected);
     const sf::Vector2f    target = bounds.position + bounds.size / 2.f;
     const sf::Vector2f    current = camera_.m_view_.getCenter();
 

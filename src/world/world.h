@@ -100,6 +100,7 @@ public:
     void advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data);
 
     void fill_snapshot(SimSnapshot& snapshot);
+    static sf::Rect<float> calc_protozoa_bounds(Protozoa* protozoa);
 
     // ── Render data getters — read by renderer from snapshot ─────────────────
     const std::vector<float>& get_positions_x()    const { return render_data_.positions_x; }

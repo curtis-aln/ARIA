@@ -28,6 +28,8 @@ void World::update()
 
 	update_all_protozoa(food_manager_, toggles.debug_mode, toggles.min_speed,
 		toggles.track_statistics, toggles.toggle_collisions);
+
+
 }
 
 
@@ -62,8 +64,8 @@ void World::update_position_container()
 		{
 			cell.bound(world_circular_bounds_);
 
-			render_data_.outer_colors[idx] = cell.cell_outer_color;
-			render_data_.inner_colors[idx] = cell.cell_inner_color;
+			render_data_.outer_colors[idx] = cell.get_outer_color();
+			render_data_.inner_colors[idx] = cell.get_inner_color();
 			render_data_.positions_x[idx] = cell.position_.x;
 			render_data_.positions_y[idx] = cell.position_.y;
 			render_data_.radii[idx] = cell.radius;

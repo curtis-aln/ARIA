@@ -1,8 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include <SFML/Graphics/Color.hpp>
-
 #include "../../Utils/random.h"
 
 
@@ -49,8 +47,12 @@ struct CellGenome : HardConstants
 
     float radius = 90.f;
 
-    sf::Color cell_outer_color = Random::rand_color();
-    sf::Color cell_inner_color = Random::rand_color();
+    uint8_t outer_r = Random::rand_byte();
+    uint8_t outer_g = Random::rand_byte();
+    uint8_t outer_b = Random::rand_byte();
+    uint8_t inner_r = Random::rand_byte();
+    uint8_t inner_g = Random::rand_byte();
+    uint8_t inner_b = Random::rand_byte();
 
     float amplitude = 0.3f;
     float frequency = 1.f / 120.f;
@@ -59,8 +61,7 @@ struct CellGenome : HardConstants
 
     CellGenome()
     {
-        cell_outer_color.a = transparency;
-        cell_inner_color.a = transparency;
+     
     }
 
     void Randomize(const float deviation)
@@ -77,8 +78,8 @@ struct CellGenome : HardConstants
         offset = mutate(offset, GeneticConstraints::offset); 
         vertical_shift = mutate(vertical_shift, GeneticConstraints::vertical_shift);
 
-        cell_outer_color = Random::rand_color();
-        cell_inner_color = Random::rand_color();
+        outer_r = Random::rand_byte(); outer_g = Random::rand_byte(); outer_b = Random::rand_byte();
+        inner_r = Random::rand_byte(); inner_g = Random::rand_byte(); inner_b = Random::rand_byte();
     }
 
     void mutate(float mutation_rate_ = 0.f, float mutation_range_ = 0.f)
@@ -102,5 +103,16 @@ struct CellGenome : HardConstants
         auto rand_sym = [](float range) { return Random::rand_range(-range, range); };
         mutation_rate += rand_sym(mutation_rate_range) * chance(mutation_rate_rate);
         mutation_range += rand_sym(mutation_rate_range) * chance(mutation_rate_rate);
+
+        auto mutate_channel = [](uint8_t ch, float range) -> uint8_t {
+            const int delta = static_cast<int>(Random::rand_range(-range * 255.f, range * 255.f));
+            return static_cast<uint8_t>(std::clamp(static_cast<int>(ch) + delta, 0, 255));
+            };
+        outer_r = mutate_channel(outer_r, colour_mutation_range);
+        outer_g = mutate_channel(outer_g, colour_mutation_range);
+        outer_b = mutate_channel(outer_b, colour_mutation_range);
+        inner_r = mutate_channel(inner_r, colour_mutation_range);
+        inner_g = mutate_channel(inner_g, colour_mutation_range);
+        inner_b = mutate_channel(inner_b, colour_mutation_range);
     }
 };

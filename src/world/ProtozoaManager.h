@@ -7,6 +7,8 @@
 class ProtozoaManager : protected WorldSettings
 {
 public:
+	sf::RenderWindow* m_window_ = nullptr;
+
 	o_vector<Protozoa> all_protozoa_;
 
 	uint16_t   longest_lived_ever_ = 0;
@@ -38,7 +40,7 @@ public:
 
 
 
-	ProtozoaManager() : all_protozoa_(max_protozoa)
+	ProtozoaManager(sf::RenderWindow* window) : m_window_(window), all_protozoa_(max_protozoa)
 	{
 
 	}
@@ -78,33 +80,46 @@ public:
 		}
 	}
 
+	void render_protozoa_springs(Protozoa* protozoa);
+	void render_debug(Protozoa* protozoa, Font* font, bool skeleton_mode, bool show_connections,
+	                  bool show_bounding_boxes);
+	void draw_cell_outlines(Protozoa* protozoa);
+	void nearby_food_information(Protozoa* protozoa) const;
+	void render_cell_connections(Protozoa* protozoa, Cell& cell, bool thick_lines) const;
+	void draw_cell_physics(Protozoa* protozoa, Font* font);
+	void draw_spring_information(Protozoa* protozoa, Font* font) const;
+	int check_mouse_press(Protozoa* protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
+	Cell* get_selected_cell(Protozoa* protozoa, sf::Vector2f mouse_pos);
+
 	inline static constexpr int max_evolutionary_iterations = 5;
 	inline static constexpr int desired_cell_count = 4;
 
 
-	Protozoa* find_protozoa_by_id(int id)
+	Protozoa* find_protozoa_by_id(const int id)
 	{
 		return all_protozoa_.at(id);
 	}
 
 
-	void create_offspring(Protozoa* parent, bool should_mutate = true)
+	void create_offspring(Protozoa* parent, const bool should_mutate = true)
 	{
 		Protozoa* offspring = get_unallocated_protozoa();
 		offspring->create_offspring(parent, should_mutate);
 	}
 
 protected:
-	inline void generate_protozoa(Protozoa& protozoa, Circle& world_bounds, bool emplace_back = true)
+	static inline void generate_protozoa(Protozoa& protozoa, const Circle& world_bounds, bool emplace_back = true)
 	{
-		if (protozoa.get_cells().size() > 0)
+		if (!protozoa.get_cells().empty())
 		{
 			std::cout << "[WARNING]: Protozoa already has cells, generation process may produce unexpected results.\n";
 		}
 
 		// we dont need to create protozoas for the "first time" during extinction or reset events
 		protozoa.hard_reset();
-		protozoa.init_one_cell();
+
+		sf::Vector2f pos = world_bounds.rand_pos();
+		protozoa.init_one_cell(pos);
 		
 
 
@@ -118,15 +133,13 @@ protected:
 			if (cell_count < desired_cell_count)
 				continue;
 			
-			float break_chance = float(cell_count - desired_cell_count) / float(max_evolutionary_iterations - desired_cell_count);
+			float break_chance = static_cast<float>(cell_count - desired_cell_count) / float(max_evolutionary_iterations - desired_cell_count);
 			if (Random::rand01_float() < break_chance)
 				break;
 		}
-
-		protozoa.bound_cells();
 	}
 
-	void update_all_protozoa(FoodManager& food_manager_, bool debug_mode, float min_speed, bool track_statistics, bool collisions)
+	void update_all_protozoa(FoodManager& food_manager_, const bool debug_mode, const float min_speed, const bool track_statistics, bool collisions)
 	{
 
 		std::vector<int> reproduce_indexes{};
@@ -134,7 +147,7 @@ protected:
 
 		for (Protozoa* protozoa : all_protozoa_)
 		{
-			protozoa->update(food_manager_, debug_mode, min_speed);
+			protozoa->update();
 
 			if (!protozoa->is_alive())
 			{
@@ -156,6 +169,7 @@ protected:
 			if (track_statistics)
 				register_birth_stat();
 		}
+
 	}
 	
 
@@ -165,7 +179,10 @@ protected:
 		
 		for (Protozoa* protozoa : all_protozoa_)
 		{
-			protozoa->resolve_collisions(collision_resolutions, idx);
+			for (auto& cell : protozoa->get_cells())
+			{
+				cell.position_ += collision_resolutions[idx++];
+			}
 		}
 #
 	}
@@ -205,7 +222,7 @@ protected:
 		
 	}
 
-	void register_death_stat(float lifetime, bool had_offspring)
+	void register_death_stat(const float lifetime, const bool had_offspring)
 	{
 		recent_lifetimes_.push_back(lifetime);
 		if (recent_lifetimes_.size() > max_lifetime_samples_)
