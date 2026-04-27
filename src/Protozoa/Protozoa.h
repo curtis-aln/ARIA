@@ -25,19 +25,14 @@ public:
 	bool active = true; // for o_vector.h
 
 	// statistics informaiton
-	size_t time_since_last_reproduced = 0;
+	uint8_t time_since_last_reproduced = 0;
 	sf::Vector2f birth_location = { 0, 0 };
 
 	float energy_lost_to_springs = 0.f;
-	int offspring_count = 0;
-	unsigned frames_alive = 0u;
-	unsigned total_food_eaten = 0;
 
-	sf::Vector2f previous_position = { 0, 0 };
-	sf::Vector2f velocity = { 0, 0 };
-
-	std::vector<sf::Vector2f> food_positions_nearby{};
-	std::vector<sf::Vector2f> cell_positions_nearby{};
+	uint8_t offspring_count = 0;
+	uint16_t frames_alive = 0u;
+	uint8_t total_food_eaten = 0;
 
 private:
 	sf::RenderWindow* m_window_ = nullptr;
@@ -47,12 +42,9 @@ private:
 	std::vector<Cell> m_cells_{};
 	std::vector<Spring> m_springs_{};	
 
-	// reproduction related parameters
-	FixedSpan<obj_idx> nearby_food_container{
-	static_cast<std::uint8_t>(FoodSettings::cell_max_capacity * 9)};
 
-	unsigned stomach = 0;
-	float energy = ProtozoaSettings::initial_energy;
+	uint8_t stomach = 0;
+	float energy = initial_energy;
 	
 	// calculated params
 	sf::Rect<float> m_personal_bounds_{};

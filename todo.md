@@ -47,6 +47,7 @@
   can be modified by the user. if the gravitational pull is negative it becomes a white hole which pushes things away instead of pulling them in
 - Add wind Currents Using a grid of vectors which can be queried by the cells and food.
 - Add Obsticals which are a collection of circles and a grid to allow cells and food to query it.
+- Track velocity, and previous position outside of the protozoa class
 
 -----------------------------------------------------------------------
 
@@ -113,3 +114,12 @@ error proofed it
 changing the max protozoa (todo: make this more dynamic)
 459 iters
 437 adjusted
+
+making the spatial hash grid 1d
+480 iters
+
+chanegd ints to smaller types like int8 in the protozoa class
+504 iters
+
+removed more redundent code in the protozoa class
+554 iters

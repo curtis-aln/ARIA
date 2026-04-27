@@ -104,9 +104,9 @@ void OrganismTab::draw_overview(const Protozoa& p)
     ImGui::NextColumn();
 
     ImGui::TextDisabled("Locomotion");
-    ImGui::Text("Speed %.4f", p.velocity.length());
-    ImGui::Text("Vel X %.3f", p.velocity.x);
-    ImGui::Text("Vel Y %.3f", p.velocity.y);
+    //ImGui::Text("Speed %.4f", p.velocity.length());
+    //ImGui::Text("Vel X %.3f", p.velocity.x);
+    //ImGui::Text("Vel Y %.3f", p.velocity.y);
     ImGui::Spacing();
     ImGui::TextDisabled("Offspring");
     ImGui::Text("Count %d", p.offspring_count);

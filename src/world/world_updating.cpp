@@ -69,7 +69,6 @@ void World::update_position_container()
 			render_data_.radii[idx] = cell.radius;
 
 			cell_pointers_[idx] = &cell;
-			cell.colliding_with_ = cell.position_;
 			collision_resolutions[idx] = { 0.f, 0.f };  // zeroed inline
 
 			spatial_hash_grid_.add_object(cell.position_.x, cell.position_.y, idx);

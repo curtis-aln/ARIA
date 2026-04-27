@@ -88,7 +88,7 @@ void Protozoa::add_cell()
 		return;
 
     // finding the parent which will undergo mitosis
-    const int parent_index = Random::rand_range(size_t(0), m_cells_.size() - 1);
+    const uint8_t parent_index = Random::rand_range(uint8_t(0), static_cast<uint8_t>(m_cells_.size() - 1));
     const Cell& parent = m_cells_[parent_index];
 
     sf::FloatRect spawn_area = {
@@ -106,7 +106,7 @@ void Protozoa::add_cell()
     m_cells_.push_back(child);
 
     // creating a spring connection to that cell
-    const auto spring_id = static_cast<int>(m_springs_.size());
+    const auto spring_id = static_cast<uint8_t>(m_springs_.size());
     Spring new_spring{ spring_id, parent_index, child.id };
     m_springs_.push_back(new_spring);
 }

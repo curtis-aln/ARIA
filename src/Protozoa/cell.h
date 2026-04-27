@@ -16,24 +16,18 @@
 struct Cell : public CellGenome
 {
 	// The Cell ID is used when referencing the cell inside the protozoa, and identifying its genome
-	int id{}; 
+	uint8_t id{}; 
 
 	float sinwave_current_friction_ = 0.f;
-	size_t time_since_last_ate = 0;
+	uint16_t time_since_last_ate = 0;
 
 	float nutrients_eaten = 0.f; // The amount of nutrients this cell in particular has eaten
-	int food_eaten = 0;
+	uint8_t food_eaten = 0;
 
 	sf::Vector2f position_{};
 	sf::Vector2f velocity_{};
 
-	// debugging
-	sf::Vector2f collision_resolution_vector_{};
-	sf::Vector2f colliding_with_ = position_;
-	sf::Vector2i collision_ids{ -1, -1 };
-
-
-	Cell(const int _id, const sf::Vector2f position)
+	Cell(const uint32_t _id, const sf::Vector2f position)
 		: id(_id), position_(position), CellGenome()
 	{
 		

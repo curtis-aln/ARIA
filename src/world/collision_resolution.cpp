@@ -2,35 +2,49 @@
 
 void World::init_collision_jobs()
 {
-	const int total = spatial_hash_grid_.CellsX * spatial_hash_grid_.CellsY;
-	const int chunk = std::max(1, (total + updating_threads - 1) / updating_threads);
-
+	build_color_groups();
 	collision_jobs_.clear();
-	collision_jobs_.reserve(updating_threads);
 
-	for (int t = 0; t < updating_threads; ++t)
+	// Build jobs grouped by colour, threads within each colour run in parallel
+	for (auto& group : collision_color_groups)
 	{
-		const int begin = t * chunk;
-		if (begin >= total) break;
-		const int end = std::min(begin + chunk, total);
+		const int group_size = static_cast<int>(group.size());
+		const int chunk = std::max(1, (group_size + updating_threads - 1) / updating_threads);
 
-		collision_jobs_.push_back([this, begin, end]
-			{
-				for (int cell_id = begin; cell_id < end; ++cell_id)
-					update_cells_in_grid_cell(cell_id, tl_nearby_ids);
-			});
+		colour_job_boundaries_.push_back(static_cast<int>(collision_jobs_.size()));
+
+		for (int t = 0; t < updating_threads; ++t)
+		{
+			const int begin = t * chunk;
+			if (begin >= group_size) break;
+			const int end = std::min(begin + chunk, group_size);
+
+			collision_jobs_.push_back([this, &group, begin, end]
+				{
+					thread_local FixedSpan<uint32_t> local_nearby_ids = tl_nearby_ids;
+					for (int i = begin; i < end; ++i)
+						update_cells_in_grid_cell(group[i], local_nearby_ids);
+				});
+		}
 	}
-
-	collision_thread_pool_.assign_jobs(collision_jobs_);
+	colour_job_boundaries_.push_back(static_cast<int>(collision_jobs_.size())); // sentinel
 }
+
 
 void World::resolve_collisions_threaded()
 {
-	if (!toggles.toggle_collisions)
-		return;
+	if (!toggles.toggle_collisions) return;
 
-	collision_thread_pool_.run_and_wait();
+	for (int c = 0; c < static_cast<int>(colour_job_boundaries_.size()) - 1; ++c)
+	{
+		const int begin = colour_job_boundaries_[c];
+		const int end = colour_job_boundaries_[c + 1];
+		collision_thread_pool_.assign_jobs({ collision_jobs_.begin() + begin,
+											 collision_jobs_.begin() + end });
+		collision_thread_pool_.run_and_wait();
+	}
 }
+
 
 void World::resolve_collisions()
 {
@@ -84,8 +98,9 @@ void World::update_cells_in_grid_cell(const int grid_cell_id, FixedSpan<uint32_t
 	update_nearby_container(cell_index_x + 1, cell_index_y - 1, nearby_ids);
 
 
-	const auto& cell_contents = spatial_hash_grid_.grid[grid_cell_id];
 	const uint8_t cell_size = spatial_hash_grid_.cell_capacities[grid_cell_id];
+
+	const obj_idx* cell_contents = &spatial_hash_grid_.grid[grid_cell_id * spatial_hash_grid_.cell_max_capacity];
 
 	for (uint8_t idx = 0; idx < cell_size; ++idx)
 	{
@@ -102,14 +117,12 @@ void World::update_nearby_container(int32_t neighbour_index_x, int32_t neighbour
 		return;
 
 	const uint32_t neighbour_index = neighbour_index_y * spatial_hash_grid_.CellsX + neighbour_index_x;
-	const auto& contents = spatial_hash_grid_.grid[neighbour_index];
 	const uint8_t size = spatial_hash_grid_.cell_capacities[neighbour_index];
 
 
+	const auto* contents = &spatial_hash_grid_.grid[neighbour_index * spatial_hash_grid_.cell_max_capacity];
 	for (uint8_t idx = 0; idx < size; ++idx)
-	{
 		nearby_ids.add(contents[idx]);
-	}
 }
 
 void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids)
@@ -148,7 +161,6 @@ void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<
 
 		// Move the cells apart
 		collision_resolutions[protozoa_cell_index] = collisionNormal * (overlap * 0.5f);
-		collision_resolutions[id] = -collisionNormal * (overlap * 0.5f);
 	}
 }
 

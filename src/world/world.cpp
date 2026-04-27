@@ -72,8 +72,8 @@ void World::render_protozoa(Font* font)
             toggles.show_bounding_boxes);
     }
 
-    for (Protozoa* protozoa : all_protozoa_)
-        protozoa->cell_positions_nearby.clear();
+   // for (Protozoa* protozoa : all_protozoa_)
+   //     protozoa->cell_positions_nearby.clear();
 }
 
 void World::init_organisms()

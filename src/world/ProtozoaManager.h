@@ -9,8 +9,8 @@ class ProtozoaManager : protected WorldSettings
 public:
 	o_vector<Protozoa> all_protozoa_;
 
-	int   longest_lived_ever_ = 0;
-	int   most_offspring_ever_ = 0;
+	uint16_t   longest_lived_ever_ = 0;
+	uint8_t   most_offspring_ever_ = 0;
 	float infant_mortality_rate_ = 0.f;
 	int   total_deaths_ = 0;
 	int   infant_deaths_ = 0;
@@ -221,7 +221,7 @@ protected:
 		infant_mortality_rate_ = total_deaths_ > 0
 			? static_cast<float>(infant_deaths_) / total_deaths_ : 0.f;
 
-		longest_lived_ever_ = std::max(static_cast<int>(lifetime), longest_lived_ever_);
+		longest_lived_ever_ = std::max(static_cast<uint16_t>(lifetime), longest_lived_ever_);
 	}
 
 	void register_birth_stat()

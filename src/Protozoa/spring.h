@@ -8,12 +8,12 @@
 
 struct Spring : public SpringGenome
 {
-	// we store the id's of the cells here so whe we call update in the main class we know where to look for the cells
-	int cell_A_id{};
-	int cell_B_id{};
+	// we store the id's of the cells here so whe we call update in the main class we know where to look for the cells, relative to the protozoa
+	uint8_t cell_A_id{};
+	uint8_t cell_B_id{};
 
 	// unique spring ID, used for genome referencing, must not change during the spring's lifetime
-	int id{};
+	uint8_t id{};
 
 	// for debugging
 	sf::Vector2f direction_A_force{};
@@ -21,9 +21,8 @@ struct Spring : public SpringGenome
 	float spring_length{};
 
 	bool broken = false;
-	
 
-	Spring(const int _id, const int _cell_A_id, const int _cell_B_id)
+	Spring(const uint8_t _id, const uint8_t _cell_A_id, const uint8_t _cell_B_id)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id(_id), SpringGenome()
 	{
 

@@ -55,11 +55,13 @@ void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby
 	food_grid->find_from_index(cell_id, &nearby_food);
 
 	// now we get all the cells in the same cell grid
-	const auto& cell_contents = spatial_hash_grid_.grid[cell_id];
+	const obj_idx* cell_contents = &spatial_hash_grid_.grid[cell_id * spatial_hash_grid_.cell_max_capacity];
 	const int cell_size = spatial_hash_grid_.cell_capacities[cell_id];
 
 	for (int idx = 0; idx < cell_size; ++idx)
 	{
+		// After
+		
 		Cell* cell = cell_pointers_[cell_contents[idx]];
 
 		for (int i = 0; i < nearby_food.count; ++i)

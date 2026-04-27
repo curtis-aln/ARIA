@@ -51,6 +51,8 @@ class World : public ProtozoaManager
     static thread_local FixedSpan<uint32_t> tl_nearby_ids;
     static thread_local FixedSpan<obj_idx> tl_nearby_food;
 
+    std::vector<int> colour_job_boundaries_;
+
     // Statistics accumulated each tick by the update thread.
     WorldStatistics statistics_{};
 

@@ -3,19 +3,10 @@
 #include <vector>
 
 
-/*
-- Optimize iterator implementation for better performance, possibly by caching the last active index.
-- Implement boundary checks in the at method for safer object retrieval.
-- Enhance the efficiency of adding and removing objects, possibly by avoiding linear searches.
-- Consider alternative data structures such as linked lists or hash maps for better performance with large datasets.
-- Improve error handling to provide more informative feedback in cases of container overflow or other errors.
- */
-
-
  // add this as a public parent struct to the Obj class/structure
 struct o_vec_object
 {
-    unsigned o_vec_index = 0;
+    uint32_t o_vec_index = 0;
     bool active = true;
 
     o_vec_object() = default;
@@ -34,12 +25,12 @@ private:
     std::vector<Obj*> array{};
 
     // this tracks the actual initilised and implemented Objects being used
-    unsigned array_size = 0;
+    uint32_t array_size = 0;
 
     // this vectorPtr stores all the actual objects on the heap, they are never modified or removed from. only added to
     std::vector<Obj> objectStore{};
 
-    std::vector<unsigned> free_list{};
+    std::vector<uint32_t> free_list{};
     int free_count = 0;
 
 

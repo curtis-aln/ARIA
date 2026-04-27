@@ -60,24 +60,15 @@ void Protozoa::nearby_food_information() const
 {
 	const sf::Vector2f center = get_center();
     static const sf::Color food_line_color{ 50, 153, 204, 100 };
-    for (const sf::Vector2f& pos : food_positions_nearby)
-    {
-        m_window_->draw(make_line(center, pos, food_line_color));
-    }
+    //for (const sf::Vector2f& pos : food_positions_nearby)
+    //{
+    //    m_window_->draw(make_line(center, pos, food_line_color));
+    //}
 
-    for (const sf::Vector2f& pos : cell_positions_nearby)
-    {
-        m_window_->draw(make_line(center, pos, sf::Color::Yellow));
-    }
-
-    // drawing lines to each of the cells collision resolutions
-    for (const Cell& cell : m_cells_)
-    {
-        if (cell.collision_resolution_vector_ != sf::Vector2f{ 0, 0 })
-        {
-            m_window_->draw(make_line(cell.position_, cell.colliding_with_, sf::Color::Red));
-        }
-	}
+    //for (const sf::Vector2f& pos : cell_positions_nearby)
+    //{
+    //    m_window_->draw(make_line(center, pos, sf::Color::Yellow));
+    //}
 }
 
 

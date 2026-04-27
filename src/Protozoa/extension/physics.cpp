@@ -11,8 +11,8 @@ Protozoa::Protozoa(const int id_, Circle* world_bounds, sf::RenderWindow* window
 	: m_window_(window), m_world_bounds_(world_bounds), id(id_), GenomeManager(&m_cells_, &m_springs_)
 {
 
-	food_positions_nearby.reserve(cell_positions_container_reserve);
-	cell_positions_nearby.reserve(food_positions_container_reserve);
+	//food_positions_nearby.reserve(cell_positions_container_reserve);
+	//cell_positions_nearby.reserve(food_positions_container_reserve);
 
 	// if no world bounds are provided, we cannot initialise cells as we do not know where to spawn them
 	if (world_bounds == nullptr)
@@ -45,18 +45,18 @@ void Protozoa::update(FoodManager& food_manager, const bool debug, const float m
 	
 
 	const sf::Vector2f center = get_center();
-	velocity = center - previous_position;
-	previous_position = center;
+	//velocity = center - previous_position;
+	//previous_position = center;
 }
 
 
 void Protozoa::check_death_conditions(float min_speed)
 {
 	float sp = min_speed;
-	if (velocity.x * velocity.x + velocity.y * velocity.y < sp * sp)
-	{
-		kill();
-	}
+	//if (velocity.x * velocity.x + velocity.y * velocity.y < sp * sp)
+	//{
+	//	kill();
+	//}
 
 	if (energy <= 0)
 	{
@@ -188,13 +188,13 @@ void Protozoa::hard_reset()
 	m_personal_bounds_ = { {0.f, 0.f}, {0.f, 0.f } };
 
 	// position and velocity tracking
-	previous_position = { 0, 0 };
-	velocity = { 0, 0 };
+	//previous_position = { 0, 0 };
+	//velocity = { 0, 0 };
 	birth_location = { 0, 0 };
 
 
-	food_positions_nearby.clear();
-	cell_positions_nearby.clear();
+	//food_positions_nearby.clear();
+	//cell_positions_nearby.clear();
 
 	active = true; // for o_vector.h
 }
@@ -221,7 +221,6 @@ void Protozoa::resolve_collisions(const std::vector<sf::Vector2f>& collision_res
 	{
 		Cell& cell = m_cells_[cell_idx];
 		cell.position_ += collision_resolutions[idx++];
-		cell.collision_resolution_vector_ = collision_resolutions[idx - 1];
 	}
 }
 
@@ -237,11 +236,11 @@ void Protozoa::copy_protozoa_data(Protozoa& dst, const Protozoa& src)
 	dst.offspring_count = src.offspring_count;
 	dst.frames_alive = src.frames_alive;
 	dst.total_food_eaten = src.total_food_eaten;
-	dst.previous_position = src.previous_position;
-	dst.velocity = src.velocity;
+	//dst.previous_position = src.previous_position;
+	//dst.velocity = src.velocity;
 	dst.immortal = src.immortal;
-	dst.food_positions_nearby = src.food_positions_nearby;
-	dst.cell_positions_nearby = src.cell_positions_nearby;
+	//dst.food_positions_nearby = src.food_positions_nearby;
+	//dst.cell_positions_nearby = src.cell_positions_nearby;
 	
 	dst.m_window_ = src.m_window_;
 	dst.m_world_bounds_ = src.m_world_bounds_;
@@ -268,8 +267,7 @@ Protozoa::Protozoa(const Protozoa& other)
 	: ProtozoaSettings(),
 	GenomeManager(&m_cells_, &m_springs_),
 	m_window_(other.m_window_),
-	m_world_bounds_(other.m_world_bounds_),
-	nearby_food_container(static_cast<uint8_t>(FoodSettings::cell_max_capacity * 9))
+	m_world_bounds_(other.m_world_bounds_)
 {
 	copy_protozoa_data(*this, other);
 }
