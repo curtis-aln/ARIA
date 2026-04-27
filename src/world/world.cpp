@@ -8,9 +8,12 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{100};
 
 World::World(sf::RenderWindow* window)
     : m_window_(window),
-    world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center)),
-    thread_pool_(8)
+    world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center))
 {
+    claim_buffer.reserve(FoodSettings::max_food);
+
+    init_food_jobs();
+    init_collision_jobs();
     init_organisms();
 
     const size_t maximum_cells = max_protozoa * ProtozoaSettings::max_cells;

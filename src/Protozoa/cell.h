@@ -55,27 +55,15 @@ struct Cell : public CellGenome
 		++food_eaten;
 	}
 
-	void handle_nearby_food(FixedSpan<obj_idx>& nearby_food_container, FoodManager& food_manager)
+	bool consume_food_check(Food* food)
 	{
-		for (int i = 0; i < nearby_food_container.count; ++i)
-		{
-			Food* food = food_manager.at(nearby_food_container[i]);
-			sf::Vector2f food_pos = food->position;
-			const float distance_sq = (food_pos - position_).lengthSquared();
-			const float rad = radius + FoodSettings::food_radius;
+		sf::Vector2f food_pos = food->position;
+		const float distance_sq = (food_pos - position_).lengthSquared();
+		const float rad = radius + FoodSettings::food_radius;
 
-			if (distance_sq > rad * rad)
-				continue;
-			
-			// let the cell eat the food
-			eat(food);
-			food_manager.remove_food(food->id);
-			
-			// removing the food from the nearby container to prevent multiple cells from eating the same food in one frame
-			nearby_food_container.remove(i);
-			--i;
-			//return; // cell has a food eat cooldown
-		}
+		if (distance_sq > rad * rad)
+			return false;
+		return true;
 	}
 
 

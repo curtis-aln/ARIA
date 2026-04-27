@@ -60,6 +60,8 @@ struct WorldSettings
 	inline static float max_speed;
 
 	inline static bool auto_reset_on_extinction = false;
+
+	inline static int updating_threads = 15;
 };
 
 struct ProtozoaSettings

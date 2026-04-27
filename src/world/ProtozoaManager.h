@@ -34,7 +34,7 @@ public:
 
 	// every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
 	// this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
-	std::vector<sf::Vector2f> collision_resolutions{};
+	alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
 
 
 
@@ -162,7 +162,6 @@ protected:
 	void update_cell_collisions() const
 	{
 		int idx = 0;
-		// resolving collisions
 		
 		for (Protozoa* protozoa : all_protozoa_)
 		{

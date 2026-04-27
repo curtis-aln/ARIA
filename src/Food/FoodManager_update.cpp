@@ -5,6 +5,7 @@ void FoodManager::vibrate_food(Food* food, float strength)
 	food->velocity += Random::rand_vector(-strength, strength);
 }
 
+
 void FoodManager::update_food()
 {
 	for (Food* food : food_vector)
@@ -79,7 +80,7 @@ void FoodManager::init_food()
 {
 	for (int i = 0; i < max_food; ++i)
 	{
-		Food food;
+		Food food{};
 		food.id = i;
 		food.position = Random::rand_position_in_circle(world_bounds_->center, world_bounds_->radius);
 		food.velocity = Random::rand_vector(-10.f, 10.f);

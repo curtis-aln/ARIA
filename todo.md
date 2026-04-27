@@ -94,11 +94,22 @@ Multithreadding GUI:
 - if the cell grid and the food grid are different sizes then the cells index the wrong location in the food grid and they cant resolve
 - food grid tracking in imgui has bugs
 
-before: 
-67.8642s
+# performance tracking by the number of frames ran in 30 seconds:
+Starting: 
+228 iters
 
-running on charge:
-55.4s
+std::swap
+233 iters
 
-removing unessarary debugging in collision resolution
-48.1s
+resizing collision vectors
+249 iters
+
+resizing the rest of the vectors
+318 uters
+
+error proofed it
+270 iters
+
+changing the max protozoa (todo: make this more dynamic)
+459 iters
+437 adjusted

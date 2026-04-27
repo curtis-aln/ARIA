@@ -55,12 +55,13 @@ void Simulation::update_one_frame()
                     
     }
 
-    //if (m_world_.get_statistics().iterations_ >= 2000)
-    //{
-    //    running = false;
-    //    std::cout << m_total_time_elapsed_ << "\n";
-    //    std::cout << m_world_.entity_count << " entity count \n";
-    //}
+    if (m_total_time_elapsed_ >= 30)
+    {
+        running = false;
+        std::cout << m_total_time_elapsed_ << " time elapsed \n";
+		std::cout << m_world_.get_statistics().iterations_ << " iterations \n";
+        std::cout << m_world_.entity_count << " entity count \n";
+    }
 
     camera_follow_selected_protozoa();
     

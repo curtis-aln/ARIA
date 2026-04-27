@@ -17,21 +17,17 @@ void World::update()
 	if (toggles.track_statistics)
 		update_statistics();
 
-	// if our selected protozoa has died we can no longer track it
 	if (selected_protozoa_ != nullptr && !selected_protozoa_->is_alive())
-	{
 		selected_protozoa_ = nullptr;
-	}
 
-	resolve_collisions();
+	resolve_collisions_threaded();  
 	update_cell_collisions();
 
 	food_manager_.update();
-	resolve_food_interactions();
-	
-	update_all_protozoa(food_manager_, toggles.debug_mode, toggles.min_speed, toggles.track_statistics, toggles.toggle_collisions);
-	
-	
+	resolve_food_interactions_threadded();
+
+	update_all_protozoa(food_manager_, toggles.debug_mode, toggles.min_speed,
+		toggles.track_statistics, toggles.toggle_collisions);
 }
 
 
@@ -39,31 +35,47 @@ void World::update_position_container()
 {
 	spatial_hash_grid_.clear();
 
-	// fill the collision resolution vector with zeroes, we will fill it with new resolutions in the collision detection phase and then apply them to the cells in the update phase
-	std::fill(collision_resolutions.begin(), collision_resolutions.end(), sf::Vector2f{ 0.f, 0.f });
+	// Single pass: count cells
+	entity_count = 0;
+	for (const Protozoa* protozoa : all_protozoa_)
+		entity_count += protozoa->get_cells().size();
 
+	// Resize all containers once, only when outside the buffer band
+	const int container_size = static_cast<int>(collision_resolutions.size());
+	if (entity_count > container_size || entity_count < container_size - 100)
+	{
+		const int new_size = entity_count + 100;
+		collision_resolutions.resize(new_size);
+		render_data_.outer_colors.resize(new_size);
+		render_data_.inner_colors.resize(new_size);
+		render_data_.positions_x.resize(new_size);
+		render_data_.positions_y.resize(new_size);
+		render_data_.radii.resize(new_size);
+		cell_pointers_.resize(new_size);
+	}
+
+	// Single pass: populate everything, zero collision data inline
 	int idx = 0;
 	for (Protozoa* protozoa : all_protozoa_)
 	{
 		for (Cell& cell : protozoa->get_cells())
 		{
 			cell.bound(world_circular_bounds_);
+
 			render_data_.outer_colors[idx] = cell.cell_outer_color;
 			render_data_.inner_colors[idx] = cell.cell_inner_color;
 			render_data_.positions_x[idx] = cell.position_.x;
 			render_data_.positions_y[idx] = cell.position_.y;
 			render_data_.radii[idx] = cell.radius;
+
 			cell_pointers_[idx] = &cell;
 			cell.colliding_with_ = cell.position_;
-			cell.collision_resolution_vector_ = { 0.f, 0.f };
-			//c//ell.collision_ids = { -1, -1 };
+			collision_resolutions[idx] = { 0.f, 0.f };  // zeroed inline
 
 			spatial_hash_grid_.add_object(cell.position_.x, cell.position_.y, idx);
-			idx++;
+			++idx;
 		}
 	}
-
-	entity_count = idx;
 }
 
 

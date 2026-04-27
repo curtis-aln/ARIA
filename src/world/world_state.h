@@ -79,11 +79,11 @@ struct WorldStatistics
 // ─────────────────────────────────────────────────────────────────────────────
 struct RenderData
 {
-    std::vector<float> positions_x;
-    std::vector<float> positions_y;
-    std::vector<sf::Color>    outer_colors;
-    std::vector<sf::Color>    inner_colors;
-    std::vector<float>        radii;
+    alignas(64) std::vector<float> positions_x;
+    alignas(64) std::vector<float> positions_y;
+    alignas(64) std::vector<sf::Color>    outer_colors;
+    alignas(64) std::vector<sf::Color>    inner_colors;
+    alignas(64) std::vector<float>        radii;
     int                       entity_count = 0;
 
     void reserve(int max_cells)

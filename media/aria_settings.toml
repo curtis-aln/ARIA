@@ -1,13 +1,13 @@
 # ── World ─────────────────────────────────────────────────────────────────────
 [world]
-bounds_radius            = 60000.0
-max_protozoa             = 100000
-initial_protozoa         = 10000
+bounds_radius            = 300000.0
+max_protozoa             = 200000
+initial_protozoa         = 100000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
-cells_x = 350
-cells_y = 350
-cell_max_capacity = 25
+cells_x = 900
+cells_y = 900
+cell_max_capacity = 8
 
 # ── Protozoa ──────────────────────────────────────────────────────────────────
 [protozoa]
@@ -25,13 +25,13 @@ initial_energy           = 300.0
 
 # ── Food ──────────────────────────────────────────────────────────────────────
 [food]
-max_food = 100000
-initial_food = 70000
+max_food = 300000
+initial_food = 250000
 
 # --- spatial grid ---
-cells_x = 350
-cells_y = 350
-cell_max_capacity        = 25
+cells_x = 900
+cells_y = 900
+cell_max_capacity        = 10
 update_freq = 4
 
 # --- physics ---

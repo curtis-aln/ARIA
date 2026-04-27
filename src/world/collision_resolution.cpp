@@ -1,6 +1,36 @@
 #include "world.h"
 
+void World::init_collision_jobs()
+{
+	const int total = spatial_hash_grid_.CellsX * spatial_hash_grid_.CellsY;
+	const int chunk = std::max(1, (total + updating_threads - 1) / updating_threads);
 
+	collision_jobs_.clear();
+	collision_jobs_.reserve(updating_threads);
+
+	for (int t = 0; t < updating_threads; ++t)
+	{
+		const int begin = t * chunk;
+		if (begin >= total) break;
+		const int end = std::min(begin + chunk, total);
+
+		collision_jobs_.push_back([this, begin, end]
+			{
+				for (int cell_id = begin; cell_id < end; ++cell_id)
+					update_cells_in_grid_cell(cell_id, tl_nearby_ids);
+			});
+	}
+
+	collision_thread_pool_.assign_jobs(collision_jobs_);
+}
+
+void World::resolve_collisions_threaded()
+{
+	if (!toggles.toggle_collisions)
+		return;
+
+	collision_thread_pool_.run_and_wait();
+}
 
 void World::resolve_collisions()
 {
@@ -13,7 +43,6 @@ void World::resolve_collisions()
 		update_cells_in_grid_cell(cell_id, tl_nearby_ids);
 	}
 }
-
 
 void World::update_cells_in_grid_cell(const int grid_cell_id, FixedSpan<uint32_t>& nearby_ids)
 {
@@ -29,14 +58,31 @@ void World::update_cells_in_grid_cell(const int grid_cell_id, FixedSpan<uint32_t
 
 	// Current cell
 	update_nearby_container(cell_index_x, cell_index_y, nearby_ids);
+
 	// Right
 	update_nearby_container(cell_index_x + 1, cell_index_y, nearby_ids);
+
 	// Bottom-left
 	update_nearby_container(cell_index_x - 1, cell_index_y + 1, nearby_ids);
+
 	// Bottom
 	update_nearby_container(cell_index_x, cell_index_y + 1, nearby_ids);
+
 	// Bottom-right
 	update_nearby_container(cell_index_x + 1, cell_index_y + 1, nearby_ids);
+
+	// Left
+	update_nearby_container(cell_index_x - 1, cell_index_y, nearby_ids);
+
+	// Top-left
+	update_nearby_container(cell_index_x - 1, cell_index_y - 1, nearby_ids);
+
+	// Top
+	update_nearby_container(cell_index_x, cell_index_y - 1, nearby_ids);
+
+	// Top-right
+	update_nearby_container(cell_index_x + 1, cell_index_y - 1, nearby_ids);
+
 
 	const auto& cell_contents = spatial_hash_grid_.grid[grid_cell_id];
 	const uint8_t cell_size = spatial_hash_grid_.cell_capacities[grid_cell_id];

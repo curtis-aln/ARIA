@@ -7,6 +7,7 @@
 #include "../settings.h"
 #include "ProtozoaManager.h"
 #include "world_state.h"
+#include "food_claim_buffer.h"
 
 #include "../Utils/thread_pool.h"
 #include "../Utils/o_vector.hpp"
@@ -42,7 +43,8 @@ class World : public ProtozoaManager
                                            bounds_radius * 2.f, bounds_radius * 2.f };
     SpatialGridRenderer cell_grid_renderer_{ &spatial_hash_grid_ };
 
-    tp::ThreadPool thread_pool_;
+    BarrierThreadPool collision_thread_pool_{ updating_threads };
+	BarrierThreadPool food_thread_pool_{ updating_threads };
     std::vector<float> distribution_{};
 
     uint8_t max_capacity_area = cell_max_capacity * 9;
@@ -60,6 +62,10 @@ class World : public ProtozoaManager
 
     // for multithreadded collision resolution
     std::array<std::vector<int>, 6> collision_color_groups;
+    FoodClaimBuffer claim_buffer;
+
+    std::vector<std::function<void()>> collision_jobs_;
+    std::vector<std::function<void()>> food_jobs_;
 
 public:
     // ── Toggles — written by ImGui (main thread), read by update thread ──────
@@ -74,6 +80,8 @@ public:
 
     // ── Update ───────────────────────────────────────────────────────────────
     void update();
+    void init_collision_jobs();
+    void resolve_collisions_threaded();
     void resolve_collisions();
 
     // ── Render ───────────────────────────────────────────────────────────────
@@ -124,6 +132,8 @@ private:
 
     void render_protozoa(Font* font);
     void init_organisms();
+    void init_food_jobs();
     void resolve_food_interactions();
+    void resolve_food_interactions_threadded();
     void resolve_food_grid_cell(int cell_id, FixedSpan<obj_idx>& nearby_food);
 };
