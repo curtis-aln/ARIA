@@ -13,7 +13,9 @@ inline sf::Texture generateCircleTexture(float radius)
     renderTexture.clear(sf::Color::Transparent);
     renderTexture.draw(circle);
     renderTexture.display();
-    return renderTexture.getTexture();
+
+    sf::Texture tex = renderTexture.getTexture(); // copy BEFORE RenderTexture destructs
+    return tex;
 }
 
 
@@ -43,11 +45,11 @@ public:
         texture.setSmooth(true);
     }
 
-    void set_colors(std::vector<sf::Color> colors) { colors_ = colors; }
-    void set_positions_x(std::vector<float> positions_x) { positions_x_ = positions_x; }
-    void set_positions_y(std::vector<float> positions_y) { positions_y_ = positions_y; }
-    void set_radii(std::vector<float> radii) { radii_ = radii; }
-	void set_size(size_t size) { circle_count_ = size; }
+    void set_colors(const std::vector<sf::Color>& colors) { colors_ = colors; }
+    void set_positions_x(const std::vector<float>& pos_x) { positions_x_ = pos_x; }
+    void set_positions_y(const std::vector<float>& pos_y) { positions_y_ = pos_y; }
+    void set_radii(const std::vector<float>& radii) { radii_ = radii; }
+    void set_size(size_t size) { circle_count_ = size; }
 
     void update()
     {

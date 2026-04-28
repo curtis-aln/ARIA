@@ -34,8 +34,8 @@ class World : public ProtozoaManager
 
     size_t max_circles = max_protozoa * ProtozoaSettings::max_cells;
     float tex_rad = 120;
-    CircleBatchRenderer outer_circle_renderer_{ m_window_, tex_rad, max_circles };
-    CircleBatchRenderer inner_circle_renderer_{ m_window_, tex_rad, max_circles };
+    CircleBatchRenderer outer_circle_renderer_;
+    CircleBatchRenderer inner_circle_renderer_;
     std::vector<float>  inner_radii_{};
 
     FoodManager        food_manager_{ m_window_, &world_circular_bounds_ };
@@ -98,7 +98,7 @@ public:
     void advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data);
 
     void fill_snapshot(SimSnapshot& snapshot);
-    static sf::Rect<float> calc_protozoa_bounds(Protozoa* protozoa);
+    static sf::Rect<float> calc_protozoa_bounds(const Protozoa* protozoa);
 
     // ── Render data getters — read by renderer from snapshot ─────────────────
     const std::vector<float>& get_positions_x()    const { return render_data_.positions_x; }
@@ -123,6 +123,15 @@ public:
     const std::vector<float>& get_generation_distribution();
 
 private:
+    void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
+    void draw_cell_outlines(const Protozoa* protozoa);
+    void nearby_food_information(const Protozoa* protozoa) const;
+    void draw_springs(const Protozoa* protozoa, bool thick_lines) const;
+    void draw_cell_physical_information(const Protozoa* protozoa, Font* font) const;
+    void draw_spring_information(const Protozoa* protozoa, Font* font) const;
+    int check_mouse_press(const Protozoa* protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
+    const Cell* get_selected_cell(const Protozoa* protozoa, sf::Vector2f mouse_pos);
+
     void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids);
     void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids);
     void build_color_groups();

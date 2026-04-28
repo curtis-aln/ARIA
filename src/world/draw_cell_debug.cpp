@@ -1,34 +1,26 @@
-#include "ProtozoaManager.h"
+#include "world.h"
 
 #include "../settings.h"
 #include "../Utils/utility_SFML.h"
 
 
-void ProtozoaManager::draw_protozoa_debug(const SimSnapshot& snapshot, Font* font)
+void World::draw_protozoa_debug(const SimSnapshot& snapshot, Font* font)
 {
-	if (font == nullptr)
-	{
-		std::cerr << "[ERROR]: draw_protozoa_debug called with null font pointer.\n";
-		return;
-	}
-
+    // Fetching information
 	const Protozoa* protozoa = &snapshot.protozoa;
+    const sf::FloatRect bounds = calc_protozoa_bounds(protozoa);
+
+    // Springs are drawn first so that they are under the cells
     draw_springs(protozoa, true);
 
-    // skeleton mode just hides the cell bodies and leaves only the outlines of the cells
     if (snapshot.toggles.skeleton_mode)
-    {
         draw_cell_outlines(protozoa);
-    }
 
 
-    // This is the bounding box of the protozoa, used for external collision events
     if (snapshot.toggles.show_bounding_boxes)
-    {
-        //draw_protozoa_bounding_box(m_personal_bounds_, *m_window_);
-    }
+        draw_protozoa_bounding_box(bounds, *m_window_);
 
-    draw_cell_physics(protozoa, font);
+    draw_cell_physical_information(protozoa, font);
     //draw_spring_information(protozoa, font);
 
     if (snapshot.toggles.show_connections)
@@ -38,7 +30,7 @@ void ProtozoaManager::draw_protozoa_debug(const SimSnapshot& snapshot, Font* fon
 }
 
 
-void ProtozoaManager::draw_cell_outlines(const Protozoa* protozoa)
+void World::draw_cell_outlines(const Protozoa* protozoa)
 {
     sf::CircleShape circle_outline;
     circle_outline.setPointCount(30); // Reduce aliasing, set once
@@ -59,7 +51,7 @@ void ProtozoaManager::draw_cell_outlines(const Protozoa* protozoa)
     }
 }
 
-void ProtozoaManager::nearby_food_information(const Protozoa* protozoa) const
+void World::nearby_food_information(const Protozoa* protozoa) const
 {
     //const sf::Vector2f center = get_center();
     //static const sf::Color food_line_color{ 50, 153, 204, 100 };
@@ -75,7 +67,7 @@ void ProtozoaManager::nearby_food_information(const Protozoa* protozoa) const
 }
 
 
-void ProtozoaManager::draw_cell_physics(const Protozoa* protozoa, Font* font)
+void World::draw_cell_physical_information(const Protozoa* protozoa, Font* font) const
 {
     // for each cell we draw its bounding box
     for (const Cell& cell : protozoa->get_cells())
@@ -101,7 +93,7 @@ void ProtozoaManager::draw_cell_physics(const Protozoa* protozoa, Font* font)
 }
 
 
-void ProtozoaManager::draw_springs(const Protozoa* protozoa, const bool thick_lines) const
+void World::draw_springs(const Protozoa* protozoa, const bool thick_lines) const
 {
     for (const Spring& spring : protozoa->get_springs())
     {
@@ -124,17 +116,13 @@ void ProtozoaManager::draw_springs(const Protozoa* protozoa, const bool thick_li
     }
 }
 
-
-
-
-
-void ProtozoaManager::draw_spring_information(const Protozoa* protozoa, Font* font) const
+void World::draw_spring_information(const Protozoa* protozoa, Font* font) const
 {
 
 }
 
 
-int ProtozoaManager::check_mouse_press(const Protozoa* protozoa, const sf::Vector2f mousePosition, const bool tolerance_check) const
+int World::check_mouse_press(const Protozoa* protozoa, const sf::Vector2f mousePosition, const bool tolerance_check) const
 {
     for (const Cell& cell : protozoa->get_cells())
     {
@@ -151,7 +139,7 @@ int ProtozoaManager::check_mouse_press(const Protozoa* protozoa, const sf::Vecto
 }
 
 
-const Cell* ProtozoaManager::get_selected_cell(const Protozoa* protozoa, const sf::Vector2f mouse_pos)
+const Cell* World::get_selected_cell(const Protozoa* protozoa, const sf::Vector2f mouse_pos)
 {
     if (!check_mouse_press(protozoa, mouse_pos, true))
         return nullptr;

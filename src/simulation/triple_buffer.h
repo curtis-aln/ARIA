@@ -5,11 +5,24 @@ template<typename T>
 class TripleBuffer
 {
 public:
-    TripleBuffer()
+    explicit TripleBuffer(int cell_render_reserve)
         : m_latest_ready(-1)
         , m_render_idx(-1)
         , m_write_idx(0)
-    {}
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            new (&m_buffers[i]) T(cell_render_reserve);
+        }
+    }
+
+    ~TripleBuffer()
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            reinterpret_cast<T*>(&m_buffers[i])->~T();
+        }
+    }
 
     // ── Update thread ─────────────────────────────────────────────────────
 

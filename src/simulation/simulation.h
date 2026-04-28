@@ -55,7 +55,8 @@ class Simulation : SimulationSettings, TextSettings
     ImPlotColormap m_plot_colormap_{};
 
     // Multithreading
-	TripleBuffer<SimSnapshot> m_sim_buffer_{}; // sim -> render (lock-free)
+    int max = static_cast<int>(WorldSettings::max_protozoa * ProtozoaSettings::max_cells);
+	TripleBuffer<SimSnapshot> m_sim_buffer_{ max }; // sim -> render (lock-free)
 
     // render → sim  (low frequency, mutex protected)
     std::mutex             m_cmd_mutex{};
@@ -67,6 +68,13 @@ class Simulation : SimulationSettings, TextSettings
 
 public:
     Simulation();
+    ~Simulation() 
+	{
+		std::cout << "[INFO]: Simulation destructor called, shutting down threads and ImGui context.\n";
+        if (m_sim_thread_.joinable()) {
+            m_sim_thread_.join(); // Ensure the thread is joined before destruction
+        }
+    }
     void run_simulation();
 
 private:

@@ -106,35 +106,5 @@ Multithreadding GUI:
 
 # performance tracking by the number of frames ran in 30 seconds:
 Starting: 
-228 iters
+494
 
-std::swap
-233 iters
-
-resizing collision vectors
-249 iters
-
-resizing the rest of the vectors
-318 uters
-
-error proofed it
-270 iters
-
-changing the max protozoa (todo: make this more dynamic)
-459 iters
-437 adjusted
-
-making the spatial hash grid 1d
-480 iters
-
-chanegd ints to smaller types like int8 in the protozoa class
-504 iters
-
-removed more redundent code in the protozoa class
-554 iters
-
-removed redundant spring data and the genome class
-580 iters
-
-removed the rendering from the protozoa and moevd it to protozoa manager
-597 iters

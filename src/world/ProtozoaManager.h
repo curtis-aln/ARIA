@@ -87,14 +87,6 @@ public:
 		}
 	}
 
-	void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
-	void draw_cell_outlines(const Protozoa* protozoa);
-	void nearby_food_information(const Protozoa* protozoa) const;
-	void draw_springs(const Protozoa* protozoa, bool thick_lines) const;
-	void draw_cell_physics(const Protozoa* protozoa, Font* font);
-	void draw_spring_information(const Protozoa* protozoa, Font* font) const;
-	int check_mouse_press(const Protozoa* protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
-	const Cell* get_selected_cell(const Protozoa* protozoa, sf::Vector2f mouse_pos);
 
 	inline static constexpr int max_evolutionary_iterations = 5;
 	inline static constexpr int desired_cell_count = 4;

@@ -16,6 +16,8 @@ FoodManager::FoodManager(sf::RenderWindow* window, Circle* world_circular_bounds
 
 void FoodManager::update()
 {
+
+	food_data.active_count = food_vector.size();
 	update_position_data();
 	spawn_food_improved(); //spawn_food();
 	update_food();
@@ -29,7 +31,7 @@ void FoodManager::render(const SimSnapshot& snapshot)
 	food_renderer.set_positions_y(snapshot.food_data.positions_y);
 	food_renderer.set_radii(snapshot.food_data.radii);
 
-	food_renderer.set_size(snapshot.food_data.positions_x.size());
+	food_renderer.set_size(snapshot.food_data.active_count);
 	food_renderer.update();
 	food_renderer.render();
 }

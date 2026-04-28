@@ -10,7 +10,8 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{100};
 
 World::World(sf::RenderWindow* window)
     : ProtozoaManager(window),
-	m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center))
+	m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center)),
+    outer_circle_renderer_(window, tex_rad, max_circles), inner_circle_renderer_(window, tex_rad, max_circles)
 {
     claim_buffer.reserve(FoodSettings::max_food);
 
@@ -32,7 +33,7 @@ void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f m
     if (snapshot.toggles.draw_cell_grid)
         cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
 
-    if (toggles.draw_food_grid)
+    if (snapshot.toggles.draw_food_grid)
         food_manager_.draw_food_grid(mouse_pos);
 
     food_manager_.render(snapshot);
@@ -205,7 +206,21 @@ void World::advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data)
 
 void World::fill_snapshot(SimSnapshot& snapshot)
 {
-    snapshot.render = get_render_data();
+    const int n = statistics_.entity_count;
+
+    snapshot.render.positions_x.resize(n);
+    snapshot.render.positions_y.resize(n);
+    snapshot.render.outer_colors.resize(n);
+    snapshot.render.inner_colors.resize(n);
+    snapshot.render.radii.resize(n);
+
+    std::memcpy(snapshot.render.positions_x.data(), render_data_.positions_x.data(), n * sizeof(float));
+    std::memcpy(snapshot.render.positions_y.data(), render_data_.positions_y.data(), n * sizeof(float));
+    std::memcpy(snapshot.render.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
+    std::memcpy(snapshot.render.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
+    std::memcpy(snapshot.render.radii.data(), render_data_.radii.data(), n * sizeof(float));
+    snapshot.render.entity_count = n;
+
     snapshot.stats = get_statistics();
     snapshot.toggles = toggles;
 	snapshot.stats.protozoa_count = get_protozoa_count();
@@ -232,7 +247,7 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	}
 }
 
-sf::Rect<float> World::calc_protozoa_bounds(Protozoa* protozoa)
+sf::Rect<float> World::calc_protozoa_bounds(const Protozoa* protozoa)
 {
     const auto& cells = protozoa->get_cells();
     if (cells.empty())

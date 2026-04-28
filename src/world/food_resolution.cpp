@@ -16,8 +16,9 @@ void World::init_food_jobs()
 
 		food_jobs_.push_back([this, begin, end]
 			{
+				FixedSpan<obj_idx> local_food{ 100 };  // stack allocated per thread
 				for (int cell_id = begin; cell_id < end; ++cell_id)
-					resolve_food_grid_cell(cell_id, tl_nearby_food);
+					resolve_food_grid_cell(cell_id, local_food);
 			});
 	}
 
@@ -36,9 +37,9 @@ void World::resolve_food_interactions()
 void World::resolve_food_interactions_threadded()
 {
 	claim_buffer.reset(food_manager_.get_size());
-	collision_thread_pool_.run_and_wait();  // no allocation, just resubmit
+	food_thread_pool_.run_and_wait();  // no allocation, just resubmit
 
-	for (int i = claim_buffer.active_count() - 1; i >= 0; --i)
+	for (int i = FoodSettings::max_food - 1; i >= 0; --i)
 		if (claim_buffer.is_claimed(i))
 			food_manager_.remove_food(i);
 }
@@ -60,8 +61,6 @@ void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby
 
 	for (int idx = 0; idx < cell_size; ++idx)
 	{
-		// After
-		
 		Cell* cell = cell_pointers_[cell_contents[idx]];
 
 		for (int i = 0; i < nearby_food.count; ++i)
@@ -76,7 +75,7 @@ void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby
 				continue;  // another thread already ate it
 
 			cell->eat(food->nutrients);
-			return;
+			break; // this cell ate, move to next cell
 
 		}
 	}

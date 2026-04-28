@@ -18,4 +18,15 @@ struct SimSnapshot
 
     bool selected_a_protozoa = false;
     Protozoa protozoa{-1};
+
+	SimSnapshot() = default;
+
+    SimSnapshot(int cell_render_reserve)
+    {
+	    render.inner_colors.reserve(cell_render_reserve);
+	    render.outer_colors.reserve(cell_render_reserve);
+	    render.positions_x.reserve(cell_render_reserve);
+	    render.positions_y.reserve(cell_render_reserve);
+	    render.radii.reserve(cell_render_reserve);
+    }
 };

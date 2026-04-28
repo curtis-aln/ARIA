@@ -24,8 +24,8 @@ Simulation::Simulation() : m_world_(&m_window_)
 void Simulation::run_simulation()
 {
 
-    m_sim_thread_ = std::thread([this]()
-        {
+    m_sim_thread_ = std::thread([this]
+    {
             Random::set_seed(0);
             while (running)
                 update_one_frame();
@@ -58,10 +58,10 @@ void Simulation::update_one_frame()
 
     if (m_total_time_elapsed_ >= 30)
     {
-        running = false;
-        std::cout << m_total_time_elapsed_ << " time elapsed \n";
-		std::cout << m_world_.get_statistics().iterations_ << " iterations \n";
-        std::cout << m_world_.get_statistics().entity_count << " entity count \n";
+        //running = false;
+        //std::cout << m_total_time_elapsed_ << " time elapsed \n";
+		//std::cout << m_world_.get_statistics().iterations_ << " iterations \n";
+        //std::cout << m_world_.get_statistics().entity_count << " entity count \n";
     }
 
     camera_follow_selected_protozoa();
