@@ -3,38 +3,40 @@
 #include "../settings.h"
 #include "../Utils/utility_SFML.h"
 
-void ProtozoaManager::render_protozoa_springs(const Protozoa* protozoa)
-{
-    for (const Cell& cell : protozoa->get_cells())
-    {
-        render_cell_connections(protozoa, cell, true);
-    }
-}
 
-void ProtozoaManager::render_debug(const Protozoa* protozoa, Font* font, const bool skeleton_mode, const bool show_connections, const bool show_bounding_boxes)
+void ProtozoaManager::draw_protozoa_debug(const SimSnapshot& snapshot, Font* font)
 {
+	if (font == nullptr)
+	{
+		std::cerr << "[ERROR]: draw_protozoa_debug called with null font pointer.\n";
+		return;
+	}
+
+	const Protozoa* protozoa = &snapshot.protozoa;
+    draw_springs(protozoa, true);
+
     // skeleton mode just hides the cell bodies and leaves only the outlines of the cells
-    if (skeleton_mode)
+    if (snapshot.toggles.skeleton_mode)
     {
-        render_protozoa_springs(protozoa);
         draw_cell_outlines(protozoa);
     }
 
 
     // This is the bounding box of the protozoa, used for external collision events
-    if (show_bounding_boxes)
+    if (snapshot.toggles.show_bounding_boxes)
     {
         //draw_protozoa_bounding_box(m_personal_bounds_, *m_window_);
     }
 
     draw_cell_physics(protozoa, font);
-    draw_spring_information(protozoa, font);
+    //draw_spring_information(protozoa, font);
 
-    if (show_connections)
+    if (snapshot.toggles.show_connections)
     {
         nearby_food_information(protozoa);
     }
 }
+
 
 void ProtozoaManager::draw_cell_outlines(const Protozoa* protozoa)
 {
@@ -73,7 +75,33 @@ void ProtozoaManager::nearby_food_information(const Protozoa* protozoa) const
 }
 
 
-void ProtozoaManager::render_cell_connections(const Protozoa* protozoa, const Cell& cell, const bool thick_lines) const
+void ProtozoaManager::draw_cell_physics(const Protozoa* protozoa, Font* font)
+{
+    // for each cell we draw its bounding box
+    for (const Cell& cell : protozoa->get_cells())
+    {
+        const sf::Vector2f& pos = cell.position_;
+        const float rad = cell.radius;
+
+        // rendering the bounding boxes
+        const sf::FloatRect rect = { {pos.x - rad, pos.y - rad}, {rad * 2, rad * 2} };
+        draw_protozoa_bounding_box(rect, *m_window_);
+
+        // drawing the direction of the cell
+        const float arrow_length = std::min(rad * 4, cell.velocity_.length() * rad);
+        draw_direction(*m_window_, pos, cell.velocity_, arrow_length, 6, 10,
+            { 200, 220, 200 }, { 190, 200, 190 });
+
+        // drawing cell stats
+        const auto top_left = rect.position;
+        const auto spacing = font->get_text_size("0").y;
+        const sf::Vector2f offset = { 0, spacing };
+        font->draw(top_left, "id: " + std::to_string(cell.id), false);
+    }
+}
+
+
+void ProtozoaManager::draw_springs(const Protozoa* protozoa, const bool thick_lines) const
 {
     for (const Spring& spring : protozoa->get_springs())
     {
@@ -96,32 +124,6 @@ void ProtozoaManager::render_cell_connections(const Protozoa* protozoa, const Ce
     }
 }
 
-
-void ProtozoaManager::draw_cell_physics(const Protozoa* protozoa, Font* font)
-{
-    // for each cell we draw its bounding box
-    for (const Cell& cell : protozoa->get_cells())
-    {
-        const sf::Vector2f& pos = cell.position_;
-        const float rad = cell.radius;
-
-        // rendering the bounding boxes
-        const sf::FloatRect rect = { {pos.x - rad, pos.y - rad}, {rad * 2, rad * 2} };
-        draw_protozoa_bounding_box(rect, *m_window_);
-        render_cell_connections(protozoa, cell, false);
-
-        // drawing the direction of the cell
-        const float arrow_length = std::min(rad * 4, cell.velocity_.length() * rad);
-        draw_direction(*m_window_, pos, cell.velocity_, arrow_length, 6, 10,
-            { 200, 220, 200 }, { 190, 200, 190 });
-
-        // drawing cell stats
-        const auto top_left = rect.position;
-        const auto spacing = font->get_text_size("0").y;
-        const sf::Vector2f offset = { 0, spacing };
-        font->draw(top_left, "id: " + std::to_string(cell.id), false);
-    }
-}
 
 
 

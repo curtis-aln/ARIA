@@ -4,6 +4,7 @@
 #include "../Protozoa/Protozoa.h"
 #include "../Utils/o_vector.hpp"
 #include "../Food/food_manager.h"
+#include <SFML/Graphics.hpp>
 
 // A Class which handles all protozoa related stuff in the world. updating, collisions, reproduction, etc.
 class ProtozoaManager : protected WorldSettings
@@ -44,7 +45,11 @@ public:
 
 	ProtozoaManager(sf::RenderWindow* window) : m_window_(window), all_protozoa_(max_protozoa)
 	{
-
+		std::cout << "[INFO]: ProtozoaManager initialized with max protozoa: " << max_protozoa << "\n";
+		if (window == nullptr)
+		{
+			std::cerr << "[ERROR]: ProtozoaManager initialized with null window pointer.\n";
+		}
 	}
 
 
@@ -82,12 +87,10 @@ public:
 		}
 	}
 
-	void render_protozoa_springs(const Protozoa* protozoa);
-	void render_debug(const Protozoa* protozoa, Font* font, bool skeleton_mode, bool show_connections,
-	                  bool show_bounding_boxes);
+	void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
 	void draw_cell_outlines(const Protozoa* protozoa);
 	void nearby_food_information(const Protozoa* protozoa) const;
-	void render_cell_connections(const Protozoa* protozoa, const Cell& cell, bool thick_lines) const;
+	void draw_springs(const Protozoa* protozoa, bool thick_lines) const;
 	void draw_cell_physics(const Protozoa* protozoa, Font* font);
 	void draw_spring_information(const Protozoa* protozoa, Font* font) const;
 	int check_mouse_press(const Protozoa* protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;

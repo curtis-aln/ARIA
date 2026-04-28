@@ -9,8 +9,8 @@ thread_local FixedSpan<uint32_t> World::tl_nearby_ids{100};
 thread_local FixedSpan<obj_idx> World::tl_nearby_food{100};
 
 World::World(sf::RenderWindow* window)
-    : m_window_(window),
-	world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center)), ProtozoaManager(m_window_)
+    : ProtozoaManager(window),
+	m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.radius, world_circular_bounds_.center))
 {
     claim_buffer.reserve(FoodSettings::max_food);
 
@@ -68,9 +68,7 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 
     if (snapshot.protozoa.id != -1 && snapshot.toggles.debug_mode)
     {
-        render_debug(&snapshot.protozoa, font, snapshot.toggles.skeleton_mode,
-            snapshot.toggles.show_connections,
-            snapshot.toggles.show_bounding_boxes);
+        draw_protozoa_debug(snapshot, font);
     }
 }
 
@@ -236,15 +234,20 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 
 sf::Rect<float> World::calc_protozoa_bounds(Protozoa* protozoa)
 {
-    sf::Rect<float> bounds;
-    for (const Cell& cell : protozoa->get_cells())
+    const auto& cells = protozoa->get_cells();
+    if (cells.empty())
+        return {};
+
+    float min_x = cells[0].position_.x, max_x = min_x;
+    float min_y = cells[0].position_.y, max_y = min_y;
+
+    for (const Cell& cell : cells)
     {
-	    bounds.position.x = std::min(cell.position_.x, bounds.position.x);
-	    bounds.position.y = std::min(cell.position_.y, bounds.position.y);
-	    if (cell.position_.x > bounds.position.x + bounds.size.x)
-            bounds.size.x = cell.position_.x - bounds.position.x;
-        if (cell.position_.y > bounds.position.y + bounds.size.y)
-            bounds.size.y = cell.position_.y - bounds.position.y;
+        min_x = std::min(min_x, cell.position_.x - cell.radius);
+        max_x = std::max(max_x, cell.position_.x + cell.radius);
+        min_y = std::min(min_y, cell.position_.y - cell.radius);
+        max_y = std::max(max_y, cell.position_.y + cell.radius);
     }
-    return bounds;
+
+    return { {min_x, min_y}, {max_x - min_x, max_y - min_y} };
 }
