@@ -36,7 +36,7 @@ void World::draw_cell_outlines(const Protozoa* protozoa)
     circle_outline.setPointCount(30); // Reduce aliasing, set once
     for (const Cell& cell : protozoa->get_cells())
     {
-        const sf::Vector2f pos = cell.position_;
+        const sf::Vector2f pos = cell.get_pos();
         const float rad = cell.radius + GraphicalSettings::cell_outline_thickness;
 
         circle_outline.setRadius(rad);
@@ -72,7 +72,9 @@ void World::draw_cell_physical_information(const Protozoa* protozoa, Font* font)
     // for each cell we draw its bounding box
     for (const Cell& cell : protozoa->get_cells())
     {
-        const sf::Vector2f& pos = cell.position_;
+        const sf::Vector2f& pos = cell.get_pos();
+		const sf::Vector2f& vel = cell.get_vel();
+		const float speed = vel.length();
         const float rad = cell.radius;
 
         // rendering the bounding boxes
@@ -80,8 +82,8 @@ void World::draw_cell_physical_information(const Protozoa* protozoa, Font* font)
         draw_protozoa_bounding_box(rect, *m_window_);
 
         // drawing the direction of the cell
-        const float arrow_length = std::min(rad * 4, cell.velocity_.length() * rad);
-        draw_direction(*m_window_, pos, cell.velocity_, arrow_length, 6, 10,
+        const float arrow_length = std::min(rad * 4, speed * rad);
+        draw_direction(*m_window_, pos, vel, arrow_length, 6, 10,
             { 200, 220, 200 }, { 190, 200, 190 });
 
         // drawing cell stats
@@ -97,8 +99,8 @@ void World::draw_springs(const Protozoa* protozoa, const bool thick_lines) const
 {
     for (const Spring& spring : protozoa->get_springs())
     {
-        const sf::Vector2f& pos1 = protozoa->get_cells()[spring.cell_A_id].position_;
-        const sf::Vector2f& pos2 = protozoa->get_cells()[spring.cell_B_id].position_;
+        const sf::Vector2f& pos1 = protozoa->get_cells()[spring.cell_A_id].get_pos();
+        const sf::Vector2f& pos2 = protozoa->get_cells()[spring.cell_B_id].get_pos();
 
         if (thick_lines)
         {
@@ -126,7 +128,7 @@ int World::check_mouse_press(const Protozoa* protozoa, const sf::Vector2f mouseP
 {
     for (const Cell& cell : protozoa->get_cells())
     {
-        const float dist_sq = (cell.position_ - mousePosition).lengthSquared();
+        const float dist_sq = (cell.get_pos() - mousePosition).lengthSquared();
         float tollarance_factor = 1.2f;
         const float rad = cell.radius * tollarance_factor;
         if (dist_sq < rad * rad)
@@ -146,7 +148,7 @@ const Cell* World::get_selected_cell(const Protozoa* protozoa, const sf::Vector2
 
     for (const Cell& cell : protozoa->get_cells())
     {
-        const float dist_sq = (cell.position_ - mouse_pos).lengthSquared();
+        const float dist_sq = (cell.get_pos() - mouse_pos).lengthSquared();
         const float rad = cell.radius;
         if (dist_sq < rad * rad)
         {

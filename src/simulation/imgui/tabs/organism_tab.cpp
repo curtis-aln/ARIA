@@ -97,7 +97,7 @@ void OrganismTab::draw_overview(const Protozoa& p)
 
     ImGui::TextDisabled("Identity");
     ImGui::Text("ID      %d", p.id);
-    ImGui::Text("Age     %u", p.frames_alive);
+    ImGui::Text("Age     %u", p.get_frames_alive_avg());
     ImGui::Text("Cells   %d", (int)p.get_cells().size());
     ImGui::Text("Springs %d", (int)p.get_springs().size());
     ImGui::Text("Birth (%.0f,%.0f)", p.birth_location.x, p.birth_location.y);
@@ -234,6 +234,12 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const Protozoa& p)
 // ─────────────────────────────────────────────────────────────────────────────
 void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Protozoa& p, const Cell& c)
 {
+	const sf::Vector2f& pos = c.get_pos();
+	const sf::Vector2f& vel = c.get_vel();
+	const float speed = vel.length();
+    const int frames_alive = c.frames_alive_;
+    const float current_friction = c.calculate_friction();
+
     auto slider_float_cmd = [&](const char* label, float current, float min, float max,
         const char* fmt, CommandType type)
         {
@@ -250,7 +256,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Protozoa& p, const C
 
     const int period = safe_time_period(c.frequency);
     const int display_size = std::min(m_wave_cycles_ * period, k_max_wave_buf);
-    const int head = static_cast<int>(p.frames_alive % display_size);
+    const int head = static_cast<int>(frames_alive % display_size);
     float wave_min, wave_max;
     wave_range(c.amplitude, c.vertical_shift, 0.f, 1.f, wave_min, wave_max);
 
@@ -258,18 +264,18 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Protozoa& p, const C
     ImGui::BeginChild("CL_stat", { 230.f, -1.f }, true);
 
     ImGui::TextDisabled("Cell %d  Gen %d", c.id, c.generation);
-    ImGui::Text("Pos      (%.0f, %.0f)", c.position_.x, c.position_.y);
-    ImGui::Text("Speed    %.3f", c.velocity_.length());
+    ImGui::Text("Pos      (%.0f, %.0f)", pos.x, pos.y);
+    ImGui::Text("Speed    %.3f", speed);
     ImGui::Text("Radius   %.1f", c.radius);
     ImGui::Text("Period   %d fr", period);
     ImGui::Text("Fric     min %.3f  max %.3f", wave_min, wave_max);
     ImGui::Text("Mut R    %.4f  Rng %.4f", c.mutation_rate, c.mutation_range);
-    ImGui::Text("Ate      %d  (%zu fr ago)", c.food_eaten, c.time_since_last_ate);
+    ImGui::Text("Ate      %d  (%zu fr ago)", c.total_food_eaten_, c.time_since_last_ate_);
 
     // Digest cooldown bar
     const float digest_remaining = std::max(0.f,
         static_cast<float>(ProtozoaSettings::digestive_time) -
-        static_cast<float>(c.time_since_last_ate));
+        static_cast<float>(c.time_since_last_ate_));
     const float digest_f = digest_remaining / static_cast<float>(ProtozoaSettings::digestive_time);
     char digest_lbl[32];
     snprintf(digest_lbl, sizeof(digest_lbl), "%.0f fr left", digest_remaining);
@@ -278,7 +284,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Protozoa& p, const C
         digest_f <= 0.f ? "Ready" : digest_lbl);
 
     // Current friction
-    const float fric = c.sinwave_current_friction_;
+    const float fric = current_friction;
     const ImVec4 fc = { 1.f - fric, fric, 0.2f, 1.f };
     ImGui::Spacing();
     ImGui::TextDisabled("Friction");
@@ -345,7 +351,7 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const Protozoa& p, const
 {
     const int period = safe_time_period(s.frequency);
     const int display_size = std::min(m_wave_cycles_ * period, k_max_wave_buf);
-    const int head = static_cast<int>(p.frames_alive % display_size);
+    const int head = static_cast<int>(p.get_frames_alive_avg() % display_size);
     float ext_min, ext_max;
     wave_range(s.amplitude, s.vertical_shift, 0.f, 1.f, ext_min, ext_max);
 

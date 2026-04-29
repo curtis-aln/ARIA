@@ -50,8 +50,8 @@ reproductive_cooldown    = 120
 reproductive_threshold   = 300
 
 # --- Nutrients ---
-initial_nutrients        = 5.0
-final_nutrients          = 70.0
+initial_nutrients        = 25.0
+final_nutrients          = 90.0
 nutrient_development_time = 400
 
 # --- Death ---

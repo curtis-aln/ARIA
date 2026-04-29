@@ -5,14 +5,14 @@
 
 void Protozoa::reproduce_check()
 {
-    if (time_since_last_reproduced++ < reproductive_cooldown_calculator()) // todo
-        return;
+	for (Cell& cell : m_cells_)
+	{
+		if (!cell.can_reproduce())
+		{
+            return;
+		}
+	}
 
-	if (stomach < stomach_reproduce_thresh())
-        return;
-
-    time_since_last_reproduced = 0.f;
-    stomach = 0;
     reproduce = true;
     offspring_count++;
 }
@@ -30,24 +30,29 @@ void Protozoa::update_generation()
 	}
 }
 
-void Protozoa::create_offspring(Protozoa* parent, bool should_mutate)
+void Protozoa::create_offspring(Protozoa* offspring, bool should_mutate)
 {
     // This protozoa should have been just created by the parent
-    parent->reproduce = false;
+    reproduce = false;
+    time_since_last_reproduced = 0.f;
 
-    // first we assign the genetic aspects of the offspring to match that of the parents, then reconstruct it
-    soft_reset();
-    set_protozoa_attributes(parent);
+    offspring->soft_reset();
+    offspring->set_protozoa_attributes(this);
 
     // incrementing the generation in all of the cells and springs
     update_generation();
 
     if (should_mutate)
         mutate();
-    birth_location = parent->get_cells()[0].position_;
+    birth_location = m_cells_[0].get_pos();
 	birth_location += sf::Vector2f{ Random::rand_range(-spawn_radius, spawn_radius), Random::rand_range(-spawn_radius, spawn_radius) };
 
     move_center_location_to(birth_location);
+
+	for (Cell& cell : m_cells_)
+	{
+        cell.energy -= ProtozoaSettings::offspring_energy_cost;
+	}
 }
 
 void Protozoa::kill()
@@ -63,5 +68,9 @@ void Protozoa::force_reproduce()
 
 void Protozoa::inject(const float energy_injected)
 {
-    energy += energy_injected;
+	const auto cell_count = static_cast<float>(m_cells_.size());
+    for (Cell& cell : m_cells_)
+    {
+        cell.energy += energy_injected / cell_count;
+    }
 }

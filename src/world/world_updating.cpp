@@ -66,14 +66,14 @@ void World::update_position_container()
 
 			render_data_.outer_colors[idx] = cell.get_outer_color();
 			render_data_.inner_colors[idx] = cell.get_inner_color();
-			render_data_.positions_x[idx] = cell.position_.x;
-			render_data_.positions_y[idx] = cell.position_.y;
+			render_data_.positions_x[idx] = cell.get_pos().x;
+			render_data_.positions_y[idx] = cell.get_pos().y;
 			render_data_.radii[idx] = cell.radius;
 
 			cell_pointers_[idx] = &cell;
 			collision_resolutions[idx] = { 0.f, 0.f };  // zeroed inline
 
-			spatial_hash_grid_.add_object(cell.position_.x, cell.position_.y, idx);
+			spatial_hash_grid_.add_object(cell.get_pos().x, cell.get_pos().y, idx);
 			++idx;
 		}
 	}

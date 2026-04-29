@@ -91,7 +91,9 @@ Multithreadding GUI:
 -----------------------------------------------------------------------
 
 ##### Known Bugs
-- random lines draw accross the screen sometimes, not sure why yet
+- Protozoa end up developing humungous hitboxes and seem to be moving on their own
+- you cant toggle the screen upper border so its impossible to move
+- Food are dying suspiciously quickly
 - if the cell grid and the food grid are different sizes then the cells index the wrong location in the food grid and they cant resolve
 - food grid tracking in imgui has bugs
 
@@ -100,8 +102,20 @@ Multithreadding GUI:
 - When selecting a protozoa it should track all the cells nearby
 - When selecting a protozoa it should track all the food nearby
 
+-----------------------------------------------------------------------
+##### Cells Todo
+- Add the ability for cells to determine 
+	- when they reproduce
+	- when they die artificially
+	- How fast they convert Nutrients to energy
+	- How they converve energy
+	- How much energy they give to their offspring
 
 
+#### optimization
+std::vector<int> reproduce_indexes{};
+		reproduce_indexes.reserve(max_protozoa);
+is called every frame
 
 
 # performance tracking by the number of frames ran in 30 seconds:

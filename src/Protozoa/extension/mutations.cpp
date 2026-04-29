@@ -56,20 +56,12 @@ void Protozoa::add_cell()
 
     // finding the parent which will undergo mitosis
     const uint8_t parent_index = Random::rand_range(uint8_t(0), static_cast<uint8_t>(m_cells_.size() - 1));
-    const Cell& parent = m_cells_[parent_index];
-
-    sf::FloatRect spawn_area = {
-        {parent.position_.x - parent.radius * 3.f, parent.position_.y - parent.radius * 3.f},
-        {parent.radius * 6.f, parent.radius * 6.f}
-    };
-    sf::Vector2f position = Random::rand_pos_in_rect(spawn_area);
+	Cell& parent = m_cells_[parent_index];
 
     // creating the new cell and adding it to our cells
-    Cell child = parent;
+    Cell child{};
     child.id = m_cells_.size();
-    child.position_ = position;
-    child.amplitude = 0.1f;
-    child.vertical_shift = 0.5f;
+    parent.create_offspring(&child, true, false);
     m_cells_.push_back(child);
 
     // creating a spring connection to that cell

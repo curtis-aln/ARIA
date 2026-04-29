@@ -17,29 +17,39 @@ struct Spring : SpringGenome
 	// unique spring ID, used for genome referencing, must not change during the spring's lifetime
 	uint8_t id{};
 
+	uint16_t clock_{};
+
 	Spring(const uint8_t _id, const uint8_t _cell_A_id, const uint8_t _cell_B_id)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id(_id), SpringGenome()
 	{
 
 	}
 
-	SpringResult update(Cell& cell_a, Cell& cell_b, const int internal_clock)
+
+	void reset()
 	{
-		const sf::Vector2f pos_a = cell_a.position_;
-		const sf::Vector2f pos_b = cell_b.position_;
-		const sf::Vector2f vel_a = cell_a.velocity_;
-		const sf::Vector2f vel_b = cell_b.velocity_;
+		clock_ = 0;
+	}
+
+
+	SpringResult update(Cell& cell_a, Cell& cell_b)
+	{
+		clock_++; 
+
+		const sf::Vector2f& pos_a = cell_a.get_pos();
+		const sf::Vector2f& pos_b = cell_b.get_pos();
+		const sf::Vector2f& vel_a = cell_a.get_vel();
+		const sf::Vector2f& vel_b = cell_b.get_vel();
 
 		const float dist = (pos_b - pos_a).length();
 
-		if (dist < 1e-6f)
+		if (dist < 1e-6f || dist > ProtozoaSettings::breaking_length)
 		{
-			return { 0.f, true };
+			return {.work_done = 0.f, .broken = true };
 		}
 
-
 		// finding the rest length of the spring
-		const float rest_length = calculate_rest_length(internal_clock);
+		const float rest_length = calculate_rest_length(clock_);
 
 		// Calculating the spring force: Fs = K * (|B - A| - L)
 		const float spring_force = spring_const * (dist - rest_length);

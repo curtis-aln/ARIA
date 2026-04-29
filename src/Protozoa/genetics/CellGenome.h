@@ -61,7 +61,7 @@ struct CellGenome : HardConstants
 
     CellGenome()
     {
-     
+
     }
 
     void Randomize(const float deviation)
@@ -114,5 +114,25 @@ struct CellGenome : HardConstants
         inner_r = mutate_channel(inner_r, colour_mutation_range);
         inner_g = mutate_channel(inner_g, colour_mutation_range);
         inner_b = mutate_channel(inner_b, colour_mutation_range);
+    }
+
+    void copy_genetics(const CellGenome* parent)
+    {
+        amplitude = parent->amplitude;
+        frequency = parent->frequency;
+        offset = parent->offset;
+        vertical_shift = parent->vertical_shift;
+
+		inner_r = parent->inner_r;
+		inner_g = parent->inner_g;
+		inner_b = parent->inner_b;
+		outer_r = parent->outer_r;
+		outer_g = parent->outer_g;
+		outer_b = parent->outer_b;
+
+		mutation_rate = parent->mutation_rate;
+		mutation_range = parent->mutation_range;
+
+		radius = parent->radius;
     }
 };

@@ -101,7 +101,7 @@ public:
 	void create_offspring(Protozoa* parent, const bool should_mutate = true)
 	{
 		Protozoa* offspring = get_unallocated_protozoa();
-		offspring->create_offspring(parent, should_mutate);
+		parent->create_offspring(offspring, should_mutate);
 	}
 
 protected:
@@ -117,8 +117,6 @@ protected:
 
 		sf::Vector2f pos = world_bounds.rand_pos();
 		protozoa.init_one_cell(pos);
-		
-
 
 		for (int i = 0; i < max_evolutionary_iterations; ++i)
 		{
@@ -138,7 +136,6 @@ protected:
 
 	void update_all_protozoa(FoodManager& food_manager_, const bool debug_mode, const float min_speed, const bool track_statistics, bool collisions)
 	{
-
 		std::vector<int> reproduce_indexes{};
 		reproduce_indexes.reserve(max_protozoa);
 
@@ -149,7 +146,7 @@ protected:
 			if (!protozoa->is_alive())
 			{
 				if (track_statistics)
-					register_death_stat(protozoa->frames_alive, protozoa->offspring_count > 0);
+					register_death_stat(protozoa->get_frames_alive_avg(), protozoa->offspring_count > 0);
 				all_protozoa_.remove(protozoa);
 				continue;
 			}
@@ -178,7 +175,7 @@ protected:
 		{
 			for (auto& cell : protozoa->get_cells())
 			{
-				cell.position_ += collision_resolutions[idx++];
+				cell.accelerate(collision_resolutions[idx++]);
 			}
 		}
 #

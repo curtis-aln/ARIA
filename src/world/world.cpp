@@ -253,15 +253,17 @@ sf::Rect<float> World::calc_protozoa_bounds(const Protozoa* protozoa)
     if (cells.empty())
         return {};
 
-    float min_x = cells[0].position_.x, max_x = min_x;
-    float min_y = cells[0].position_.y, max_y = min_y;
+	const sf::Vector2f first_pos = cells[0].get_pos();
+    float min_x = first_pos.x, max_x = min_x;
+    float min_y = first_pos.y, max_y = min_y;
 
     for (const Cell& cell : cells)
     {
-        min_x = std::min(min_x, cell.position_.x - cell.radius);
-        max_x = std::max(max_x, cell.position_.x + cell.radius);
-        min_y = std::min(min_y, cell.position_.y - cell.radius);
-        max_y = std::max(max_y, cell.position_.y + cell.radius);
+		const sf::Vector2f pos = cell.get_pos();
+        min_x = std::min(min_x, pos.x - cell.radius);
+        max_x = std::max(max_x, pos.x + cell.radius);
+        min_y = std::min(min_y, pos.y - cell.radius);
+        max_y = std::max(max_y, pos.y + cell.radius);
     }
 
     return { {min_x, min_y}, {max_x - min_x, max_y - min_y} };
