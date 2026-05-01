@@ -90,7 +90,7 @@ public:
 
 
 	inline static constexpr int max_evolutionary_iterations = 5;
-	inline static constexpr int desired_cell_count = 4;
+	inline static constexpr int desired_cell_count = 3;
 
 
 	Protozoa* find_protozoa_by_id(const int id)
@@ -106,33 +106,25 @@ public:
 	}
 
 protected:
-	static inline void generate_protozoa(Protozoa& protozoa, const Circle& world_bounds, bool emplace_back = true)
+	static inline void build_protozoa(Protozoa& protozoa, const Circle& world_bounds, bool emplace_back = true)
 	{
-		if (!protozoa.get_cells().empty())
-		{
-			std::cout << "[WARNING]: Protozoa already has cells, generation process may produce unexpected results.\n";
-		}
-
-		// we dont need to create protozoas for the "first time" during extinction or reset events
+		// To build a protozoa, we generate a random amount of cells and then run a spring connection algorithm for a random amount of iterations
 		protozoa.hard_reset();
 
-		sf::Vector2f pos = world_bounds.rand_pos();
-		protozoa.init_one_cell(pos);
+		std::vector<Cell>& cells = protozoa.get_cells();
+		sf::Vector2f spawn_position = world_bounds.rand_pos();
+		float spawn_dist = 200.f;
+		sf::FloatRect spawn_rect = { spawn_position - sf::Vector2f(spawn_dist, spawn_dist), sf::Vector2f(spawn_dist * 2, spawn_dist * 2) };
+		const int cell_count = Random::rand_range(2, desired_cell_count);
+		const int spring_count = Random::rand_range(cell_count-1, cell_count * 2);
 
-		for (int i = 0; i < max_evolutionary_iterations; ++i)
-		{
-			protozoa.mutate(true, 0.8f, 0.43f);
+		// creating the cells
+		for (int i = 0; i < cell_count; ++i)
+			cells.emplace_back(i, Random::rand_pos_in_rect(spawn_rect));
 
-			// as soon as we reach the criteria passing the desired cell count, the chance of breaking out the loop increases 
-			// gradually until max evolutionary iterations
-			const size_t cell_count = protozoa.get_cells().size();
-			if (cell_count < desired_cell_count)
-				continue;
-			
-			float break_chance = static_cast<float>(cell_count - desired_cell_count) / float(max_evolutionary_iterations - desired_cell_count);
-			if (Random::rand01_float() < break_chance)
-				break;
-		}
+		// Now we create springs between the cells
+		for (int i = 0; i < spring_count; ++i)
+			protozoa.add_spring();
 	}
 
 	void update_all_protozoa(FoodManager& food_manager_, const bool debug_mode, const float min_speed, const bool track_statistics, bool collisions)
@@ -210,7 +202,7 @@ protected:
 		for (unsigned i = 0; i < initial_protozoa; ++i)
 		{
 			Protozoa* protozoa = all_protozoa_.add();
-			generate_protozoa(*protozoa, world_bounds, false);
+			build_protozoa(*protozoa, world_bounds, false);
 		}
 
 		
@@ -239,5 +231,25 @@ protected:
 	void register_birth_stat()
 	{
 		births_this_window_++;
+	}
+
+	void init_protozoa_container(Circle& world_bounds)
+	{
+		// We create the maximum amount of protozoa at the start
+		for (int i = 0; i < max_protozoa; ++i)
+			all_protozoa_.emplace({ i });
+
+		// removing any protozoa that are above the initial protozoa count
+		for (int i = initial_protozoa; i < max_protozoa; ++i)
+		{
+			all_protozoa_.at(i)->kill();
+			all_protozoa_.at(i)->soft_reset();
+			all_protozoa_.remove(i);
+		}
+
+		for (Protozoa* protozoa : all_protozoa_)
+		{
+			build_protozoa(*protozoa, world_bounds);
+		}
 	}
 };

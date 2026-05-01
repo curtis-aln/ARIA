@@ -178,7 +178,7 @@ public:
 
 		child->amplitude = 0.01f;
 		child->frequency = 1.f;
-		child->vertical_shift = GeneticConstraints::vertical_shift.max;
+		child->vertical_shift = CellGeneticConstraints::vertical_shift.max;
 		child->offset = 0.f;
 	}
 

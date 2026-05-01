@@ -152,7 +152,6 @@ private:
     void update_statistics();
 
     void render_protozoa(const SimSnapshot& snapshot, Font* font);
-    void init_organisms();
     void init_food_jobs();
     void resolve_food_interactions();
     void resolve_food_interactions_threadded();

@@ -35,7 +35,7 @@ public:
             reserve(active_count * 2);
 
         active_ = active_count;
-        std::memset(flags_.get(), 0, static_cast<size_t>(capacity_));  // clear ALL slots
+        std::memset(flags_.get(), 0, static_cast<size_t>(capacity_) * sizeof(PaddedFlag));
     }
 
     // Returns true if this thread claimed the slot.

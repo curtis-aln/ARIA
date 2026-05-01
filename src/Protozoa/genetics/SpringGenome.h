@@ -1,38 +1,80 @@
 #pragma once
+#include "range.h"
+#include "genome_base.h"
 
-
-struct SpringGenome
+struct SpringGeneticConstraints
 {
-    float mutation_rate = 0.2f;         // chance of mutation occurring
-    float mutation_range = 0.2f;
-    inline static constexpr float mutation_rate_rate = 0.1f;     // chance of mutation rate mutating
-    inline static constexpr float mutation_rate_range = 0.01f;
+    inline static Range amplitude = { 0.f,          1.f };  // ratio [0,1]
+    inline static Range frequency = { -1.f / 400.f, 1.f / 400.f };
+    inline static Range offset = { -3.14159f,    3.14159f };
+    inline static Range vertical_shift = { -0.5f,        0.5f };
+    inline static Range spring_const = { 0.f,          1.f };
+    inline static Range damping = { 0.f,          1.f };
+};
 
+struct SpringInitialSpawnRanges
+{
+    inline static Range amplitude = { 0.4f,         0.4f };
+    inline static Range frequency = { 1.f / 200.f,  1.f / 60.f };
+    inline static Range offset = SpringGeneticConstraints::offset;
+    inline static Range vertical_shift = { 0.5f,          0.5f };
+    inline static Range spring_const = { 0.01f, 0.1f };
+    inline static Range damping = { 0.4f,0.8f };
+};
 
-    int generation = 0;
+struct SpringGenome : GenomeBase
+{
+    float amplitude = Random::rand_range(SpringInitialSpawnRanges::amplitude.min, SpringInitialSpawnRanges::amplitude.max);
+    float frequency = Random::rand_range(SpringInitialSpawnRanges::frequency.min, SpringInitialSpawnRanges::frequency.max);
+    float offset = Random::rand_range(SpringInitialSpawnRanges::offset.min, SpringInitialSpawnRanges::offset.max);
+    float vertical_shift = Random::rand_range(SpringInitialSpawnRanges::vertical_shift.min, SpringInitialSpawnRanges::vertical_shift.max);
 
-    float damping = 0.9f; // velocity lost per update
-    float spring_const = 0.3f; // stiffness of the spring
+    float spring_const = 0.05f;
+    float damping = 0.6f;
 
-    // the amplitude can range from 0, to 1 and is multiplied by a multiple of the cell radius to figure out extension
-    inline static constexpr float max_amplitude = 1.f;
+    SpringGenome() = default;
 
-    // 1 second is 30 frames, so they should only be able to complete one oscillation per second (+- 1/30)
-    inline static constexpr float max_frequency = 1.f / 30.f;
+    void randomize()
+    {
+        mutation_rate = Random::rand_range(0.f, 0.3f);
+        mutation_range = Random::rand_range(0.f, 0.3f);
 
-    // offset has a range of +- pi rad, then it loops
-    inline static constexpr float max_offset = 3.14159f;
+        amplitude = Random::rand_range(SpringInitialSpawnRanges::amplitude.min, SpringInitialSpawnRanges::amplitude.max);
+        frequency = Random::rand_range(SpringInitialSpawnRanges::frequency.min, SpringInitialSpawnRanges::frequency.max);
+        offset = Random::rand_range(SpringInitialSpawnRanges::offset.min, SpringInitialSpawnRanges::offset.max);
+        vertical_shift = Random::rand_range(SpringInitialSpawnRanges::vertical_shift.min, SpringInitialSpawnRanges::vertical_shift.max);
+    }
 
-    // vertical shift minimum: -0.5 (graph fully below x axis), maximum: 0.5 (graph fully above x axis), clamping to make sure no vaue escapes [0, 1]
-    inline static constexpr float max_vertical_shift = 0.5f;
+    void mutate(float rate = 0.f, float range = 0.f)
+    {
+        rate = rate > 0.f ? rate : mutation_rate;
+        range = range > 0.f ? range : mutation_range;
 
-    inline static constexpr float max_damping = 1.f;
-    inline static constexpr float max_spring_const = 1.f;
+        const auto& C = SpringGeneticConstraints{};
 
+        amplitude = maybe_mutate(amplitude, C.amplitude, rate, range);
+        frequency = maybe_mutate(frequency, C.frequency, rate, range);
+        offset = maybe_mutate(offset, C.offset, rate, range);
+        vertical_shift = maybe_mutate(vertical_shift, C.vertical_shift, rate, range);
 
-    // The update function looks as so Extension = A * sin(Bt + C) + D
-    float amplitude = 0.2f;
-    float frequency = 1 / 60.f;
-    float offset = 0.f;
-    float vertical_shift = 0.5f;
+        spring_const = maybe_mutate(spring_const, C.spring_const, rate, range);
+        damping = maybe_mutate(damping, C.damping, rate, range);
+
+        mutate_meta();
+    }
+
+    void copy_genetics(const SpringGenome& parent)
+    {
+        amplitude = parent.amplitude;
+        frequency = parent.frequency;
+        offset = parent.offset;
+        vertical_shift = parent.vertical_shift;
+        spring_const = parent.spring_const;
+        damping = parent.damping;
+
+        mutation_rate = parent.mutation_rate;
+        mutation_range = parent.mutation_range;
+    }
+
+   
 };

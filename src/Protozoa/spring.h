@@ -73,44 +73,13 @@ struct Spring : SpringGenome
 		cell_a.accelerate(total_force * ((pos_b - pos_a) / current_length));
 		cell_b.accelerate(total_force * ((pos_a - pos_b) / current_length));
 
-		// finally we check if the spring should break (if its length surpasses breaking length) and return that information
-		bool broken = current_length > ProtozoaSettings::breaking_length;
-		
 		// we can calculate the amount of energy this contraction / extension took
 		work_done = std::abs(spring_force) * std::abs(current_length - rest_length);
 		work_done *= ProtozoaSettings::spring_work_const; 
 
-		return { work_done, broken };
+		return { work_done, false };
 	}
 
-	void mutate(float mut_rate = 0.f, float mut_range = 0.f)
-	{
-		auto chance = [](float rate) { return Random::rand01_float() < rate; };
-		auto rand_sym = [](float range) { return Random::rand_range(-range, range); };
-
-		// if the defualt mr is zero we set it t othe cells mr
-		mut_rate = (mut_rate == 0.f) ? mutation_rate : mut_rate;
-		mut_range = (mut_range == 0.f) ? mutation_range : mut_range;
-
-		amplitude += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-		frequency += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-		offset += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-		vertical_shift += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-
-		spring_const += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-		damping += chance(mut_rate) ? rand_sym(mut_range) : 0.f;
-
-		mutation_range += chance(mutation_rate) ? rand_sym(mutation_rate_range) : 0.f;
-		mutation_rate += chance(mutation_rate) ? rand_sym(mutation_rate_range) : 0.f;
-
-		// handle clamping of the params
-		spring_const = std::clamp(spring_const, 0.f, max_spring_const);
-		damping = std::clamp(damping, 0.f, max_damping);
-		amplitude = std::clamp(amplitude, 0.f, max_amplitude);
-		frequency = std::clamp(frequency, -max_frequency, max_frequency);
-		offset = std::clamp(offset, -max_offset, max_offset);
-		vertical_shift = std::clamp(vertical_shift, -max_vertical_shift, max_vertical_shift);
-	}
 
 
 private:

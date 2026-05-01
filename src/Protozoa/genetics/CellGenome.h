@@ -1,138 +1,105 @@
 #pragma once
 #include <cstdint>
-
 #include "../../Utils/random.h"
+#include "genome_base.h"
 
-
-struct Range
+struct CellGeneticConstraints
 {
-    float min, max;
-    float clamp(float v) const { return std::clamp(v, min, max); }
-};
-
-
-struct GeneticConstraints
-{
-    inline static Range radius = { 15.f,        220.f };
+    inline static Range radius = { 15.f,         220.f };
     inline static float radius_step = 5.f;
-
-    inline static Range amplitude = { -2.f,        2.f };
-    inline static Range frequency = { -1.f / 30.f, 1.f / 30.f };
-    inline static Range offset = { -3.14159f,   3.14159f };
-    inline static Range vertical_shift = { -0.5f,       0.5f };
+    inline static Range amplitude = { -2.f,         2.f };
+    inline static Range frequency = { -1.f / 30.f,  1.f / 30.f };
+    inline static Range offset = { -3.14159f,    3.14159f };
+    inline static Range vertical_shift = { -0.5f,        0.5f };
 };
 
+struct CellInitialSpawnRanges
+{
+    inline static Range radius = { 30.f,          100.f };
+    inline static Range amplitude = { 0.5f,          1.f };
+    inline static Range frequency = { 1.f / 200.f,   1.f / 60.f };
+    inline static Range offset = CellGeneticConstraints::offset;
+    inline static Range vertical_shift = { 0.f,           0.2f };
+};
 
 struct HardConstants
 {
-    inline static float add_cell_chance = 0.03f;
-    inline static float remove_cell_chance = 0.03f;
-    inline static float add_spring_chance = 0.03f;
-    inline static float remove_spring_chance = 0.03f;
-
-    inline static std::uint8_t transparency = 140;
-
-    inline static float mutation_rate_rate = 0.1f;
-    inline static float mutation_rate_range = 0.01f;
-    inline static float colour_mutation_range = 0.001f;
+    inline static float     add_cell_chance = 0.03f;
+    inline static float     remove_cell_chance = 0.03f;
+    inline static float     add_spring_chance = 0.03f;
+    inline static float     remove_spring_chance = 0.03f;
+    inline static uint8_t   transparency = 140;
+    inline static float     colour_mutation_range = 0.001f;
 };
 
-
-struct CellGenome : HardConstants
+struct CellGenome : GenomeBase, HardConstants
 {
-    int generation = 0;
+    float radius = Random::rand_range(CellInitialSpawnRanges::radius.min, CellInitialSpawnRanges::radius.max);
+    float amplitude = Random::rand_range(CellInitialSpawnRanges::amplitude.min, CellInitialSpawnRanges::amplitude.max);
+    float frequency = Random::rand_range(CellInitialSpawnRanges::frequency.min, CellInitialSpawnRanges::frequency.max);
+    float offset = Random::rand_range(CellInitialSpawnRanges::offset.min, CellInitialSpawnRanges::offset.max);
+    float vertical_shift = Random::rand_range(CellInitialSpawnRanges::vertical_shift.min, CellInitialSpawnRanges::vertical_shift.max);
 
-    float mutation_rate = 0.2f;
-    float mutation_range = 0.2f;
+    uint8_t outer_r = Random::rand_byte(), outer_g = Random::rand_byte(), outer_b = Random::rand_byte();
+    uint8_t inner_r = Random::rand_byte(), inner_g = Random::rand_byte(), inner_b = Random::rand_byte();
 
-    float radius = 90.f;
+    CellGenome() = default;
 
-    uint8_t outer_r = Random::rand_byte();
-    uint8_t outer_g = Random::rand_byte();
-    uint8_t outer_b = Random::rand_byte();
-    uint8_t inner_r = Random::rand_byte();
-    uint8_t inner_g = Random::rand_byte();
-    uint8_t inner_b = Random::rand_byte();
-
-    float amplitude = 0.3f;
-    float frequency = 1.f / 120.f;
-    float offset = 0.f;
-    float vertical_shift = 0.5f;
-
-    CellGenome()
+    void randomize()
     {
-
-    }
-
-    void Randomize(const float deviation)
-    {
-        auto mutate = [&](float val, Range limits) -> float {
-            return limits.clamp(val + Random::rand_range(limits.min, limits.max) * deviation);};
-
         mutation_rate = Random::rand_range(0.f, 0.3f);
         mutation_range = Random::rand_range(0.f, 0.3f);
 
-        radius = mutate(radius, GeneticConstraints::radius);
-        amplitude = mutate(amplitude, GeneticConstraints::amplitude);
-        frequency = mutate(frequency, GeneticConstraints::frequency);
-        offset = mutate(offset, GeneticConstraints::offset); 
-        vertical_shift = mutate(vertical_shift, GeneticConstraints::vertical_shift);
+        amplitude = Random::rand_range(CellInitialSpawnRanges::amplitude.min, CellInitialSpawnRanges::amplitude.max);
+        frequency = Random::rand_range(CellInitialSpawnRanges::frequency.min, CellInitialSpawnRanges::frequency.max);
+        offset = Random::rand_range(CellInitialSpawnRanges::offset.min, CellInitialSpawnRanges::offset.max);
+        vertical_shift = Random::rand_range(CellInitialSpawnRanges::vertical_shift.min, CellInitialSpawnRanges::vertical_shift.max);
 
         outer_r = Random::rand_byte(); outer_g = Random::rand_byte(); outer_b = Random::rand_byte();
         inner_r = Random::rand_byte(); inner_g = Random::rand_byte(); inner_b = Random::rand_byte();
     }
 
-    void mutate(float mutation_rate_ = 0.f, float mutation_range_ = 0.f)
+    void mutate(float rate = 0.f, float range = 0.f)
     {
-        // if the mutation rate and range are undefined we use are own
-		mutation_rate_ = mutation_rate_ > 0.f ? mutation_rate_ : mutation_rate;
-		mutation_range_ = mutation_range_ > 0.f ? mutation_range_ : mutation_range;
+        rate = rate > 0.f ? rate : mutation_rate;
+        range = range > 0.f ? range : mutation_range;
 
-        auto maybe_mutate = [&](float val, Range limits) -> float {
-            if (Random::rand_range(0.f, 1.f) < mutation_rate_) return val;
-            return limits.clamp(val + Random::rand_range(-mutation_range_, mutation_range_));
-            };
+        const auto& C = CellGeneticConstraints{};
+        radius = maybe_mutate(radius, C.radius, rate, range);
+        amplitude = maybe_mutate(amplitude, C.amplitude, rate, range);
+        frequency = maybe_mutate(frequency, C.frequency, rate, range);
+        offset = maybe_mutate(offset, C.offset, rate, range);
+        vertical_shift = maybe_mutate(vertical_shift, C.vertical_shift, rate, range);
 
-        radius = maybe_mutate(radius, GeneticConstraints::radius);
-        amplitude = maybe_mutate(amplitude, GeneticConstraints::amplitude);
-        frequency = maybe_mutate(frequency, GeneticConstraints::frequency);
-        offset = maybe_mutate(offset, GeneticConstraints::offset);
-        vertical_shift = maybe_mutate(vertical_shift, GeneticConstraints::vertical_shift);
+        mutate_meta();
+        mutate_colour(outer_r, outer_g, outer_b);
+        mutate_colour(inner_r, inner_g, inner_b);
+    }
 
-        auto chance = [](float rate) { return Random::rand01_float() < rate; };
-        auto rand_sym = [](float range) { return Random::rand_range(-range, range); };
-        mutation_rate += rand_sym(mutation_rate_range) * chance(mutation_rate_rate);
-        mutation_range += rand_sym(mutation_rate_range) * chance(mutation_rate_rate);
+    void copy_genetics(const CellGenome& parent)
+    {
+        amplitude = parent.amplitude;
+        frequency = parent.frequency;
+        offset = parent.offset;
+        vertical_shift = parent.vertical_shift;
+        radius = parent.radius;
 
-        auto mutate_channel = [](uint8_t ch, float range) -> uint8_t {
+        outer_r = parent.outer_r; outer_g = parent.outer_g; outer_b = parent.outer_b;
+        inner_r = parent.inner_r; inner_g = parent.inner_g; inner_b = parent.inner_b;
+
+        mutation_rate = parent.mutation_rate;
+        mutation_range = parent.mutation_range;
+    }
+
+private:
+    void mutate_colour(uint8_t& r, uint8_t& g, uint8_t& b) const
+    {
+        auto shift = [](uint8_t ch, float range) -> uint8_t {
             const int delta = static_cast<int>(Random::rand_range(-range * 255.f, range * 255.f));
             return static_cast<uint8_t>(std::clamp(static_cast<int>(ch) + delta, 0, 255));
             };
-        outer_r = mutate_channel(outer_r, colour_mutation_range);
-        outer_g = mutate_channel(outer_g, colour_mutation_range);
-        outer_b = mutate_channel(outer_b, colour_mutation_range);
-        inner_r = mutate_channel(inner_r, colour_mutation_range);
-        inner_g = mutate_channel(inner_g, colour_mutation_range);
-        inner_b = mutate_channel(inner_b, colour_mutation_range);
-    }
-
-    void copy_genetics(const CellGenome* parent)
-    {
-        amplitude = parent->amplitude;
-        frequency = parent->frequency;
-        offset = parent->offset;
-        vertical_shift = parent->vertical_shift;
-
-		inner_r = parent->inner_r;
-		inner_g = parent->inner_g;
-		inner_b = parent->inner_b;
-		outer_r = parent->outer_r;
-		outer_g = parent->outer_g;
-		outer_b = parent->outer_b;
-
-		mutation_rate = parent->mutation_rate;
-		mutation_range = parent->mutation_range;
-
-		radius = parent->radius;
+        r = shift(r, colour_mutation_range);
+        g = shift(g, colour_mutation_range);
+        b = shift(b, colour_mutation_range);
     }
 };

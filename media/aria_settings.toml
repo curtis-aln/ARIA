@@ -13,14 +13,14 @@ cell_max_capacity = 15
 [protozoa]
 max_cells                = 15
 spawn_radius             = 100.0
-energy_decay_rate        = 0.15
+energy_decay_rate        = 0.02
 wander_threshold         = 600.0   
 breaking_length          = 540.0   
-maximum_extension        = 360.0    
+maximum_extension        = 550.0    
 spring_work_const        = 0.00001
 reproductive_cooldown    = 200
 digestive_time           = 100
-initial_energy           = 300.0
+initial_energy           = 70.0
 
 
 # ── Food ──────────────────────────────────────────────────────────────────────

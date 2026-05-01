@@ -11,6 +11,11 @@
 // Hard cap on sinwave buffer to prevent OOM when frequency is near zero.
 static constexpr int k_max_wave_buf = 2048;
 
+// Design constants
+inline static constexpr ImVec4 nutrients_bar_col = { 0.35f, 0.75f, 0.35f, 1.f };
+inline static constexpr ImVec4 selector_color = { 0.2, 0.2, 0.8, 1.0 };
+inline static constexpr ImVec2 spring_cell_box_size = { 275.f, -1.f };
+
 // Safe period in frames for a given frequency.
 static int safe_time_period(const float frequency)
 {
@@ -127,7 +132,7 @@ void OrganismTab::draw_overview(const ProtozoaTracker& protozoa)
     const float nutrients_f = std::clamp(protozoa.total_nutrients / protozoa.max_nutrients, 0.f, 1.f);
     char nutrients_lbl[32];
     snprintf(energy_lbl, sizeof(nutrients_lbl), "%.0f / %.0f", protozoa.total_nutrients, protozoa.max_nutrients);
-    colored_progress(nutrients_f, { 0.35f, 0.75f, 0.35f, 1.f }, nutrients_lbl);
+    colored_progress(nutrients_f, nutrients_bar_col, nutrients_lbl);
 
 
     // ── Repro cooldown: counts down to zero, stays at zero when ready ─────
@@ -155,9 +160,6 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const ProtozoaTracke
     const int cell_count = protozoa.cell_count;
 	const int spring_count = protozoa.spring_count;
 
-    //const auto& cells = protozoa.get_cells();
-    //const auto& springs = protozoa.get_springs();
-
 	// No need to show the list if both are empty
     if (cell_count == 0 && spring_count == 0) 
     { 
@@ -183,7 +185,7 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const ProtozoaTracke
     constexpr ImVec2 list_size = { 88.f, -1.f };
     ImGui::BeginChild("CS_list", list_size, true);
 
-    constexpr ImVec4 selector_color = {0.2, 0.2, 0.8, 1.0};
+    
     for (int i = 0; i < cell_count; ++i)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, selector_color);
@@ -256,7 +258,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
     wave_range(c.amplitude, c.vertical_shift, 0.f, 1.f, wave_min, wave_max);
 
     // ── Stats ─────────────────────────────────────────────────────────────
-    ImGui::BeginChild("CL_stat", { 230.f, -1.f }, true);
+    ImGui::BeginChild("CL_stat", spring_cell_box_size, true);
 
     ImGui::TextDisabled("Cell %d  Gen %d", c.id, c.generation);
     ImGui::Text("Pos      (%.0f, %.0f)", pos.x, pos.y);
@@ -305,7 +307,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
     ImGui::SetNextItemWidth(-1.f);
     
     slider_float_cmd("##rad_c", c.radius,
-        GeneticConstraints::radius.min, GeneticConstraints::radius.max,
+        CellGeneticConstraints::radius.min, CellGeneticConstraints::radius.max,
         "R = %.1f", CommandType::SetRadius);
 
     ImGui::EndChild();
@@ -328,13 +330,13 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
 
     ImGui::Spacing();
     ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##cA", c.amplitude, GeneticConstraints::amplitude.min, GeneticConstraints::amplitude.max, "Amplitude = %.3f", CommandType::SetAmplitude);
+    slider_float_cmd("##cA", c.amplitude, CellGeneticConstraints::amplitude.min, CellGeneticConstraints::amplitude.max, "Amplitude = %.3f", CommandType::SetAmplitude);
     ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cB", c.frequency, GeneticConstraints::frequency.min, GeneticConstraints::frequency.max, "Frequency = %.5f", CommandType::SetFrequency);
+	slider_float_cmd("##cB", c.frequency, CellGeneticConstraints::frequency.min, CellGeneticConstraints::frequency.max, "Frequency = %.5f", CommandType::SetFrequency);
     ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cC", c.offset, GeneticConstraints::offset.min, GeneticConstraints::offset.max, "Phase     = %.3f", CommandType::SetOffset);
+	slider_float_cmd("##cC", c.offset, CellGeneticConstraints::offset.min, CellGeneticConstraints::offset.max, "Phase     = %.3f", CommandType::SetOffset);
     ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cD", c.vertical_shift, GeneticConstraints::vertical_shift.min, GeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetVerticalShift);
+	slider_float_cmd("##cD", c.vertical_shift, CellGeneticConstraints::vertical_shift.min, CellGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetVerticalShift);
 
     ImGui::EndChild();
 }
@@ -366,12 +368,12 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p
 
 
     // ── Stats ─────────────────────────────────────────────────────────────
-    ImGui::BeginChild("SL_stat", { 230.f, -1.f }, true);
+    ImGui::BeginChild("SL_stat", spring_cell_box_size, true);
 
     ImGui::TextDisabled("Spring %d->%d", s.cell_A_id, s.cell_B_id);
 
     const float length_diff = s.rest_length - s.current_length;
-    ImGui::Text("Rest L:  %.1f, Real L: %.1", s.rest_length, s.current_length);
+    ImGui::Text("Rest L:  %.1f, Real L: %.1f", s.rest_length, s.current_length);
     ImGui::Text("Length Diff:  %.2f", length_diff);
     ImGui::Text("Period        %d frames", period);
     ImGui::Text("Extension min %.0f  max %.0f", ext_min, ext_max);
@@ -388,8 +390,9 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p
     const float ext_range = ext_max - ext_min;
 
     // Drawing the Force and Extension Progress Bars
-    constexpr float force_scale = SpringGenome::max_spring_const > 0.f
-        ? 1.f / SpringGenome::max_spring_const : 1.f;
+	static float max_spring_const = SpringGeneticConstraints::spring_const.max;
+	float force_scale = max_spring_const > 0.f
+        ? 1.f / max_spring_const : 1.f;
     const float ext_scale = ext_range > 0.f ? 1.f / ext_range : 1.f;
 
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, { 0.4f, 0.8f, 1.f, 1.f });
@@ -405,12 +408,12 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p
     ImGui::SetNextItemWidth(-1.f);
 
     slider_float_cmd("##sk", s.spring_const,
-        0.f, SpringGenome::max_spring_const,
+        0.f, SpringGeneticConstraints::spring_const.max,
         "Spring constant = %.3f", CommandType::SetSpringConst);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sd", s.damping,
-        0.f, SpringGenome::max_damping,
+        0.f, SpringGeneticConstraints::damping.max,
         "Damping         = %.3f", CommandType::SetDampingConst);
 
     ImGui::EndChild();
@@ -434,22 +437,22 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p
     ImGui::Spacing();
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sA", s.amplitude,
-        0.f, SpringGenome::max_amplitude,
+        0.f, SpringGeneticConstraints::amplitude.max,
         "Amplitude = %.3f", CommandType::SetSpringAmplitude);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sB", s.frequency,
-        -SpringGenome::max_frequency, SpringGenome::max_frequency,
+        -SpringGeneticConstraints::frequency.min, SpringGeneticConstraints::frequency.max,
         "Frequency = %.5f", CommandType::SetSpringFrequency);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sC", s.offset,
-        -SpringGenome::max_offset, SpringGenome::max_offset,
+        -SpringGeneticConstraints::offset.min, SpringGeneticConstraints::offset.max,
         "Phase     = %.3f", CommandType::SetSpringOffset);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sD", s.vertical_shift,
-        -SpringGenome::max_vertical_shift, SpringGenome::max_vertical_shift,
+        -SpringGeneticConstraints::vertical_shift.min, SpringGeneticConstraints::vertical_shift.max,
         "Shift     = %.3f", CommandType::SetSpringVerticalShift);
 
     ImGui::EndChild();

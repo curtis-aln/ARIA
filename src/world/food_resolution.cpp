@@ -30,6 +30,7 @@ void World::resolve_food_interactions()
 {
 	for (int cell_id = 0; cell_id < spatial_hash_grid_.CellsX * spatial_hash_grid_.CellsY; ++cell_id)
 	{
+		tl_nearby_food.clear();
 		resolve_food_grid_cell(cell_id, tl_nearby_food);
 	}
 }
@@ -65,7 +66,7 @@ void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby
 
 		for (int i = 0; i < nearby_food.count; ++i)
 		{
-			Food* food = food_manager_.at(nearby_food[i]);
+			const Food* food = food_manager_.at(nearby_food[i]);
 			// Check proximity BEFORE claiming
 			if (!Cell::consume_food_check(*cell, food->position))
 				continue;  // too far, try next food

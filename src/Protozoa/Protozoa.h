@@ -93,14 +93,6 @@ public:
 		m_springs_ = other->m_springs_;
 	}
 
-	void init_one_cell(sf::Vector2f& position)
-	{
-		m_cells_.clear();
-		m_springs_.clear();
-
-		m_cells_.emplace_back(0, position);
-	}
-
 	void kill();
 
 	void soft_reset();

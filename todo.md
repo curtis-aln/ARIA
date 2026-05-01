@@ -6,28 +6,28 @@
 - Clone: duplicate an organism exactly, spawn the copy nearby
 - Organism tagging, ability to tag an organism and it will be outlined and visible, will show up on the tagged organisms screen
 - Time-lapse / fast-forward mode — run simulation at 10x-100x with minimal rendering for long-run experiments
-- Ability to make organisms immortal
-- Force feed: manually inject energy into a selected organism, useful for keeping a favourite alive during experiments
+[Done] Ability to make organisms immortal
+[Done] Force feed: manually inject energy into a selected organism, useful for keeping a favourite alive during experiments
 - Worlds should be able to be saved and loaded
 - add the ability to change the worldsize in real time, regardless of if the spatial hash grid can change with it yet
 - add the ability to pinch, pin, and throw organisms around 
-- add a zoom slider for users who are using a trackpad
+- add a zoom slider
 - add a "Navigate to most sucessfull organism" button which locks on to the organism which has reporoduced the most
 - add the ability to save organisms to file
 - add the ability to spawn a saved organism
 - add the ability to fill the world with a saved organism (with mutations optional)
-- Add a "total" for the protozoa, food line graph
+[Done] Add a "total" for the protozoa, food line graph
 - Reset Simulation Button with controls for world size, initial protozoa count, food spawn rate, and mutation rate/range
 - add all settings to a json file and have the program read from it on starrtup, then add a "save settings" button to write the current settings back to the file. 
 - line graph for average lifetime
 - line graph for mutation rate and range
 - line graph for average offspring
 - Track collision resolutions per frame
-- Get remove, add spring, and remove spring working
+[Done] Get remove, add spring, and remove spring working
 - get stomach bar working correctly
 - get time since last reproduced working better, replace with reproduce cooldown
-- when cells are immortal their energy shouldnt drop below zero
-- sometimes the sin wave graph goers by too quick, slider to change the amount of cycles displayed
+[Done] when cells are immortal their energy shouldnt drop below zero
+[Done] sometimes the sin wave graph goers by too quick, slider to change the amount of cycles displayed
 - ability to modify max protozoa and max cells
 - ability to toggle vsync
 - ability to set the speed of the updating simulation
@@ -73,7 +73,7 @@
 [Done] Get the seperate thread architecture fully working
 [Done] Check with previous version to see if there are any performance degradations
 [Done] Get the Rendering and Updating Working on Seperate Threads
-- Separate the update thread into Several other worker threads
+[Done] Separate the update thread into Several other worker threads
 - BenchMark the performance with my old laptop
 Multithreadding GUI:
 - Tickbox to activate the debugger 
@@ -83,7 +83,7 @@ Multithreadding GUI:
 -----------------------------------------------------------------------
 
 ##### Protozoa TODO
-- when a new cell is created it should have very low friction and generally not affect the organism too much, test this
+[Done] when a new cell is created it should have very low friction and generally not affect the organism too much, test this
 - create a cell body class
 - each protozoa stores cell_positions_nearby and food positions for debugging, just have it once in the protozoa manager
 - when springs are created through create cell or create spring, give them random properties
@@ -108,6 +108,8 @@ Multithreadding GUI:
 - pausing desyncs the slection
 - period wrong 
 
+The way protozoa are created at the start of the sim needs to use different code to the mutation one thats where the bug is coming from
+
 -----------------------------------------------------------------------
 ##### Debugging Todo
 - When selecting a protozoa it should track all the cells nearby
@@ -124,9 +126,11 @@ Multithreadding GUI:
 
 
 #### optimization
+all_protozoa_ - has a constant size, so when there is 100 protozoa it can hold the information for 400'000, have dynamic resizing
 std::vector<int> reproduce_indexes{};
 		reproduce_indexes.reserve(max_protozoa);
 is called every frame
+pass SpringResult by reference
 
 
 # performance tracking by the number of frames ran in 30 seconds:

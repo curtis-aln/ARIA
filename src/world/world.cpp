@@ -17,7 +17,7 @@ World::World(sf::RenderWindow* window)
 
     init_food_jobs();
     init_collision_jobs();
-    init_organisms();
+    init_protozoa_container(world_circular_bounds_);
 
     const size_t maximum_cells = max_protozoa * ProtozoaSettings::max_cells;
 
@@ -73,21 +73,6 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
     }
 }
 
-void World::init_organisms()
-{
-    for (int i = 0; i < max_protozoa; ++i)
-        all_protozoa_.emplace({ i });
-
-    for (int i = initial_protozoa; i < max_protozoa; ++i)
-    {
-        all_protozoa_.at(i)->kill();
-        all_protozoa_.at(i)->soft_reset();
-        all_protozoa_.remove(i);
-    }
-
-    for (Protozoa* protozoa : all_protozoa_)
-        generate_protozoa(*protozoa, world_circular_bounds_);
-}
 
 bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
