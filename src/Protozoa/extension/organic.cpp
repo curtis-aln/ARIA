@@ -14,7 +14,6 @@ void Protozoa::reproduce_check()
 	}
 
     reproduce = true;
-    offspring_count++;
 }
 
 

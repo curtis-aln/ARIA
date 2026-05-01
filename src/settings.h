@@ -66,8 +66,10 @@ struct WorldSettings
 
 struct ProtozoaSettings
 {
-	inline static float offspring_energy_cost = 200.f;
+	inline static float offspring_energy_cost = 100.f;
 	inline static float reproduce_energy_thresh = 200.f;
+	inline static float energy_share_rate = 0.1f;
+	inline static float conversion_rate = 0.45f;
 
 	inline static int max_cells;
 

@@ -178,6 +178,47 @@ void Simulation::update_world()
             case CommandType::NavToProtozoa:
                 m_world_.selected_protozoa_ = m_world_.all_protozoa_.at(cmd.int_val);
 
+            case CommandType::SetSpringAmplitude:
+                if (selected_protozoa)
+                {
+					m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+                }
+				break;
+                
+            case CommandType::SetSpringFrequency:
+                if (selected_protozoa)
+                {
+                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
+                }
+                break;
+
+            case CommandType::SetSpringOffset:
+                if (selected_protozoa)
+                {
+                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
+                }
+                break;
+
+            case CommandType::SetSpringVerticalShift:
+                if (selected_protozoa)
+                {
+                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
+                }
+                break;
+
+            case CommandType::SetDampingConst:
+                if (selected_protozoa)
+                {
+                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].damping = cmd.float_val;
+                }
+                break;
+
+            case CommandType::SetSpringConst:
+                if (selected_protozoa)
+                {
+                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
+                }
+                break;
             }
             m_commands.pop();
         }

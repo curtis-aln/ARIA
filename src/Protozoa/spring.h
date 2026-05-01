@@ -42,6 +42,9 @@ struct Spring : SpringGenome
 	SpringResult update(Cell& cell_a, Cell& cell_b)
 	{
 		clock_++; 
+		const float transfer = std::copysign(ProtozoaSettings::energy_share_rate, cell_b.energy - cell_a.energy);
+		cell_a.energy += transfer;
+		cell_b.energy -= transfer;
 
 		const sf::Vector2f& pos_a = cell_a.get_pos();
 		const sf::Vector2f& pos_b = cell_b.get_pos();
@@ -83,6 +86,7 @@ struct Spring : SpringGenome
 
 
 private:
+
 	float calculate_rest_length(const int internal_clock) const
 	{
 		float length_by_ratio = amplitude * sinf(frequency * internal_clock + offset) + vertical_shift;

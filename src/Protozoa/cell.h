@@ -150,7 +150,7 @@ public:
 
 	[[nodiscard]] bool can_reproduce() const
 	{
-		if (energy < ProtozoaSettings::offspring_energy_cost)
+		if (energy < ProtozoaSettings::reproduce_energy_thresh)
 			return false;
 
 		if (time_since_last_ate_ < ProtozoaSettings::reproductive_cooldown)
@@ -217,13 +217,11 @@ private:
 
 	void convert_nutrients_to_energy()
 	{
-		const float conversion_rate = 1;
-		
-		if (nutrients_ < conversion_rate)
+		if (nutrients_ < ProtozoaSettings::conversion_rate)
 			return;
 
-		energy += conversion_rate;
-		nutrients_ -= conversion_rate;
+		energy += ProtozoaSettings::conversion_rate;
+		nutrients_ -= ProtozoaSettings::conversion_rate;
 	}
 
 	static void clamp_velocity(sf::Vector2f& velocity)

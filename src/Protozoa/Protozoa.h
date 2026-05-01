@@ -112,7 +112,7 @@ private:
 		const float sync_amount = 0.1f;
 		for (Cell& cell : m_cells_)
 		{
-			
+			//todo
 		}
 
 	}
