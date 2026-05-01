@@ -133,7 +133,6 @@ is called every frame
 pass SpringResult by reference
 
 
-# performance tracking by the number of frames ran in 30 seconds:
-Starting: 
-494
-
+#### Next todo
+# - make a food tab to change all of the food settings
+# - make the protozoa container dynamic

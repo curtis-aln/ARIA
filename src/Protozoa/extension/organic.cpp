@@ -35,8 +35,9 @@ void Protozoa::create_offspring(Protozoa* offspring, bool should_mutate)
     reproduce = false;
     time_since_last_reproduced = 0.f;
 
-    offspring->soft_reset();
     offspring->set_protozoa_attributes(this);
+    offspring->soft_reset();
+    
 
     // incrementing the generation in all of the cells and springs
     update_generation();

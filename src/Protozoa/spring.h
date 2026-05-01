@@ -89,9 +89,10 @@ private:
 
 	float calculate_rest_length(const int internal_clock) const
 	{
-		float length_by_ratio = amplitude * sinf(frequency * internal_clock + offset) + vertical_shift;
-		length_by_ratio = std::clamp(length_by_ratio, 0.f, 1.f);
-		const float length_absolute_value = length_by_ratio * ProtozoaSettings::maximum_extension;
-		return length_absolute_value;
+		// sin oscillates around vertical_shift with ±amplitude swing
+		const float sin_value = sinf(frequency * internal_clock + offset); // [-1, 1]
+		const float ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
+		const float clamped = std::clamp(ratio, 0.f, 1.f);
+		return clamped * ProtozoaSettings::maximum_extension;
 	}
 };

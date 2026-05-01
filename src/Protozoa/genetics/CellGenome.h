@@ -17,7 +17,7 @@ struct CellInitialSpawnRanges
 {
     inline static Range radius = { 30.f,          100.f };
     inline static Range amplitude = { 0.5f,          1.f };
-    inline static Range frequency = { 1.f / 200.f,   1.f / 60.f };
+    inline static Range frequency = { 1.f / 60.f,   1.f / 10.f };
     inline static Range offset = CellGeneticConstraints::offset;
     inline static Range vertical_shift = { 0.f,           0.2f };
 };

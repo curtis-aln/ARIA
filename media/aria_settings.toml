@@ -1,7 +1,7 @@
 # ── World ─────────────────────────────────────────────────────────────────────
 [world]
 bounds_radius            = 80000.0
-max_protozoa             = 50000
+max_protozoa             = 20000
 initial_protozoa         = 5000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
@@ -50,8 +50,8 @@ reproductive_cooldown    = 120
 reproductive_threshold   = 300
 
 # --- Nutrients ---
-initial_nutrients        = 25.0
-final_nutrients          = 90.0
+initial_nutrients        = 65.0
+final_nutrients          = 190.0
 nutrient_development_time = 400
 
 # --- Death ---
