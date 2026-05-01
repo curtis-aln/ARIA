@@ -8,9 +8,7 @@
 #include "../settings.h"
 #include "../Utils/Graphics/spatial_grid/simple_spatial_grid.h"
 #include "../Utils/Graphics/spatial_grid/spatial_grid_renderer.h"
-#include "simulation/sim_snapshot.h"
-#include "simulation/sim_snapshot.h"
-#include "world/world_state.h"
+#include "food_data.h"
 
 struct SimSnapshot;
 
@@ -39,11 +37,13 @@ public:
     int    get_size()               const;
     void update_food_grid_renderer();
     void fill_data(FoodData& other_food_data);
+    const o_vector<Food>& get_food_vector() const;
     void   update();
-    void   render(const SimSnapshot& snapshot);
+    void   render(const FoodData& snapshot_food_data);
     void update_position_data();
     void   remove_food(int food_id);
     Food* at(int idx);
+    const Food* at(int idx) const;
     void   draw_food_grid(sf::Vector2f mouse_pos) const;
 
 private:

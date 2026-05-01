@@ -16,7 +16,7 @@
 #include "sim_command.h"
 #include <mutex>
 #include <queue>
-
+#include "../world/protozoa_tracker.h"
 
 
 

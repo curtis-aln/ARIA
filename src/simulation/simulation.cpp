@@ -194,7 +194,7 @@ void Simulation::update_world()
 	snap.stats.fps = fps_;
 	snap.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
     snap.history = m_history_;
-    
+
     m_sim_buffer_.publish();
 
 
@@ -206,7 +206,7 @@ void Simulation::camera_follow_selected_protozoa()
     if (selected == nullptr)
         return;
 
-    const sf::Rect<float> bounds = m_world_.calc_protozoa_bounds(selected);
+    const sf::Rect<float> bounds = Protozoa::calc_protozoa_bounds(selected);
     const sf::Vector2f    target = bounds.position + bounds.size / 2.f;
     const sf::Vector2f    current = camera_.m_view_.getCenter();
 

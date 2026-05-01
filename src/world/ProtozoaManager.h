@@ -6,6 +6,8 @@
 #include "../Food/food_manager.h"
 #include <SFML/Graphics.hpp>
 
+
+
 // A Class which handles all protozoa related stuff in the world. updating, collisions, reproduction, etc.
 class ProtozoaManager : protected WorldSettings
 {
@@ -19,7 +21,6 @@ public:
 	float infant_mortality_rate_ = 0.f;
 	int   total_deaths_ = 0;
 	int   infant_deaths_ = 0;
-
 	
 public:
 	// The user can click on a protozoa to select it for debugging purposes. we store a pointer to it here.

@@ -147,7 +147,9 @@ void World::update_statistics()
 
 	for (Protozoa* p : all_protozoa_)
 	{
-		total_energy += p->get_energy();
+		total_energy = 0.f;
+		for (Cell& c : p->get_cells())
+			total_energy += c.energy;
 		total_springs += static_cast<float>(p->get_springs().size());
 		most_offspring_ever_ = std::max(p->offspring_count, most_offspring_ever_);
 		for (const Cell& c : p->get_cells())

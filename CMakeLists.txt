@@ -118,7 +118,7 @@ add_executable(ProjectARIA
     # ── ImPlot (header-only library — sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/settings.cpp" "src/world/world_state.h" "src/simulation/sim_snapshot.h" "src/simulation/triple_buffer.h" "src/simulation/sim_command.h" "src/world/zones/zone_base.h" "src/world/zones/radiation_zone.h" "src/world/zones/gravity_zone.h" "src/world/food_claim_buffer.h" "src/world/draw_cell_debug.cpp")
+ "src/settings.cpp" "src/world/world_state.h" "src/simulation/sim_snapshot.h" "src/simulation/triple_buffer.h" "src/simulation/sim_command.h" "src/world/zones/zone_base.h" "src/world/zones/radiation_zone.h" "src/world/zones/gravity_zone.h" "src/world/food_claim_buffer.h" "src/world/draw_cell_debug.cpp" "src/world/protozoa_tracker.h" "src/Food/food_data.h")
 
  target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/media/aria_settings.toml"

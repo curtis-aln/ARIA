@@ -96,6 +96,17 @@ Multithreadding GUI:
 - Food are dying suspiciously quickly
 - if the cell grid and the food grid are different sizes then the cells index the wrong location in the food grid and they cant resolve
 - food grid tracking in imgui has bugs
+- you cant deselect a protozoa once you select it
+- protozoa springs can get too powerful - kill them if under enough tension
+- Protozoa's will spawn with springs which can cause them to die, change the bounding
+
+- Friction in the panel should range from its min to max
+- Nutrients doesnt work
+- Reproduction cooldown doesnt work
+- when a cell dies it doesnt deselect
+- when paused a lot of the protozoa selection doesnt work
+- pausing desyncs the slection
+- period wrong 
 
 -----------------------------------------------------------------------
 ##### Debugging Todo

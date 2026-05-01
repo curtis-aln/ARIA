@@ -1,5 +1,4 @@
 #pragma once
-#include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <vector>
 
@@ -111,14 +110,4 @@ struct SpatialGridData
 
     int total = 0, max_in = 0, full = 0, empty = 0; 
     float inv = 0.f;
-};
-
-
-struct FoodData
-{
-	std::vector<float> positions_x;
-	std::vector<float> positions_y;
-	std::vector<sf::Color> colors;
-	std::vector<float> radii;
-    size_t active_count = 0;
 };

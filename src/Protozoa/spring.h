@@ -19,6 +19,13 @@ struct Spring : SpringGenome
 
 	uint16_t clock_{};
 
+	float work_done = 0.f;
+	float rest_length = 0.f;
+	float current_length = 0.f;
+
+	float spring_force = {};
+	float damping_force = {};
+
 	Spring(const uint8_t _id, const uint8_t _cell_A_id, const uint8_t _cell_B_id)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id(_id), SpringGenome()
 	{
@@ -41,36 +48,36 @@ struct Spring : SpringGenome
 		const sf::Vector2f& vel_a = cell_a.get_vel();
 		const sf::Vector2f& vel_b = cell_b.get_vel();
 
-		const float dist = (pos_b - pos_a).length();
+		current_length = (pos_b - pos_a).length();
 
-		if (dist < 1e-6f || dist > ProtozoaSettings::breaking_length)
+		if (current_length < 1e-6f || current_length > ProtozoaSettings::breaking_length)
 		{
 			return {.work_done = 0.f, .broken = true };
 		}
 
 		// finding the rest length of the spring
-		const float rest_length = calculate_rest_length(clock_);
+		rest_length = calculate_rest_length(clock_);
 
 		// Calculating the spring force: Fs = K * (|B - A| - L)
-		const float spring_force = spring_const * (dist - rest_length);
+		spring_force = spring_const * (current_length - rest_length);
 
 		// Calculating the damping force
-		const sf::Vector2f normalised_dir = ((pos_b - pos_a) / dist);
+		const sf::Vector2f normalised_dir = ((pos_b - pos_a) / current_length);
 		const sf::Vector2f vel_difference = (vel_b - vel_a);
-		const float damping_force = normalised_dir.dot(vel_difference) * damping;
+		damping_force = normalised_dir.dot(vel_difference) * damping;
 
 		// Calculating total force (sum of the two forces)
 		const float total_force = spring_force + damping_force;
 
 		// moving each cell
-		cell_a.accelerate(total_force * ((pos_b - pos_a) / dist));
-		cell_b.accelerate(total_force * ((pos_a - pos_b) / dist));
+		cell_a.accelerate(total_force * ((pos_b - pos_a) / current_length));
+		cell_b.accelerate(total_force * ((pos_a - pos_b) / current_length));
 
 		// finally we check if the spring should break (if its length surpasses breaking length) and return that information
-		bool broken = dist > ProtozoaSettings::breaking_length;
+		bool broken = current_length > ProtozoaSettings::breaking_length;
 		
 		// we can calculate the amount of energy this contraction / extension took
-		float work_done = std::abs(spring_force) * std::abs(dist - rest_length);
+		work_done = std::abs(spring_force) * std::abs(current_length - rest_length);
 		work_done *= ProtozoaSettings::spring_work_const; 
 
 		return { work_done, broken };

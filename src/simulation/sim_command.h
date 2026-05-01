@@ -45,6 +45,15 @@ enum class CommandType
 	ForceReproduce,
 	KillProtozoa,
 	CloneProtozoa,         // spawn a mutated clone of the selected protozoa
+
+    // Springs
+    SetSpringConst,
+    SetDampingConst,
+    SetSpringAmplitude,
+    SetSpringFrequency,
+    SetSpringOffset,
+    SetSpringVerticalShift,
+
 };
 
 struct SpawnParams

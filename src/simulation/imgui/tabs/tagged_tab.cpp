@@ -20,7 +20,7 @@ void TaggedTab::draw_tag_input(const SimSnapshot& snapshot)
     ImGui::SameLine();
     if (ImGui::Button("Toggle Tag##tagged")) toggle_tag(input_id);
 
-	const Protozoa& sel = snapshot.protozoa;
+	const ProtozoaTracker& sel = snapshot.protozoa_tracker;
     if (snapshot.selected_a_protozoa)
     {
         ImGui::SameLine(0, 16);
@@ -38,17 +38,17 @@ void TaggedTab::draw_list(ImGuiContext& ctx, const SimSnapshot& snapshot)
 
     for (int id : m_tagged_ids_)
     {
-        const Protozoa* p = snapshot.selected_a_protozoa && snapshot.protozoa.id == id ? &snapshot.protozoa : nullptr;
         ImGui::PushID(id);
 
         if (snapshot.selected_a_protozoa)
         {
-            const float ef = std::clamp(p->get_energy() / 300.f, 0.f, 1.f);
+            auto p = snapshot.protozoa_tracker;
+            const float ef = std::clamp(p.total_energy / 300.f, 0.f, 1.f);
             ImGui::Text("ID %-4d", id); ImGui::SameLine(0, 8);
-            ImGui::Text("Age %-6u", p->get_frames_alive_avg()); ImGui::SameLine(0, 8);
+            ImGui::Text("Age %-6u", p.frames_alive); ImGui::SameLine(0, 8);
             ImGui::ProgressBar(ef, { 60.f, 8.f }, ""); ImGui::SameLine(0, 8);
-            ImGui::Text("Off %-3d", p->offspring_count); ImGui::SameLine(0, 8);
-            ImGui::Text("Gen %.0f", (float)p->get_cells().empty() ? 0.f : (float)p->get_cells()[0].generation);
+            ImGui::Text("Off %-3d", p.offspring_count); ImGui::SameLine(0, 8);
+            ImGui::Text("Gen %.0f", p.average_generation);
             ImGui::SameLine(0, 8);
             if (ImGui::SmallButton("Go##tagged"))
             {

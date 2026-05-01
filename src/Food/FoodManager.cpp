@@ -24,14 +24,14 @@ void FoodManager::update()
 	update_hash_grid();
 }
 
-void FoodManager::render(const SimSnapshot& snapshot)
+void FoodManager::render(const FoodData& snapshot_food_data)
 {
-	food_renderer.set_colors(snapshot.food_data.colors);
-	food_renderer.set_positions_x(snapshot.food_data.positions_x);
-	food_renderer.set_positions_y(snapshot.food_data.positions_y);
-	food_renderer.set_radii(snapshot.food_data.radii);
+	food_renderer.set_colors(snapshot_food_data.colors);
+	food_renderer.set_positions_x(snapshot_food_data.positions_x);
+	food_renderer.set_positions_y(snapshot_food_data.positions_y);
+	food_renderer.set_radii(snapshot_food_data.radii);
 
-	food_renderer.set_size(snapshot.food_data.active_count);
+	food_renderer.set_size(snapshot_food_data.active_count);
 	food_renderer.update();
 	food_renderer.render();
 }
@@ -70,6 +70,11 @@ Food* FoodManager::at(const int idx)
 	return food_vector.at(idx);
 }
 
+const Food* FoodManager::at(const int idx) const
+{
+	return food_vector.at(idx);
+}
+
 void FoodManager::draw_food_grid(sf::Vector2f mouse_pos) const
 {
 	food_grid_renderer.render(*window_, mouse_pos, 1600.f);
@@ -89,4 +94,9 @@ void FoodManager::update_food_grid_renderer()
 void FoodManager::fill_data(FoodData& other_food_data)
 {
 	other_food_data = food_data;
+}
+
+const o_vector<Food>& FoodManager::get_food_vector() const
+{
+	return food_vector;
 }

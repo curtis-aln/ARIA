@@ -1,8 +1,9 @@
 #pragma once
 
 #include "../world/world_state.h"
-#include "../Protozoa/Protozoa.h"
 #include "imgui/population_history.h"
+#include "../world/protozoa_tracker.h"
+#include "Food/food_data.h"
 
 
 struct SimSnapshot
@@ -17,7 +18,7 @@ struct SimSnapshot
     PopulationHistory history;
 
     bool selected_a_protozoa = false;
-    Protozoa protozoa{-1};
+    ProtozoaTracker protozoa_tracker{};
 
 	SimSnapshot() = default;
 

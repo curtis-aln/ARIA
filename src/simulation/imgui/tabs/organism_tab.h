@@ -15,10 +15,10 @@ private:
     bool m_sel_is_spring_ = false;
     int  m_wave_cycles_ = 1;   // number of full periods shown in the sinwave graph
 
-    void draw_no_selection();
-    void draw_overview(const Protozoa& p);
-    void draw_cells_springs_tab(ImGuiContext& ctx, const Protozoa& p);
-    void draw_cell_detail(ImGuiContext& ctx, const Protozoa&, const Cell& c);
-    void draw_spring_detail(ImGuiContext& ctx, const Protozoa&, const Spring& s);
-    void draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot& snap);
+    static void draw_no_selection();
+    static void draw_overview(const ProtozoaTracker& protozoa);
+    void draw_cells_springs_tab(ImGuiContext& ctx, const ProtozoaTracker& protozoa);
+    void draw_cell_detail(ImGuiContext& ctx, const Cell& c);
+    void draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p, const Spring& s);
+    static void draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot& snap);
 };

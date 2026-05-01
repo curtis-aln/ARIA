@@ -1,11 +1,13 @@
 #pragma once
 
+#include "../Food/food_manager.h"
+#include "ProtozoaManager.h"
+
 #include <SFML/Graphics/RenderWindow.hpp>
 
 #include "../Protozoa/Protozoa.h"
-#include "../Food/food_manager.h"
+
 #include "../settings.h"
-#include "ProtozoaManager.h"
 #include "world_state.h"
 #include "food_claim_buffer.h"
 
@@ -16,7 +18,9 @@
 #include "../Utils/Graphics/spatial_grid/simple_spatial_grid.h"
 #include "../Utils/Graphics/spatial_grid/spatial_grid_renderer.h"
 #include "../simulation/sim_snapshot.h"
+
 #include "Utils/fps_manager.h"
+
 
 
 class World : public ProtozoaManager
@@ -69,6 +73,8 @@ class World : public ProtozoaManager
     std::vector<std::function<void()>> collision_jobs_;
     std::vector<std::function<void()>> food_jobs_;
 
+	ProtozoaTracker protozoa_tracker_{};
+
 public:
     // ── Toggles — written by ImGui (main thread), read by update thread ──────
     // Safe to read/write without locking while the threads are not simultaneously
@@ -90,7 +96,10 @@ public:
     // ── Accessors — spatial grids / food ─────────────────────────────────────
     SimpleSpatialGrid* get_spatial_grid() { return &spatial_hash_grid_; }
     SimpleSpatialGrid* get_food_spatial_grid() { return &food_manager_.spatial_hash_grid; }
+    const SimpleSpatialGrid* get_spatial_grid() const { return &spatial_hash_grid_; }
+    const SimpleSpatialGrid* get_food_spatial_grid() const { return &food_manager_.spatial_hash_grid; }
     FoodManager* get_food_manager() { return &food_manager_; }
+    const FoodManager* get_food_manager() const { return &food_manager_; }
     void               update_spatial_renderers();
 
     void unload_render_data(SimSnapshot& snapshot);
@@ -98,7 +107,9 @@ public:
     void advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data);
 
     void fill_snapshot(SimSnapshot& snapshot);
-    static sf::Rect<float> calc_protozoa_bounds(const Protozoa* protozoa);
+
+	Protozoa* at(const int idx) { return all_protozoa_.at(idx); }
+    const Protozoa* at(const int idx) const { return all_protozoa_.at(idx); }
 
     // ── Render data getters — read by renderer from snapshot ─────────────────
     const std::vector<float>& get_positions_x()    const { return render_data_.positions_x; }
@@ -124,13 +135,13 @@ public:
 
 private:
     void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
-    void draw_cell_outlines(const Protozoa* protozoa);
-    void nearby_food_information(const Protozoa* protozoa) const;
-    void draw_springs(const Protozoa* protozoa, bool thick_lines) const;
-    void draw_cell_physical_information(const Protozoa* protozoa, Font* font) const;
+    void draw_cell_outlines(const ProtozoaTracker& protozoa);
+    void nearby_food_information(const ProtozoaTracker& protozoa) const;
+    void draw_springs(const ProtozoaTracker& protozoa, bool thick_lines) const;
+    void draw_cell_physical_information(const ProtozoaTracker& protozoa, Font* font) const;
     void draw_spring_information(const Protozoa* protozoa, Font* font) const;
-    int check_mouse_press(const Protozoa* protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
-    const Cell* get_selected_cell(const Protozoa* protozoa, sf::Vector2f mouse_pos);
+    int check_mouse_press(const ProtozoaTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
+    const Cell* get_selected_cell(const ProtozoaTracker& protozoa, sf::Vector2f mouse_pos);
 
     void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids);
     void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids);

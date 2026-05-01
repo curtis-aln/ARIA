@@ -36,7 +36,7 @@ void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f m
     if (snapshot.toggles.draw_food_grid)
         food_manager_.draw_food_grid(mouse_pos);
 
-    food_manager_.render(snapshot);
+    food_manager_.render(snapshot.food_data);
     render_protozoa(snapshot, font);
 
     m_window_->draw(world_border_renderer_);
@@ -67,7 +67,7 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
         inner_circle_renderer_.render();
     }
 
-    if (snapshot.protozoa.id != -1 && snapshot.toggles.debug_mode)
+    if (snapshot.protozoa_tracker.id != -1 && snapshot.toggles.debug_mode)
     {
         draw_protozoa_debug(snapshot, font);
     }
@@ -93,7 +93,7 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
     for (Protozoa* protozoa : all_protozoa_)
     {
-		sf::Rect<float> bounds = calc_protozoa_bounds(protozoa);
+		sf::Rect<float> bounds = Protozoa::calc_protozoa_bounds(protozoa);
 		bool in_bounds = bounds.contains(mouse_position);
         if (in_bounds)
         {
@@ -231,12 +231,13 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 
     food_manager_.fill_data(snapshot.food_data);
 
-    if (selected_protozoa_ != nullptr)
+    protozoa_tracker_.update_statistics(selected_protozoa_, get_food_spatial_grid(), get_spatial_grid(), food_manager_.get_food_vector(), render_data_);
+	snapshot.protozoa_tracker = protozoa_tracker_;
+	if (selected_protozoa_ != nullptr)
     {
-        snapshot.protozoa = *selected_protozoa_;
 		snapshot.selected_a_protozoa = true;
+        
     }
-
     snapshot.food_grid = get_grid_data(get_food_spatial_grid());
     snapshot.cell_grid = get_grid_data(get_spatial_grid());
 
@@ -245,26 +246,4 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 		advanced_grid_data(get_food_spatial_grid(), snapshot.food_grid);
         advanced_grid_data(get_spatial_grid(), snapshot.cell_grid);
 	}
-}
-
-sf::Rect<float> World::calc_protozoa_bounds(const Protozoa* protozoa)
-{
-    const auto& cells = protozoa->get_cells();
-    if (cells.empty())
-        return {};
-
-	const sf::Vector2f first_pos = cells[0].get_pos();
-    float min_x = first_pos.x, max_x = min_x;
-    float min_y = first_pos.y, max_y = min_y;
-
-    for (const Cell& cell : cells)
-    {
-		const sf::Vector2f pos = cell.get_pos();
-        min_x = std::min(min_x, pos.x - cell.radius);
-        max_x = std::max(max_x, pos.x + cell.radius);
-        min_y = std::min(min_y, pos.y - cell.radius);
-        max_y = std::max(max_y, pos.y + cell.radius);
-    }
-
-    return { {min_x, min_y}, {max_x - min_x, max_y - min_y} };
 }

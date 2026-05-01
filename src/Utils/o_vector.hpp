@@ -142,6 +142,7 @@ public:
 
 
     Obj* at(const unsigned i) { return array[i]; }
+    const Obj* at(const unsigned i) const { return array[i]; }
 
 
     Obj* add()
