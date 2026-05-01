@@ -29,6 +29,7 @@ public:
 
 	// Stomach and food
 	uint16_t time_since_last_ate_ = 0;
+	uint16_t time_since_last_reproduced_ = 0;
 	float nutrients_ = 0.f;
 	uint8_t total_food_eaten_ = 0;
 	uint8_t stomach_ = 0;
@@ -153,7 +154,7 @@ public:
 		if (energy < ProtozoaSettings::reproduce_energy_thresh)
 			return false;
 
-		if (time_since_last_ate_ < ProtozoaSettings::reproductive_cooldown)
+		if (time_since_last_reproduced_ < ProtozoaSettings::reproductive_cooldown)
 			return false;
 
 		return true;
@@ -196,6 +197,7 @@ private:
 		clock_++;
 		time_since_last_ate_++;
 		frames_alive_++;
+		time_since_last_reproduced_++;
 	}
 
 

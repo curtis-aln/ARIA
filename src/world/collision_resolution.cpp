@@ -160,7 +160,7 @@ void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<
 		const sf::Vector2f collisionNormal = sf::Vector2f(diff_x, diff_y) / dist;
 
 		// Move the cells apart
-		collision_resolutions[protozoa_cell_index] = collisionNormal * (overlap * 0.5f);
+		collision_resolutions[protozoa_cell_index] += collisionNormal * (overlap * 0.5f);
 	}
 }
 

@@ -51,6 +51,7 @@ void Protozoa::create_offspring(Protozoa* offspring, bool should_mutate)
 	for (Cell& cell : m_cells_)
 	{
         cell.energy -= ProtozoaSettings::offspring_energy_cost;
+		cell.time_since_last_reproduced_ = 0;
 	}
 }
 
