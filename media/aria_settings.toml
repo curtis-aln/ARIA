@@ -62,7 +62,7 @@ death_age_chance         = 0.01
 [graphical]
 spring_thickness         = 9.0
 spring_outline_thickness = 6.0
-cell_outline_thickness   = 1.1
+cell_outline_thickness   = 1.0
 food_transparency        = 200
 
 # ── Simulation ────────────────────────────────────────────────────────────────

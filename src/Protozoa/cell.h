@@ -50,8 +50,8 @@ public:
 
 	void set_pos(const sf::Vector2f& position) { position_ = position;}
 
-	[[nodiscard]] sf::Color get_outer_color() const { return { outer_r, outer_g, outer_b, transparency }; }
-	[[nodiscard]] sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, transparency }; }
+	[[nodiscard]] sf::Color get_outer_color() const { return { outer_r, outer_g, outer_b, outer_transparency }; }
+	[[nodiscard]] sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, inner_transparency }; }
 
 	void reset()
 	{
