@@ -42,10 +42,12 @@ public:
 	// this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
 	alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
 
-
+	std::vector<int> reproduce_indexes{};
 
 	ProtozoaManager(sf::RenderWindow* window) : m_window_(window), all_protozoa_(max_protozoa)
 	{
+		reproduce_indexes.reserve(max_protozoa);
+
 		std::cout << "[INFO]: ProtozoaManager initialized with max protozoa: " << max_protozoa << "\n";
 		if (window == nullptr)
 		{
@@ -129,8 +131,8 @@ protected:
 
 	void update_all_protozoa(FoodManager& food_manager_, const bool debug_mode, const float min_speed, const bool track_statistics, bool collisions)
 	{
-		std::vector<int> reproduce_indexes{};
-		reproduce_indexes.reserve(max_protozoa);
+		
+		reproduce_indexes.clear();
 
 		for (Protozoa* protozoa : all_protozoa_)
 		{

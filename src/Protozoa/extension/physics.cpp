@@ -31,9 +31,17 @@ void Protozoa::update_springs()
 		Cell& cell_A = m_cells_[spring.cell_A_id];
 		Cell& cell_B = m_cells_[spring.cell_B_id];
 		SpringResult result = spring.update(cell_A, cell_B);
+
 		cell_A.energy -= result.work_done / 2.f; // Eventually springs will be their own organic systems with energy
 		cell_B.energy -= result.work_done / 2.f;
 		energy_lost_to_springs += result.work_done;
+
+		if (result.force_magnitude > ProtozoaSettings::spring_damage_threshold)
+		{
+			float excess = result.force_magnitude - ProtozoaSettings::spring_damage_threshold;
+			cell_A.integrity -= excess;
+			cell_B.integrity -= excess;
+		}
 
 		if (result.broken)
 		{

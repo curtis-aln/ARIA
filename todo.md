@@ -107,6 +107,7 @@ Multithreadding GUI:
 - when paused a lot of the protozoa selection doesnt work
 - pausing desyncs the slection
 - period wrong 
+- There is no limit to how much food they can eat, add a stomach capacity and digestion time
 
 The way protozoa are created at the start of the sim needs to use different code to the mutation one thats where the bug is coming from
 
@@ -136,3 +137,4 @@ pass SpringResult by reference
 #### Next todo
 # - make a food tab to change all of the food settings
 # - make the protozoa container dynamic
+

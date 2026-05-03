@@ -66,6 +66,11 @@ struct WorldSettings
 
 struct ProtozoaSettings
 {
+	inline static float spring_break_force = 180.f;
+	inline static float spring_damage_threshold = 20.f;
+
+	inline static float integrity = 100.f;
+	inline static float integrity_conversion_rate = 0.05f;
 	inline static float offspring_energy_cost = 100.f;
 	inline static float reproduce_energy_thresh = 200.f;
 	inline static float energy_share_rate = 0.1f;

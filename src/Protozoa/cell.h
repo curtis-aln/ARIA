@@ -33,6 +33,7 @@ public:
 	float nutrients_ = 0.f;
 	uint8_t total_food_eaten_ = 0;
 	uint8_t stomach_ = 0;
+	float integrity = ProtozoaSettings::integrity;
 
 	// Statistics information
 	uint16_t frames_alive_ = 0;
@@ -62,6 +63,7 @@ public:
 		total_food_eaten_ = 0;
 		stomach_ = 0;
 		frames_alive_ = 0;
+		integrity = ProtozoaSettings::integrity;
 
 		velocity_ = { 0, 0 };
 	}
@@ -142,7 +144,7 @@ public:
 
 	[[nodiscard]] bool can_die() const
 	{
-		if (energy <= 0)
+		if (energy <= 0 || integrity <= 0)
 		{
 			return true;
 		}
@@ -204,6 +206,7 @@ private:
 	void update_organics()
 	{
 		convert_nutrients_to_energy();
+		convert_nutrients_to_integrity();
 		energy -= ProtozoaSettings::energy_decay_rate;
 	}
 
@@ -216,6 +219,16 @@ private:
 
 		position_ += velocity_;
 	}
+
+	void convert_nutrients_to_integrity()
+	{
+		if (energy < ProtozoaSettings::integrity_conversion_rate)
+			return;
+
+		integrity += ProtozoaSettings::integrity_conversion_rate;
+		energy -= ProtozoaSettings::integrity_conversion_rate;
+	}
+
 
 	void convert_nutrients_to_energy()
 	{

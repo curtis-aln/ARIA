@@ -6,7 +6,8 @@
 #include "cell.h"
 #include "genetics/SpringGenome.h"
 
-struct SpringResult { float work_done; bool broken; };
+struct SpringResult { float work_done; float force_magnitude; bool broken; };
+
 
 struct Spring : SpringGenome
 {
@@ -25,6 +26,8 @@ struct Spring : SpringGenome
 
 	float spring_force = {};
 	float damping_force = {};
+
+	float stress = 0.f; // 0..1, normalised force relative to break threshold
 
 	Spring(const uint8_t _id, const uint8_t _cell_A_id, const uint8_t _cell_B_id)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id(_id), SpringGenome()
@@ -78,9 +81,21 @@ struct Spring : SpringGenome
 
 		// we can calculate the amount of energy this contraction / extension took
 		work_done = std::abs(spring_force) * std::abs(current_length - rest_length);
+
+		const float force_magnitude = std::abs(total_force);
+
+		// Force-based break (complements your existing length-based break)
+		if (force_magnitude > ProtozoaSettings::spring_break_force)
+		{
+			return { .work_done = 0.f, .force_magnitude = force_magnitude, .broken = true };
+		}
+
+		// Stress: 0 = relaxed, 1 = at breaking point
+		stress = force_magnitude / ProtozoaSettings::spring_break_force;
+
 		work_done *= ProtozoaSettings::spring_work_const; 
 
-		return { work_done, false };
+		return { work_done, force_magnitude, false };
 	}
 
 

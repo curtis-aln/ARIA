@@ -1,12 +1,12 @@
 # ── World ─────────────────────────────────────────────────────────────────────
 [world]
-bounds_radius            = 80000.0
-max_protozoa             = 20000
-initial_protozoa         = 5000
+bounds_radius            = 30000.0
+max_protozoa             = 30000
+initial_protozoa         = 15000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
-cells_x = 500
-cells_y = 500
+cells_x = 300
+cells_y = 300
 cell_max_capacity = 15
 
 # ── Protozoa ──────────────────────────────────────────────────────────────────
@@ -25,12 +25,12 @@ initial_energy           = 70.0
 
 # ── Food ──────────────────────────────────────────────────────────────────────
 [food]
-max_food = 150000
-initial_food = 100000
+max_food = 100000
+initial_food = 40000
 
 # --- spatial grid ---
-cells_x = 500
-cells_y = 500
+cells_x = 300
+cells_y = 300
 cell_max_capacity        = 15
 update_freq = 4
 
@@ -44,18 +44,18 @@ food_visibility_ramp_frames = 90.0
 food_max_alpha           = 200.0
 
 # --- Birth ---
-spawn_proportionality_constant = 0.585
+spawn_proportionality_constant = 0.025
 food_spawn_distance      = 200.0 
-reproductive_cooldown    = 120
-reproductive_threshold   = 300
+reproductive_cooldown    = 320
+reproductive_threshold   = 400
 
 # --- Nutrients ---
-initial_nutrients        = 65.0
-final_nutrients          = 190.0
-nutrient_development_time = 400
+initial_nutrients        = 5.0
+final_nutrients          = 100.0
+nutrient_development_time = 600
 
 # --- Death ---
-death_age                = 1300.0
+death_age                = 2300.0
 death_age_chance         = 0.01
 
 # ── Graphics ──────────────────────────────────────────────────────────────────
