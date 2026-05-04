@@ -90,6 +90,7 @@ struct CellGenome : GenomeBase, HardConstants
 
         mutation_rate = parent.mutation_rate;
         mutation_range = parent.mutation_range;
+
     }
 
 private:

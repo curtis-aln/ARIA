@@ -14,11 +14,11 @@ struct SpringGeneticConstraints
 
 struct SpringInitialSpawnRanges
 {
-    inline static Range amplitude = { 0.4f,         0.4f };
-    inline static Range frequency = { 1.f / 60.f,  1.f / 10.f };
+    inline static Range amplitude = { 0.2f,         0.5f };
+    inline static Range frequency = { 1.f / 30.f,  1.f / 5.f };
     inline static Range offset = SpringGeneticConstraints::offset;
-    inline static Range vertical_shift = { 0.5f,          0.5f };
-    inline static Range spring_const = { 0.01f, 0.1f };
+    inline static Range vertical_shift = { 0.7f,          0.7f };
+    inline static Range spring_const = { 0.1f, 0.1f };
     inline static Range damping = { 0.4f,0.8f };
 };
 

@@ -38,6 +38,11 @@ public:
 	// Statistics information
 	uint16_t frames_alive_ = 0;
 
+	// reproductive related variables
+	bool reproduce = false; // signals to the protozoa manager that this cell needs an offspring index set
+	int8_t offspring_index = -1; // any value less than 0 means unfined
+	int8_t connection_index = -1; // tells the protozoa manager what to connect offspring index to
+	int8_t spring_to_copy_index = -1; // tells the protozoa manager which spring to copy 
 
 	Cell(const uint32_t _id = 0, const sf::Vector2f position = {0, 0})
 		: position_(position), id(_id)
@@ -64,6 +69,12 @@ public:
 		stomach_ = 0;
 		frames_alive_ = 0;
 		integrity = ProtozoaSettings::integrity;
+
+		reproduce = false;
+		offspring_index = -1;
+		connection_index = -1;
+		spring_to_copy_index = -1;
+		energy = ProtozoaSettings::initial_energy;
 
 		velocity_ = { 0, 0 };
 	}
@@ -134,11 +145,16 @@ public:
 		// When creating an offspring, this is ran for every cell in the protozoa
 		child->position_ = get_pos_nearby(2.f);
 
+		energy -= ProtozoaSettings::offspring_energy_cost;
+
 		if (dormant)
 			create_dormant_cell(child);
 		else
 		{
-			
+			child->copy_genetics(*this);
+
+			if (mutate)
+				child->mutate();
 		}
 	}
 
@@ -208,6 +224,9 @@ private:
 		convert_nutrients_to_energy();
 		convert_nutrients_to_integrity();
 		energy -= ProtozoaSettings::energy_decay_rate;
+
+		if (energy > ProtozoaSettings::reproduce_energy_thresh)
+			reproduce = true;
 	}
 
 	void update_physics()

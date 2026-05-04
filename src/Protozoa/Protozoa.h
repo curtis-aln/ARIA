@@ -1,4 +1,5 @@
 #pragma once
+#include <queue>
 #include <SFML/System/Vector2.hpp>
 
 #include "../settings.h"
@@ -83,7 +84,6 @@ public:
 
 	// information setting
 	void move_center_location_to(const sf::Vector2f new_center);
-	void create_offspring(Protozoa* parent, bool should_mutate = true);
 	void force_reproduce();
 	void inject(const float energy_injected);
 
@@ -102,21 +102,10 @@ public:
 	void add_cell();
 
 	void remove_cell();
-	void remove_spring();
+	void remove_spring(int8_t spring_id = -1);
 
 
 private:
-	void sync_clocks()
-	{
-		// Each cell has its own internal clock, we need to slowly sync them together
-		const float sync_amount = 0.1f;
-		for (Cell& cell : m_cells_)
-		{
-			//todo
-		}
-
-	}
-
 	// updating
 	void update_springs();
 	void update_cells();
@@ -130,17 +119,106 @@ private:
 	void mutate_existing_cells(float mut_rate = 0.f, float mut_range = 0.f);
 	void mutate_existing_springs(float mut_rate = 0.f, float mut_range = 0.f);
 
-
-	void check_death_conditions()
+public:
+	bool run_separation(Protozoa* new_protozoa)
 	{
-		for (Cell& cell : m_cells_)
+		if (m_cells_.size() <= 1)
+			return false;
+
+		// BFS from cell 0 to find all cells reachable via springs
+		std::vector<bool> visited(m_cells_.size(), false);
+		std::queue<uint8_t> queue;
+		queue.push(0);
+		visited[0] = true;
+
+		while (!queue.empty())
 		{
-			if (cell.can_die())
+			const uint8_t current = queue.front();
+			queue.pop();
+
+			for (const Spring& spring : m_springs_)
 			{
-				kill();
+				if (spring.cell_A_id == current && !visited[spring.cell_B_id])
+				{
+					visited[spring.cell_B_id] = true;
+					queue.push(spring.cell_B_id);
+				}
+				else if (spring.cell_B_id == current && !visited[spring.cell_A_id])
+				{
+					visited[spring.cell_A_id] = true;
+					queue.push(spring.cell_A_id);
+				}
 			}
 		}
+
+		// If every cell was reached, no split has occurred
+		const bool all_connected = std::all_of(visited.begin(), visited.end(), [](bool v) { return v; });
+		if (all_connected)
+			return false;
+
+		// Build old_id -> new_id remapping tables for each fragment
+		std::vector<int> this_remap(m_cells_.size(), -1);
+		std::vector<int> other_remap(m_cells_.size(), -1);
+
+		std::vector<Cell>   this_cells, other_cells;
+		std::vector<Spring> this_springs, other_springs;
+
+		for (size_t i = 0; i < m_cells_.size(); ++i)
+		{
+			Cell c = m_cells_[i];
+			if (visited[i])
+			{
+				this_remap[i] = static_cast<int>(this_cells.size());
+				c.id = static_cast<uint8_t>(this_cells.size());
+				this_cells.push_back(c);
+			}
+			else
+			{
+				other_remap[i] = static_cast<int>(other_cells.size());
+				c.id = static_cast<uint8_t>(other_cells.size());
+				other_cells.push_back(c);
+			}
+		}
+
+		// Remap springs into the correct fragment; cross-fragment springs are discarded
+		// (they no longer exist — that edge was the broken link that caused the split)
+		for (const Spring& spring : m_springs_)
+		{
+			const bool a_stays = visited[spring.cell_A_id];
+			const bool b_stays = visited[spring.cell_B_id];
+
+			if (a_stays && b_stays)
+			{
+				Spring s = spring;
+				s.cell_A_id = static_cast<uint8_t>(this_remap[spring.cell_A_id]);
+				s.cell_B_id = static_cast<uint8_t>(this_remap[spring.cell_B_id]);
+				s.id = static_cast<uint8_t>(this_springs.size());
+				this_springs.push_back(s);
+			}
+			else if (!a_stays && !b_stays)
+			{
+				Spring s = spring;
+				s.cell_A_id = static_cast<uint8_t>(other_remap[spring.cell_A_id]);
+				s.cell_B_id = static_cast<uint8_t>(other_remap[spring.cell_B_id]);
+				s.id = static_cast<uint8_t>(other_springs.size());
+				other_springs.push_back(s);
+			}
+		}
+
+		// Commit — this protozoa keeps the component containing cell 0
+		m_cells_ = std::move(this_cells);
+		m_springs_ = std::move(this_springs);
+
+		// The new protozoa gets the disconnected fragment
+		new_protozoa->m_cells_ = std::move(other_cells);
+		new_protozoa->m_springs_ = std::move(other_springs);
+		new_protozoa->dead = false;
+		new_protozoa->reproduce = false;
+		new_protozoa->active = true;
+
+		return true;
 	}
+
 
 public:
 	static sf::Rect<float> calc_protozoa_bounds(const Protozoa* protozoa)

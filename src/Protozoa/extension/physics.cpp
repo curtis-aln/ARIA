@@ -12,8 +12,6 @@ void Protozoa::update()
 	if (m_cells_.empty()) // No computation is needed if there are no cells
 		return;
 
-	check_death_conditions();
-
 	update_springs();
 
 	update_cells();
@@ -36,17 +34,17 @@ void Protozoa::update_springs()
 		cell_B.energy -= result.work_done / 2.f;
 		energy_lost_to_springs += result.work_done;
 
+
 		if (result.force_magnitude > ProtozoaSettings::spring_damage_threshold)
 		{
 			float excess = result.force_magnitude - ProtozoaSettings::spring_damage_threshold;
-			cell_A.integrity -= excess;
-			cell_B.integrity -= excess;
+			//cell_A.integrity -= excess;
+			//cell_B.integrity -= excess;
 		}
 
 		if (result.broken)
 		{
-			kill();
-			return;
+			remove_spring(spring.id);
 		}
 	}
 }

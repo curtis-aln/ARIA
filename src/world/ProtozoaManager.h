@@ -7,6 +7,38 @@
 #include <SFML/Graphics.hpp>
 
 
+/* How reproduction works, in detail
+when a cell has enough energy its sets reproduce = true
+the protozoa manager detects this and
+- cell.reproduce = false;
+- makes a create cell request
+
+The birth manager then processes this request by
+- creating a new cell
+- cell.offspring_index = the index of the new cell
+- a temporary spring is made between the parent cell and the new cell
+
+This keeps happening until a spring detects that both its cell's have a valid offspring index
+The spring then
+- sets cell_a.connection_index = cell_b.offspring_index; 
+- cell_a.spring_to_copy_index = id; this is the spring data that will be used
+This tells the protozoa manager what to connect (cell_a.connection_index, cell_b.offspring_index)
+
+The connection request is detected
+ */
+
+
+struct BirthRequest
+{
+	uint8_t parent_cell_id;
+};
+
+struct ConnectionRequest
+{
+	uint8_t offspring_id;
+	uint8_t connect_to_id;
+	int8_t  spring_to_copy_index;
+};
 
 // A Class which handles all protozoa related stuff in the world. updating, collisions, reproduction, etc.
 class ProtozoaManager : protected WorldSettings
@@ -36,7 +68,8 @@ public:
 	int births_this_window_ = 0;
 	static constexpr int survival_rate_window_size_ = 100;
 
-
+	std::vector<BirthRequest> birth_requests;
+	std::vector<ConnectionRequest> connection_requests;
 
 	// every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
 	// this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
@@ -46,6 +79,8 @@ public:
 
 	ProtozoaManager(sf::RenderWindow* window) : m_window_(window), all_protozoa_(max_protozoa)
 	{
+		birth_requests.reserve(10);
+		connection_requests.reserve(10);
 		reproduce_indexes.reserve(max_protozoa);
 
 		std::cout << "[INFO]: ProtozoaManager initialized with max protozoa: " << max_protozoa << "\n";
@@ -103,8 +138,7 @@ public:
 
 	void create_offspring(Protozoa* parent, const bool should_mutate = true)
 	{
-		Protozoa* offspring = get_unallocated_protozoa();
-		parent->create_offspring(offspring, should_mutate);
+		//Protozoa* offspring = get_unallocated_protozoa();
 	}
 
 protected:
@@ -129,14 +163,24 @@ protected:
 			protozoa.add_spring();
 	}
 
-	void update_all_protozoa(FoodManager& food_manager_, const bool debug_mode, const float min_speed, const bool track_statistics, bool collisions)
+	void update_all_protozoa(bool track_statistics)
 	{
-		
 		reproduce_indexes.clear();
 
 		for (Protozoa* protozoa : all_protozoa_)
 		{
 			protozoa->update();
+			check_death_conditions(protozoa);
+
+			birth_requests.clear();
+			connection_requests.clear();
+
+			collect_reproduction_requests(
+				protozoa->get_cells());
+
+			apply_birth_requests(protozoa->get_cells(), protozoa->get_springs());
+
+			apply_connection_requests(protozoa->get_cells(), protozoa->get_springs());
 
 			if (!protozoa->is_alive())
 			{
@@ -146,19 +190,29 @@ protected:
 				continue;
 			}
 
-			if (protozoa->should_reproduce())
+			//if (protozoa->should_reproduce())
+			//	reproduce_indexes.push_back(protozoa->id);
+		}
+
+		const int passes = 100;
+		Protozoa* new_protozoa = all_protozoa_.add();
+		for (Protozoa* current : all_protozoa_)
+		{
+			if (new_protozoa == nullptr)
+				break;
+
+			if (current->run_separation(new_protozoa))
 			{
-				reproduce_indexes.push_back(protozoa->id);
+				new_protozoa = all_protozoa_.add();
 			}
 		}
 
-		for (int idx : reproduce_indexes)
+		for (const int idx : reproduce_indexes)
 		{
 			create_offspring(all_protozoa_.at(idx));
 			if (track_statistics)
 				register_birth_stat();
 		}
-
 	}
 	
 
@@ -173,7 +227,6 @@ protected:
 				cell.accelerate(collision_resolutions[idx++]);
 			}
 		}
-#
 	}
 
 	Protozoa* get_unallocated_protozoa()
@@ -252,6 +305,106 @@ protected:
 		for (Protozoa* protozoa : all_protozoa_)
 		{
 			build_protozoa(*protozoa, world_bounds);
+		}
+	}
+
+	void check_death_conditions(Protozoa* protozoa)
+	{
+		for (Cell& cell : protozoa->get_cells())
+		{
+			if (cell.can_die())
+			{
+				protozoa->kill();
+			}
+		}
+	}
+
+
+private:
+	void collect_reproduction_requests(std::vector<Cell>& cells)
+	{
+		const int cell_count = static_cast<int>(cells.size());
+
+		for (int i = 0; i < cell_count; ++i)
+		{
+			Cell& cell = cells[i];
+
+			if (cell.reproduce)
+			{
+				cell.reproduce = false;
+				birth_requests.push_back({ cell.id });
+
+				if (Random::rand01_float() > 0.01)
+					break;
+			}
+			else if (cell.spring_to_copy_index >= 0)
+			{
+				connection_requests.push_back({
+					static_cast<uint8_t>(cell.offspring_index),
+					static_cast<uint8_t>(cell.connection_index),
+					cell.spring_to_copy_index
+					});
+				cell.connection_index = -1;
+				cell.offspring_index = -1;
+				cell.spring_to_copy_index = -1;
+
+				if (Random::rand01_float() > 0.01)
+					break;
+			}
+		}
+	}
+
+	void apply_birth_requests(std::vector<Cell>& cells, std::vector<Spring>& springs)
+	{
+		cells.reserve(cells.size() + birth_requests.size());
+		springs.reserve(springs.size() + birth_requests.size());
+
+		for (const BirthRequest& req : birth_requests)
+		{
+			const uint8_t offspring_id = static_cast<uint8_t>(cells.size());
+
+			cells.emplace_back();
+			Cell* offspring = &cells.back();         
+			cells[req.parent_cell_id].create_offspring(offspring);
+			offspring->id = offspring_id;
+
+			// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests
+			cells[req.parent_cell_id].offspring_index = offspring_id;
+
+			// when we create this offspring we create a spring to it, the spring has a weak connection as it is made to break
+			// This is a temporary spring, it needs hold the new cell close to the parent cell until the real spring is made
+			// this is because if the two new cells are too far apart when the spring is made, the spring will break immediately and the offspring will die before it can reproduce
+
+			const uint8_t spring_id = static_cast<uint8_t>(springs.size());
+			springs.emplace_back(spring_id, req.parent_cell_id, offspring_id);
+			springs.back().spring_const = 0.00001f;
+			springs.back().amplitude = 0.f;
+			springs.back().damping = 0.9f;
+
+			const sf::Vector2f diff = cells[req.parent_cell_id].get_pos() - offspring->get_pos();
+			springs.back().rest_length = diff.length();
+		}
+	}
+
+	void apply_connection_requests(std::vector<Cell>& cells, std::vector<Spring>& springs)
+	{
+		springs.reserve(springs.size() + connection_requests.size());
+
+		for (const ConnectionRequest& req : connection_requests)
+		{
+			// we need to check if the spring to copy index is valid, if it is we copy the spring data to the new spring
+			const bool valid_spring_to_copy = req.spring_to_copy_index >= 0
+				&& req.spring_to_copy_index < static_cast<int8_t>(springs.size());
+
+			const uint8_t spring_id = static_cast<uint8_t>(springs.size());
+			springs.emplace_back(spring_id, req.offspring_id, req.connect_to_id);
+			Spring* new_spring = &springs.back();
+
+			if (valid_spring_to_copy)
+			{
+				springs[req.spring_to_copy_index].create_offspring(*new_spring);
+			}
+			
 		}
 	}
 };

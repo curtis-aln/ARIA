@@ -19,7 +19,7 @@ void World::init_collision_jobs()
 			if (begin >= group_size) break;
 			const int end = std::min(begin + chunk, group_size);
 
-			collision_jobs_.push_back([this, &group, begin, end]
+			collision_jobs_.emplace_back([this, &group, begin, end]
 				{
 					thread_local FixedSpan<uint32_t> local_nearby_ids = tl_nearby_ids;
 					for (int i = begin; i < end; ++i)

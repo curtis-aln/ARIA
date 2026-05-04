@@ -26,8 +26,7 @@ void World::update()
 	food_manager_.update();
 	resolve_food_interactions_threadded();
 
-	update_all_protozoa(food_manager_, toggles.debug_mode, toggles.min_speed,
-		toggles.track_statistics, toggles.toggle_collisions);
+	update_all_protozoa(toggles.track_statistics);
 
 
 }

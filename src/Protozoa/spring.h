@@ -41,13 +41,19 @@ struct Spring : SpringGenome
 		clock_ = 0;
 	}
 
+	void create_offspring(Spring& offspring)
+	{
+		offspring.copy_genetics(*this);
+	}
+
 
 	SpringResult update(Cell& cell_a, Cell& cell_b)
 	{
 		clock_++; 
-		const float transfer = std::copysign(ProtozoaSettings::energy_share_rate, cell_b.energy - cell_a.energy);
-		cell_a.energy += transfer;
-		cell_b.energy -= transfer;
+
+		handle_reproduction(cell_a, cell_b);
+		
+		transfer_energy(cell_a, cell_b);
 
 		const sf::Vector2f& pos_a = cell_a.get_pos();
 		const sf::Vector2f& pos_b = cell_b.get_pos();
@@ -101,6 +107,21 @@ struct Spring : SpringGenome
 
 
 private:
+	void handle_reproduction(Cell& cell_a, Cell& cell_b)
+	{
+		if (cell_a.offspring_index >= 0 && cell_b.offspring_index >= 0)
+		{
+			cell_a.connection_index = cell_b.offspring_index;
+			cell_a.spring_to_copy_index = id;
+		}
+	}
+
+	void transfer_energy(Cell& cell_a, Cell& cell_b)
+	{
+		const float transfer = std::copysign(ProtozoaSettings::energy_share_rate, cell_b.energy - cell_a.energy);
+		cell_a.energy += transfer;
+		cell_b.energy -= transfer;
+	}
 
 	float calculate_rest_length(const int internal_clock) const
 	{

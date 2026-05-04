@@ -133,16 +133,23 @@ void Protozoa::add_spring()
 	m_springs_.emplace_back(spring_id, cell_A_id, cell_B_id);
 }
 
-void Protozoa::remove_spring()
+void Protozoa::remove_spring(int8_t spring_id)
 {
     if (m_springs_.empty())
         return;
 
-    const auto spring_id = Random::rand_range(size_t(0), m_springs_.size() - 1);
+    if (spring_id == -1) 
+    {
+        spring_id = Random::rand_range(size_t(0), m_springs_.size() - 1);
+    }
     const auto end_id = m_springs_.size() - 1;
 
     // removing the spring through swap and pop
     std::swap(m_springs_[spring_id], m_springs_[end_id]); // swap
+
+	// adjusting the id of the swapped spring
+	m_springs_[spring_id].id = spring_id;
+
     m_springs_.pop_back(); // pop
 }
 

@@ -88,6 +88,7 @@ private:
     void manage_frame_rate();
     void fill_snapshot(SimSnapshot& snapshot);
     void update_world();
+    void resolve_modifications();
 
     // events
     void handle_events();

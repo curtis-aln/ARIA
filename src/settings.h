@@ -66,7 +66,7 @@ struct WorldSettings
 
 struct ProtozoaSettings
 {
-	inline static float spring_break_force = 180.f;
+	inline static float spring_break_force = 580.f;
 	inline static float spring_damage_threshold = 20.f;
 
 	inline static float integrity = 100.f;
