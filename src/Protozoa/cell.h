@@ -22,6 +22,9 @@ protected:
 	sf::Vector2f position_{};
 	sf::Vector2f velocity_{};
 
+	bool dead = false;
+	bool immortal = false;
+
 public:
 	// The Cell ID is used when referencing the cell inside the protozoa, and identifying its genome
 	uint8_t id{}; 
@@ -53,6 +56,9 @@ public:
 		
 	}
 
+	[[nodiscard]] bool is_alive() const { return !dead; }
+	[[nodiscard]] bool should_reproduce() const { return reproduce; }
+
 	[[nodiscard]] const sf::Vector2f& get_pos() const { return position_; }
 	[[nodiscard]] const sf::Vector2f& get_vel() const { return velocity_; }
 
@@ -81,6 +87,9 @@ public:
 		energy = ProtozoaSettings::initial_energy;
 
 		velocity_ = { 0, 0 };
+
+		dead = false;
+		immortal = false;
 	}
 
 	void eat(const float nutrients)

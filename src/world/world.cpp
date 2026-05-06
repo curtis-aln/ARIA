@@ -83,6 +83,7 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
         if (in_bounds)
         {
             selected_protozoa_ = protozoa;
+
             return true;
         }
     }
@@ -221,8 +222,10 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	if (selected_protozoa_ != nullptr)
     {
 		snapshot.selected_a_protozoa = true;
-        
+
     }
+
+    // printing if there is a protozoa selected
     snapshot.food_grid = get_grid_data(get_food_spatial_grid());
     snapshot.cell_grid = get_grid_data(get_spatial_grid());
 

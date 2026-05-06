@@ -61,14 +61,12 @@ public:
 
     int total_food_eaten = 0;
 
-    bool immortal = false;
-
     ProtozoaTracker() = default;
 
 
     void update_statistics(const Protozoa* protozoa_ptr, const SimpleSpatialGrid* food_grid, const SimpleSpatialGrid* cell_grid, const o_vector<Food>& food_vector, const RenderData& render_data)
     {
-        if (protozoa_ptr == nullptr || !protozoa_ptr->is_alive())
+        if (protozoa_ptr == nullptr)
         {
             return;
         }
@@ -180,6 +178,5 @@ private:
     void update_misc(const Protozoa* protozoa_ptr)
     {
         reproduction_cooldown = ProtozoaSettings::reproductive_cooldown;
-        immortal = protozoa_ptr->immortal;
     }
 };

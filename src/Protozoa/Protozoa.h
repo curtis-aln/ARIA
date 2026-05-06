@@ -27,15 +27,8 @@ private:
 	alignas (64) std::vector<Cell> m_cells_{};
 	alignas (64) std::vector<Spring> m_springs_{};	
 
-
-	bool reproduce = false;
-	bool dead = false;
-	
-
 	
 public:
-	bool immortal = false;
-
 	Protozoa(int id_ = 0);
 	Protozoa(const Protozoa& other);
 	Protozoa& operator=(const Protozoa& other);
@@ -50,8 +43,6 @@ public:
 	std::vector<Spring>& get_springs() { return m_springs_; }
 	[[nodiscard]] const std::vector<Spring>& get_springs() const { return m_springs_; }
 
-	[[nodiscard]] bool is_alive() const { return !dead; }
-	[[nodiscard]] bool should_reproduce() const { return reproduce; }
 
 	[[nodiscard]] unsigned get_frames_alive_avg() const
 	{
@@ -77,7 +68,6 @@ public:
 
 	// information setting
 	void move_center_location_to(const sf::Vector2f new_center);
-	void force_reproduce();
 	void inject(const float energy_injected);
 
 	void set_protozoa_attributes(const Protozoa* other)
@@ -85,8 +75,6 @@ public:
 		m_cells_ = other->m_cells_;
 		m_springs_ = other->m_springs_;
 	}
-
-	void kill();
 
 	void soft_reset();
 	void hard_reset();
@@ -104,9 +92,6 @@ private:
 	void update_cells();
 	void update_generation();
 
-	// organic
-	void reproduce_check();
-	
 
 	// mutating
 	void mutate_existing_cells(float mut_rate = 0.f, float mut_range = 0.f);
@@ -205,8 +190,6 @@ public:
 		// The new protozoa gets the disconnected fragment
 		new_protozoa->m_cells_ = std::move(other_cells);
 		new_protozoa->m_springs_ = std::move(other_springs);
-		new_protozoa->dead = false;
-		new_protozoa->reproduce = false;
 		new_protozoa->active = true;
 
 		return true;

@@ -551,7 +551,8 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     ImGui::TextDisabled("Lifecycle");
     ImGui::Separator();
 
-    bool immortal = p.immortal;
+    //bool immortal = p.immortal; // todo
+    bool immortal = false;
     if (ImGui::Checkbox("Immortal##org", &immortal))
     {
         SimCommand cmd{.type = CommandType::MakeImmortal };

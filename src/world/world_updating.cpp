@@ -17,9 +17,6 @@ void World::update()
 	if (toggles.track_statistics)
 		update_statistics();
 
-	if (selected_protozoa_ != nullptr && !selected_protozoa_->is_alive())
-		selected_protozoa_ = nullptr;
-
 	resolve_collisions_threaded();  
 	update_cell_collisions();
 

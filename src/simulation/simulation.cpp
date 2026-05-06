@@ -169,18 +169,18 @@ void Simulation::resolve_modifications()
                 break;
 
             case CommandType::KillProtozoa:
-                if (selected_protozoa)
-                    selected_protozoa->kill();
+                //if (selected_protozoa)
+                //    selected_protozoa->kill(); // todo
                 break;
 
             case CommandType::ForceReproduce:
-                if (selected_protozoa)
-                    selected_protozoa->force_reproduce();
+                //if (selected_protozoa) // todo
+                //    selected_protozoa->force_reproduce();
                 break;
 
             case CommandType::MakeImmortal:
-                if (selected_protozoa)
-                    selected_protozoa->immortal = cmd.bool_val;
+                //if (selected_protozoa) // todo
+                //    selected_protozoa->immortal = cmd.bool_val;
                 break;
 
             case CommandType::CloneProtozoa:

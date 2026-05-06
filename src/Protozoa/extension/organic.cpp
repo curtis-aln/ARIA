@@ -3,18 +3,6 @@
 
 #include <vector>
 
-void Protozoa::reproduce_check()
-{
-	for (Cell& cell : m_cells_)
-	{
-		if (!cell.can_reproduce())
-		{
-            return;
-		}
-	}
-
-    reproduce = true;
-}
 
 
 void Protozoa::update_generation()
@@ -29,16 +17,6 @@ void Protozoa::update_generation()
 	}
 }
 
-void Protozoa::kill()
-{
-    if (!immortal)
-        dead = true;
-}
-
-void Protozoa::force_reproduce()
-{
-    reproduce = true;
-}
 
 void Protozoa::inject(const float energy_injected)
 {

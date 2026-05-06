@@ -15,8 +15,6 @@ void Protozoa::update()
 	update_springs();
 
 	update_cells();
-
-	reproduce_check();
 }
 
 
@@ -71,12 +69,6 @@ void Protozoa::move_center_location_to(const sf::Vector2f new_center)
 
 void Protozoa::soft_reset()
 {
-	dead = false;
-	reproduce = false;
-
-	immortal = false;
-
-
 	for (Cell& cell : m_cells_)
 	{
 		cell.reset();
@@ -102,9 +94,6 @@ Protozoa::Protozoa(const Protozoa& other)
 	, m_springs_(other.m_springs_)
 	, id(other.id)
 	, active(other.active)
-	, immortal(other.immortal)
-	, reproduce(other.reproduce)
-	, dead(other.dead)
 {}
 
 Protozoa& Protozoa::operator=(const Protozoa& other)
@@ -115,9 +104,6 @@ Protozoa& Protozoa::operator=(const Protozoa& other)
 	m_springs_ = other.m_springs_;
 	id = other.id;
 	active = other.active;
-	immortal = other.immortal;
-	reproduce = other.reproduce;
-	dead = other.dead;
 	// m_window_ and m_world_bounds_ intentionally not copied
 
 	return *this;

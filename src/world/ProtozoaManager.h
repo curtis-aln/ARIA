@@ -170,7 +170,6 @@ protected:
 		for (Protozoa* protozoa : all_protozoa_)
 		{
 			protozoa->update();
-			check_death_conditions(protozoa);
 
 			birth_requests.clear();
 			connection_requests.clear();
@@ -182,22 +181,17 @@ protected:
 
 			apply_connection_requests(protozoa->get_cells(), protozoa->get_springs());
 
-			if (!protozoa->is_alive())
-			{
-				
-				if (track_statistics)
-				{
-					for (Cell& cell : protozoa->get_cells())
-					{
-						register_death_stat(cell.frames_alive_, cell.offspring_count > 0);
-					}
-				}
-				all_protozoa_.remove(protozoa);
+			if (!check_death_conditions(protozoa))
 				continue;
-			}
 
-			//if (protozoa->should_reproduce())
-			//	reproduce_indexes.push_back(protozoa->id);
+			if (track_statistics)
+			{
+				for (Cell& cell : protozoa->get_cells())
+				{
+					register_death_stat(cell.frames_alive_, cell.offspring_count > 0);
+				}
+			}
+			all_protozoa_.remove(protozoa);
 		}
 
 		const int passes = 100;
@@ -250,7 +244,18 @@ protected:
 	}
 
 	
+	bool reproduce_check(Protozoa* protozoa)
+	{
+		for (Cell& cell : protozoa->get_cells())
+		{
+			if (!cell.can_reproduce())
+			{
+				return false;
+			}
+		}
 
+		return true;
+	}
 
 	void check_for_extinction_event(Circle& world_bounds)
 	{
@@ -303,7 +308,6 @@ protected:
 		// removing any protozoa that are above the initial protozoa count
 		for (int i = initial_protozoa; i < max_protozoa; ++i)
 		{
-			all_protozoa_.at(i)->kill();
 			all_protozoa_.at(i)->soft_reset();
 			all_protozoa_.remove(i);
 		}
@@ -314,15 +318,16 @@ protected:
 		}
 	}
 
-	void check_death_conditions(Protozoa* protozoa)
+	[[nodiscard]] static bool check_death_conditions(Protozoa* protozoa)
 	{
 		for (Cell& cell : protozoa->get_cells())
 		{
-			if (cell.can_die())
+			if (!cell.can_die())
 			{
-				protozoa->kill();
+				return false;
 			}
 		}
+		return true; // protozoa is only dead if all its cells are dead
 	}
 
 
