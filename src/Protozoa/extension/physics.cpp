@@ -7,57 +7,6 @@ Protozoa::Protozoa(const int id_)
 }
 
 
-void Protozoa::update()
-{
-	if (m_cells_.empty()) // No computation is needed if there are no cells
-		return;
-
-	update_springs();
-
-	update_cells();
-}
-
-
-void Protozoa::update_springs()
-{
-	// updates the springs connecting the cells
-	for (Spring& spring : m_springs_)
-	{
-		Cell& cell_A = m_cells_[spring.cell_A_id];
-		Cell& cell_B = m_cells_[spring.cell_B_id];
-		spring.update(cell_A, cell_B);
-
-		cell_A.energy -= spring.work_done / 2.f; // Eventually springs will be their own organic systems with energy
-		cell_B.energy -= spring.work_done / 2.f;
-
-
-		if (spring.stress > ProtozoaSettings::spring_damage_threshold)
-		{
-			float excess = spring.stress - ProtozoaSettings::spring_damage_threshold;
-			//cell_A.integrity -= excess;
-			//cell_B.integrity -= excess;
-		}
-
-		if (spring.broken)
-		{
-			// removing the spring through swap and pop
-			const auto end_id = m_springs_.size() - 1;
-
-			std::swap(m_springs_[spring.id], m_springs_[end_id]); // swap
-			m_springs_.pop_back(); // pop
-		}
-	}
-}
-
-void Protozoa::update_cells()
-{
-	// updates each cell in the organism
-	for (Cell& cell : m_cells_)
-	{
-		cell.update();
-	}
-}
-
 void Protozoa::move_center_location_to(const sf::Vector2f new_center)
 {
 	const sf::Vector2f center = m_cells_[0].get_pos();

@@ -116,7 +116,7 @@ void World::draw_springs(const ProtozoaTracker& protozoa, const bool thick_lines
     }
 }
 
-void World::draw_spring_information(const Protozoa* protozoa, Font* font) const
+void World::draw_spring_information(Font* font) const
 {
 
 }

@@ -33,6 +33,7 @@ void World::update_position_container()
 {
 	spatial_hash_grid_.clear();
 	all_cells_.clear();
+	all_springs_.clear();
 
 	// Single pass: count cells
 	statistics_.entity_count = 0;
@@ -73,6 +74,11 @@ void World::update_position_container()
 
 			spatial_hash_grid_.add_object(cell.get_pos().x, cell.get_pos().y, idx);
 			++idx;
+		}
+
+		for (Spring& spring : protozoa->get_springs())
+		{
+			all_springs_.push_back(&spring);
 		}
 	}
 }

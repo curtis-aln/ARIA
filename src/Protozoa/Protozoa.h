@@ -32,9 +32,6 @@ public:
 	Protozoa(int id_ = 0);
 	Protozoa(const Protozoa& other);
 	Protozoa& operator=(const Protozoa& other);
-
-	
-	void update();
 	
 	void mutate(const bool artificial_add_cell = false, const float artificial_mutatation_rate = 0.f, const float artificial_mutatation_range = 0.f);
 
@@ -81,12 +78,6 @@ public:
 
 
 private:
-	// updating
-	void update_springs();
-	void update_cells();
-	void update_generation();
-
-
 	// mutating
 	void mutate_existing_cells(float mut_rate = 0.f, float mut_range = 0.f);
 	void mutate_existing_springs(float mut_rate = 0.f, float mut_range = 0.f);

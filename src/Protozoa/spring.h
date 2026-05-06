@@ -97,6 +97,7 @@ struct Spring : SpringGenome
 
 		// we can calculate the amount of energy this contraction / extension took
 		work_done = std::abs(spring_force) * std::abs(current_length - rest_length);
+		work_done *= ProtozoaSettings::spring_work_const;
 
 		const float force_magnitude = std::abs(total_force);
 
@@ -110,7 +111,16 @@ struct Spring : SpringGenome
 		// Stress: 0 = relaxed, 1 = at breaking point
 		stress = force_magnitude / ProtozoaSettings::spring_break_force;
 
-		work_done *= ProtozoaSettings::spring_work_const; 
+		cell_a.energy -= work_done / 2.f; // Eventually springs will be their own organic systems with energy
+		cell_b.energy -= work_done / 2.f;
+
+
+		if (stress > ProtozoaSettings::spring_damage_threshold)
+		{
+			float excess = stress - ProtozoaSettings::spring_damage_threshold;
+			//cell_A.integrity -= excess;
+			//cell_B.integrity -= excess;
+		}
 	}
 
 

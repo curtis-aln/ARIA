@@ -46,8 +46,6 @@ class ProtozoaManager : protected WorldSettings
 public:
 	sf::RenderWindow* m_window_ = nullptr;
 
-	o_vector<Protozoa> all_protozoa_;
-
 	uint16_t   longest_lived_ever_ = 0;
 	uint8_t   most_offspring_ever_ = 0;
 	float infant_mortality_rate_ = 0.f;
@@ -72,20 +70,18 @@ public:
 	std::vector<BirthRequest> birth_requests;
 	std::vector<ConnectionRequest> connection_requests;
 
-	std::vector< Cell*> all_cells_{};
+	o_vector<Cell> all_cells_;
+	o_vector<Spring> all_springs_;
 
 	// every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
 	// this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
 	alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
 
-	std::vector<int> reproduce_indexes{};
 
-	ProtozoaManager(sf::RenderWindow* window) : m_window_(window), all_protozoa_(max_protozoa)
+	ProtozoaManager(sf::RenderWindow* window) : m_window_(window), all_cells_(max_protozoa), all_springs_(max_protozoa)
 	{
 		birth_requests.reserve(10);
 		connection_requests.reserve(10);
-		reproduce_indexes.reserve(max_protozoa);
-		all_cells_.reserve(max_protozoa * desired_cell_count);
 
 		std::cout << "[INFO]: ProtozoaManager initialized with max protozoa: " << max_protozoa << "\n";
 		if (window == nullptr)
@@ -103,48 +99,28 @@ public:
 		}
 	}
 
-	void soft_reset_protozoa(Protozoa* protozoa)
-	{
-		for (Cell& cell : protozoa->get_cells())
-		{
-			cell.reset();
-		}
-	}
-
-	void hard_reset_protozoa(Protozoa* protozoa)
-	{
-		soft_reset_protozoa(protozoa);
-
-		protozoa->get_cells().clear();
-		protozoa->get_springs().clear();
-
-
-		protozoa->active = true; // for o_vector.h
-	}
-
-
 	Cell* get_selected_cell() const { return selected_cell; }
 
 	int get_protozoa_count() const
 	{
-		return all_protozoa_.size();
+		return 1; // todo
+		//return all_protozoa_.size();
 	}
 
 	float calculate_average_generation() const
 	{
-		if (all_protozoa_.size() == 0) 
+		if (all_cells_.size() == 0) 
 			return 0.f;
 
 		float sum = 0.f;
 		int count = 0;
-		for (Protozoa* protozoa : all_protozoa_)
+		
+		for (Cell* cell : all_cells_)
 		{
-			for (Cell& cell : protozoa->get_cells())
-			{
-				sum += cell.generation;
-				count++;
-			}
+			sum += cell->generation;
+			count++;
 		}
+		
 		return sum / count;
 	}
 
@@ -162,9 +138,9 @@ public:
 	inline static constexpr int desired_cell_count = 3;
 
 
-	Protozoa* find_protozoa_by_id(const int id)
+	Cell* find_cell_by_id(const int id)
 	{
-		return all_protozoa_.at(id);
+		return all_cells_.at(id);
 	}
 
 
@@ -174,21 +150,23 @@ public:
 	}
 
 protected:
-	inline void build_protozoa(Protozoa& protozoa, const Circle& world_bounds, bool emplace_back = true)
+	inline void build_protozoa(const Circle& world_bounds, bool emplace_back = true)
 	{
-		// To build a protozoa, we generate a random amount of cells and then run a spring connection algorithm for a random amount of iterations
-		hard_reset_protozoa(&protozoa);
-
-		std::vector<Cell>& cells = protozoa.get_cells();
 		sf::Vector2f spawn_position = world_bounds.rand_pos();
 		float spawn_dist = 200.f;
 		sf::FloatRect spawn_rect = { spawn_position - sf::Vector2f(spawn_dist, spawn_dist), sf::Vector2f(spawn_dist * 2, spawn_dist * 2) };
 		const int cell_count = Random::rand_range(2, desired_cell_count);
 		const int spring_count = Random::rand_range(cell_count-1, cell_count * 2);
 
-		// creating the cells
+		std::vector<Cell*> cells; // a temporary cell vector
+
 		for (int i = 0; i < cell_count; ++i)
-			cells.emplace_back(i, Random::rand_pos_in_rect(spawn_rect));
+		{
+			const sf::Vector2f cell_pos = Random::rand_pos_in_rect(spawn_rect);
+			
+			cells.push_back(all_cells_.add());
+		}
+
 
 		// Now we create springs between the cells
 		for (int i = 0; i < spring_count; ++i)
@@ -220,11 +198,8 @@ protected:
 
 	void update_all_protozoa(bool track_statistics)
 	{
-		reproduce_indexes.clear();
-
 		for (Protozoa* protozoa : all_protozoa_)
 		{
-			protozoa->update();
 
 			birth_requests.clear();
 			connection_requests.clear();
@@ -261,13 +236,26 @@ protected:
 				new_protozoa = all_protozoa_.add();
 			}
 		}
+	}
 
-		for (const int idx : reproduce_indexes)
+	void update_all_cells()
+	{
+		for (Spring* spring : all_springs_)
 		{
-			create_offspring(all_protozoa_.at(idx));
-			if (track_statistics)
-				register_birth_stat();
+			//Cell* cell_a = all_cells_[spring->cell_A_id]; todo
+			//Cell* cell_b = all_cells_[spring->cell_B_id];
+			//spring->update(*cell_a, *cell_b);
 		}
+
+		for (Cell* cell : all_cells_)
+		{
+			cell->update();
+		}
+
+		collect_reproduction_requests(all_cells_);
+		//apply_birth_requests(all_cells_, all_springs_);
+
+		//apply_connection_requests(all_cells_, all_springs_);
 	}
 	
 
@@ -390,32 +378,32 @@ protected:
 
 
 private:
-	void collect_reproduction_requests(std::vector<Cell>& cells)
+	void collect_reproduction_requests(std::vector<Cell*>& cells)
 	{
 		const int cell_count = static_cast<int>(cells.size());
 
 		for (int i = 0; i < cell_count; ++i)
 		{
-			Cell& cell = cells[i];
+			Cell* cell = cells[i];
 
-			if (cell.reproduce)
+			if (cell->reproduce)
 			{
-				cell.reproduce = false;
-				birth_requests.push_back({ cell.id });
+				cell->reproduce = false;
+				birth_requests.push_back({ cell->id });
 
 				if (Random::rand01_float() > 0.01)
 					break;
 			}
-			else if (cell.spring_to_copy_index >= 0)
+			else if (cell->spring_to_copy_index >= 0)
 			{
 				connection_requests.push_back({
-					static_cast<uint8_t>(cell.offspring_index),
-					static_cast<uint8_t>(cell.connection_index),
-					cell.spring_to_copy_index
+					static_cast<uint8_t>(cell->offspring_index),
+					static_cast<uint8_t>(cell->connection_index),
+					cell->spring_to_copy_index
 					});
-				cell.connection_index = -1;
-				cell.offspring_index = -1;
-				cell.spring_to_copy_index = -1;
+				cell->connection_index = -1;
+				cell->offspring_index = -1;
+				cell->spring_to_copy_index = -1;
 
 				if (Random::rand01_float() > 0.01)
 					break;

@@ -139,7 +139,7 @@ private:
     void nearby_food_information(const ProtozoaTracker& protozoa) const;
     void draw_springs(const ProtozoaTracker& protozoa, bool thick_lines) const;
     void draw_cell_physical_information(const ProtozoaTracker& protozoa, Font* font) const;
-    void draw_spring_information(const Protozoa* protozoa, Font* font) const;
+    void draw_spring_information(Font* font) const;
     int check_mouse_press(const ProtozoaTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
     const Cell* get_selected_cell(const ProtozoaTracker& protozoa, sf::Vector2f mouse_pos);
 
