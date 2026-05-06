@@ -111,11 +111,11 @@ void World::update_statistics()
 		{
 			statistics_.average_mutation_rate += cell.mutation_rate;
 			statistics_.average_mutation_range += cell.mutation_range;
+			statistics_.average_offspring_count += cell.offspring_count;
 
 			cell_count++;
 		}
 		statistics_.average_cells_per_protozoa += protozoa->get_cells().size();
-		statistics_.average_offspring_count += protozoa->offspring_count;
 	}
 
 	statistics_.average_cells_per_protozoa /= protozoa_count;
@@ -148,9 +148,12 @@ void World::update_statistics()
 	{
 		total_energy = 0.f;
 		for (Cell& c : p->get_cells())
+		{
 			total_energy += c.energy;
+			most_offspring_ever_ = std::max(c.offspring_count, most_offspring_ever_);
+		}
 		total_springs += static_cast<float>(p->get_springs().size());
-		most_offspring_ever_ = std::max(p->offspring_count, most_offspring_ever_);
+		
 		for (const Cell& c : p->get_cells())
 		{
 			sum_amp += c.amplitude;

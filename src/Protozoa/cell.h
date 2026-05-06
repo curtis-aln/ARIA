@@ -39,6 +39,7 @@ public:
 
 	// Statistics information
 	uint16_t frames_alive_ = 0;
+	uint8_t  offspring_count = 0;
 
 	// reproductive related variables
 	bool reproduce = false; // signals to the protozoa manager that this cell needs an offspring index set
@@ -71,6 +72,7 @@ public:
 		stomach_ = 0;
 		frames_alive_ = 0;
 		integrity = ProtozoaSettings::integrity;
+		offspring_count = 0;
 
 		reproduce = false;
 		offspring_index = -1;
@@ -147,6 +149,9 @@ public:
 		// When creating an offspring, this is ran for every cell in the protozoa
 		child->position_ = get_pos_nearby(2.f);
 
+		time_since_last_reproduced_ = 0;
+		offspring_count++;
+
 		energy -= ProtozoaSettings::offspring_energy_cost;
 
 		if (dormant)
@@ -205,10 +210,11 @@ public:
 
 	[[nodiscard]] float calculate_friction() const
 	{
-		const float friction = amplitude * sinf(frequency * clock_ + offset) + vertical_shift;
-
+		const float sin_value = sinf(frequency * clock_ + offset); // [-1, 1]
+		const float ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
+		const float clamped = std::clamp(ratio, 0.f, 1.f);
 		// clamping friction to [0, 1]
-		return std::clamp(friction, 0.f, 1.f);
+		return clamped;
 	}
 
 private:

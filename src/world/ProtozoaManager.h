@@ -184,8 +184,14 @@ protected:
 
 			if (!protozoa->is_alive())
 			{
+				
 				if (track_statistics)
-					register_death_stat(protozoa->get_frames_alive_avg(), protozoa->offspring_count > 0);
+				{
+					for (Cell& cell : protozoa->get_cells())
+					{
+						register_death_stat(cell.frames_alive_, cell.offspring_count > 0);
+					}
+				}
 				all_protozoa_.remove(protozoa);
 				continue;
 			}

@@ -29,6 +29,8 @@ struct Spring : SpringGenome
 
 	float stress = 0.f; // 0..1, normalised force relative to break threshold
 
+	bool broken = false;
+
 	Spring(const uint8_t _id, const uint8_t _cell_A_id, const uint8_t _cell_B_id)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id(_id), SpringGenome()
 	{
@@ -39,6 +41,12 @@ struct Spring : SpringGenome
 	void reset()
 	{
 		clock_ = 0;
+		work_done = 0.f;
+		current_length = 0.f;
+		broken = false;
+		spring_force = 0.f;
+		damping_force = 0.f;
+
 	}
 
 	void create_offspring(Spring& offspring)
@@ -47,7 +55,7 @@ struct Spring : SpringGenome
 	}
 
 
-	SpringResult update(Cell& cell_a, Cell& cell_b)
+	void update(Cell& cell_a, Cell& cell_b)
 	{
 		clock_++; 
 
@@ -64,7 +72,8 @@ struct Spring : SpringGenome
 
 		if (current_length < 1e-6f || current_length > ProtozoaSettings::breaking_length)
 		{
-			return {.work_done = 0.f, .broken = true };
+			broken = true;
+			return;
 		}
 
 		// finding the rest length of the spring
@@ -93,15 +102,14 @@ struct Spring : SpringGenome
 		// Force-based break (complements your existing length-based break)
 		if (force_magnitude > ProtozoaSettings::spring_break_force)
 		{
-			return { .work_done = 0.f, .force_magnitude = force_magnitude, .broken = true };
+			broken = true;
+			return;
 		}
 
 		// Stress: 0 = relaxed, 1 = at breaking point
 		stress = force_magnitude / ProtozoaSettings::spring_break_force;
 
 		work_done *= ProtozoaSettings::spring_work_const; 
-
-		return { work_done, force_magnitude, false };
 	}
 
 

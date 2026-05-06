@@ -143,6 +143,8 @@ private:
         frames_alive = 0;
         total_food_eaten = 0;
 		average_generation = 0;
+        offspring_count = 0;
+		time_since_last_reproduced = 0;
         for (const Cell& cell : cells)
         {
             total_energy += cell.energy;
@@ -150,6 +152,8 @@ private:
             frames_alive += cell.frames_alive_;
             total_food_eaten += cell.total_food_eaten_;
 			average_generation += cell.generation;
+            offspring_count += cell.offspring_count;
+			time_since_last_reproduced += cell.time_since_last_reproduced_;
 
             cells_ready_to_reproduce += cell.can_reproduce();
         }
@@ -160,6 +164,8 @@ private:
         average_energy = total_energy / cell_count;
         frames_alive = frames_alive / cell_count;
         ready_to_reproduce_percentage = (cells_ready_to_reproduce / cell_count) * 100;
+		offspring_count = offspring_count / cell_count;
+		time_since_last_reproduced = time_since_last_reproduced / cell_count;
 
         springs = protozoa_ptr->get_springs();
         spring_count = static_cast<int>(springs.size());
@@ -173,8 +179,6 @@ private:
 
     void update_misc(const Protozoa* protozoa_ptr)
     {
-        offspring_count = protozoa_ptr->offspring_count;
-        time_since_last_reproduced = protozoa_ptr->time_since_last_reproduced;
         reproduction_cooldown = ProtozoaSettings::reproductive_cooldown;
         immortal = protozoa_ptr->immortal;
     }

@@ -20,14 +20,7 @@ public:
 	bool active = true; // for o_vector.h
 
 	// statistics informaiton
-	uint16_t time_since_last_reproduced = 0;
-	sf::Vector2f birth_location = { 0, 0 };
-
-	float energy_lost_to_springs = 0.f;
-
-	uint8_t offspring_count = 0;
 	
-	uint8_t total_food_eaten = 0;
 
 private:
 	// components of the protozoa

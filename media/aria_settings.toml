@@ -13,7 +13,7 @@ cell_max_capacity = 15
 [protozoa]
 max_cells                = 15
 spawn_radius             = 100.0
-energy_decay_rate        = 0.02
+energy_decay_rate        = 0.002
 wander_threshold         = 600.0   
 breaking_length          = 300.0   
 maximum_extension        = 250.0    
@@ -51,7 +51,7 @@ reproductive_threshold   = 400
 
 # --- Nutrients ---
 initial_nutrients        = 10.0
-final_nutrients          = 100.0
+final_nutrients          = 200.0
 nutrient_development_time = 600
 
 # --- Death ---
