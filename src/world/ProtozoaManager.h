@@ -90,6 +90,34 @@ public:
 		}
 	}
 
+	void inject_protozoa(Protozoa* protozoa, const float energy_injected)
+	{
+		const auto cell_count = static_cast<float>(protozoa->get_cells().size());
+		for (Cell& cell : protozoa->get_cells())
+		{
+			cell.energy += energy_injected / cell_count;
+		}
+	}
+
+	void soft_reset_protozoa(Protozoa* protozoa)
+	{
+		for (Cell& cell : protozoa->get_cells())
+		{
+			cell.reset();
+		}
+	}
+
+	void hard_reset_protozoa(Protozoa* protozoa)
+	{
+		soft_reset_protozoa(protozoa);
+
+		protozoa->get_cells().clear();
+		protozoa->get_springs().clear();
+
+
+		protozoa->active = true; // for o_vector.h
+	}
+
 
 	Protozoa* get_selected_protozoa() const { return selected_protozoa_; }
 
@@ -142,10 +170,10 @@ public:
 	}
 
 protected:
-	static inline void build_protozoa(Protozoa& protozoa, const Circle& world_bounds, bool emplace_back = true)
+	inline void build_protozoa(Protozoa& protozoa, const Circle& world_bounds, bool emplace_back = true)
 	{
 		// To build a protozoa, we generate a random amount of cells and then run a spring connection algorithm for a random amount of iterations
-		protozoa.hard_reset();
+		hard_reset_protozoa(&protozoa);
 
 		std::vector<Cell>& cells = protozoa.get_cells();
 		sf::Vector2f spawn_position = world_bounds.rand_pos();
@@ -160,7 +188,30 @@ protected:
 
 		// Now we create springs between the cells
 		for (int i = 0; i < spring_count; ++i)
-			protozoa.add_spring();
+		{
+			if (cells.size() < 2)
+				return;
+
+			// choose two different cell ids
+			int cell_A_id = Random::rand_range(size_t(0), cells.size() - 1);
+			int cell_B_id = Random::rand_range(size_t(0), cells.size() - 1);
+
+			if (cell_A_id == cell_B_id)
+				return; // better luck next time
+
+			// check if a spring already exists between these two cells, if so we don't add another one
+			for (const Spring& spring : protozoa.get_springs())
+			{
+				if ((spring.cell_A_id == cell_A_id && spring.cell_B_id == cell_B_id) ||
+					(spring.cell_A_id == cell_B_id && spring.cell_B_id == cell_A_id))
+				{
+					return; // spring already exists
+				}
+			}
+
+			const auto spring_id = static_cast<int>(protozoa.get_springs().size());
+			protozoa.get_springs().emplace_back(spring_id, cell_A_id, cell_B_id);
+		}
 	}
 
 	void update_all_protozoa(bool track_statistics)
@@ -308,7 +359,7 @@ protected:
 		// removing any protozoa that are above the initial protozoa count
 		for (int i = initial_protozoa; i < max_protozoa; ++i)
 		{
-			all_protozoa_.at(i)->soft_reset();
+			soft_reset_protozoa(all_protozoa_.at(i));
 			all_protozoa_.remove(i);
 		}
 
@@ -317,6 +368,9 @@ protected:
 			build_protozoa(*protozoa, world_bounds);
 		}
 	}
+
+	
+
 
 	[[nodiscard]] static bool check_death_conditions(Protozoa* protozoa)
 	{

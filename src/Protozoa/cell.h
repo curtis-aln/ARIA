@@ -160,6 +160,7 @@ public:
 
 		time_since_last_reproduced_ = 0;
 		offspring_count++;
+		child->generation++;
 
 		energy -= ProtozoaSettings::offspring_energy_cost;
 

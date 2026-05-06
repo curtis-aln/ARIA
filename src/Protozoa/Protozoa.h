@@ -68,7 +68,6 @@ public:
 
 	// information setting
 	void move_center_location_to(const sf::Vector2f new_center);
-	void inject(const float energy_injected);
 
 	void set_protozoa_attributes(const Protozoa* other)
 	{
@@ -76,14 +75,9 @@ public:
 		m_springs_ = other->m_springs_;
 	}
 
-	void soft_reset();
-	void hard_reset();
-
-	void add_spring();
 	void add_cell();
 
 	void remove_cell();
-	void remove_spring(int8_t spring_id = -1);
 
 
 private:

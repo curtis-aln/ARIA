@@ -85,7 +85,7 @@ add_executable(ProjectARIA
     # ── Protozoa behaviours (split across extension files)
     
     src/Protozoa/extension/mutations.cpp
-    src/Protozoa/extension/organic.cpp
+    
     src/Protozoa/extension/physics.cpp
 
     # ── Simulation core

@@ -52,6 +52,7 @@ struct Spring : SpringGenome
 	void create_offspring(Spring& offspring)
 	{
 		offspring.copy_genetics(*this);
+		offspring.generation++;
 	}
 
 

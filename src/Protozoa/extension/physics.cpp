@@ -40,7 +40,11 @@ void Protozoa::update_springs()
 
 		if (spring.broken)
 		{
-			remove_spring(spring.id);
+			// removing the spring through swap and pop
+			const auto end_id = m_springs_.size() - 1;
+
+			std::swap(m_springs_[spring.id], m_springs_[end_id]); // swap
+			m_springs_.pop_back(); // pop
 		}
 	}
 }
@@ -64,26 +68,6 @@ void Protozoa::move_center_location_to(const sf::Vector2f new_center)
 		const sf::Vector2f new_pos = current_pos + translation;
 		cell.set_pos(new_pos);
 	}
-}
-
-
-void Protozoa::soft_reset()
-{
-	for (Cell& cell : m_cells_)
-	{
-		cell.reset();
-	}
-}
-
-void Protozoa::hard_reset()
-{
-	soft_reset();
-
-	m_cells_.clear();
-	m_springs_.clear();
-
-
-	active = true; // for o_vector.h
 }
 
 

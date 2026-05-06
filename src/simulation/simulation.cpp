@@ -154,18 +154,18 @@ void Simulation::resolve_modifications()
                 break;
 
             case CommandType::AddSpring:
-                if (selected_protozoa)
-                    selected_protozoa->add_spring();
+                //if (selected_protozoa)
+                //    selected_protozoa->add_spring(); todo
                 break;
 
             case CommandType::RemoveSpring:
-                if (selected_protozoa)
-                    selected_protozoa->remove_spring();
+                //if (selected_protozoa)
+                //    selected_protozoa->remove_spring(); todo
                 break;
 
             case CommandType::InjectProtozoa:
                 if (selected_protozoa)
-                    selected_protozoa->inject(cmd.float_val);
+                    m_world_.inject_protozoa(selected_protozoa, cmd.float_val);
                 break;
 
             case CommandType::KillProtozoa:
