@@ -76,17 +76,17 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 
 bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
-    for (Protozoa* protozoa : all_protozoa_)
-    {
-		sf::Rect<float> bounds = Protozoa::calc_protozoa_bounds(protozoa);
-		bool in_bounds = bounds.contains(mouse_position);
-        if (in_bounds)
-        {
-            selected_protozoa_ = protozoa;
+	for (Cell* cell : all_cells_)
+	{
+        float dist_sq = (mouse_position - cell->get_pos()).lengthSquared();
 
-            return true;
-        }
-    }
+		bool in_bounds = dist_sq < cell->radius * cell->radius;
+		if (in_bounds)
+		{
+			selected_cell = cell;
+			return true;
+		}
+	}
     return false;
 }
 
@@ -139,9 +139,9 @@ void World::keyboardEvents(const sf::Keyboard::Key& event_key_code)
 const std::vector<float>& World::get_generation_distribution()
 {
     distribution_.clear();
-    for (Protozoa* protozoa : all_protozoa_)
-        for (const Cell& cell : protozoa->get_cells())
-            distribution_.push_back(static_cast<float>(cell.generation));
+
+	for (const Cell* cell : all_cells_)
+		distribution_.push_back(static_cast<float>(cell->generation));
 
     return distribution_;
 }
@@ -217,11 +217,11 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 
     food_manager_.fill_data(snapshot.food_data);
 
-    protozoa_tracker_.update_statistics(selected_protozoa_, get_food_spatial_grid(), get_spatial_grid(), food_manager_.get_food_vector(), render_data_);
+    //protozoa_tracker_.update_statistics(selected_protozoa_, get_food_spatial_grid(), get_spatial_grid(), food_manager_.get_food_vector(), render_data_);
 	snapshot.protozoa_tracker = protozoa_tracker_;
-	if (selected_protozoa_ != nullptr)
+	if (selected_cell != nullptr)
     {
-		snapshot.selected_a_protozoa = true;
+		snapshot.selected_a_cell = true;
 
     }
 

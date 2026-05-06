@@ -53,10 +53,11 @@ public:
 	float infant_mortality_rate_ = 0.f;
 	int   total_deaths_ = 0;
 	int   infant_deaths_ = 0;
-	
+
 public:
 	// The user can click on a protozoa to select it for debugging purposes. we store a pointer to it here.
-	Protozoa* selected_protozoa_ = nullptr;
+	Cell* selected_cell = nullptr;
+	
 
 	float average_lifetime_ = 0.f; // the average lifetime of the 500 most recent protozoa deaths
 
@@ -71,6 +72,8 @@ public:
 	std::vector<BirthRequest> birth_requests;
 	std::vector<ConnectionRequest> connection_requests;
 
+	std::vector< Cell*> all_cells_{};
+
 	// every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
 	// this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
 	alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
@@ -82,6 +85,7 @@ public:
 		birth_requests.reserve(10);
 		connection_requests.reserve(10);
 		reproduce_indexes.reserve(max_protozoa);
+		all_cells_.reserve(max_protozoa * desired_cell_count);
 
 		std::cout << "[INFO]: ProtozoaManager initialized with max protozoa: " << max_protozoa << "\n";
 		if (window == nullptr)
@@ -119,7 +123,7 @@ public:
 	}
 
 
-	Protozoa* get_selected_protozoa() const { return selected_protozoa_; }
+	Cell* get_selected_cell() const { return selected_cell; }
 
 	int get_protozoa_count() const
 	{
@@ -145,11 +149,11 @@ public:
 	}
 
 
-	void deselect_protozoa()
+	void deselect_cell()
 	{
-		if (selected_protozoa_ != nullptr)
+		if (selected_cell != nullptr)
 		{
-			selected_protozoa_ = nullptr;
+			selected_cell = nullptr;
 		}
 	}
 

@@ -17,7 +17,7 @@ struct SimSnapshot
     SpatialGridData cell_grid;
     PopulationHistory history;
 
-    bool selected_a_protozoa = false;
+    bool selected_a_cell = false;
     ProtozoaTracker protozoa_tracker{};
 
 	SimSnapshot() = default;

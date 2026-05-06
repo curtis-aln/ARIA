@@ -92,7 +92,7 @@ void Simulation::resolve_modifications()
     {
         // lock the command queue while we process it, but release it before ticking the simulation
         std::lock_guard lock(m_cmd_mutex);
-        Protozoa* selected_protozoa = m_world_.get_selected_protozoa();
+        //Protozoa* selected_protozoa = m_world_.get_selected_protozoa();
 
         while (!m_commands.empty())
         {
@@ -103,29 +103,29 @@ void Simulation::resolve_modifications()
                 m_world_.toggles = cmd.toggles;
                 break;
 
-            case CommandType::SetRadius:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;
-                break;
+            //case CommandType::SetRadius:
+            //    if (selected_protozoa)
+            //        selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;
+            //    break;
 
-            case CommandType::SetAmplitude:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].amplitude = cmd.float_val;
-                break;
+            //case CommandType::SetAmplitude:
+            //    if (selected_protozoa)
+            //        selected_protozoa->get_cells()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+            //    break;
 
             case CommandType::SetFrequency:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].frequency = cmd.float_val;
+                //if (selected_protozoa)
+                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].frequency = cmd.float_val;
                 break;
 
             case CommandType::SetVerticalShift:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
+                //if (selected_protozoa)
+                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
                 break;
 
             case CommandType::SetOffset:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].offset = cmd.float_val;
+                //if (selected_protozoa)
+                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].offset = cmd.float_val;
                 break;
 
             case CommandType::SetCellGridResolution:
@@ -139,18 +139,18 @@ void Simulation::resolve_modifications()
                 break;
 
             case CommandType::MutateProtozoa:
-                if (selected_protozoa)
-                    selected_protozoa->mutate(cmd.mutate.mut_rate, cmd.mutate.mut_range);
+                //if (selected_protozoa)
+               //     selected_protozoa->mutate(cmd.mutate.mut_rate, cmd.mutate.mut_range);
                 break;
 
             case CommandType::AddCell:
-                if (selected_protozoa)
-                    selected_protozoa->add_cell();
+                //if (selected_protozoa)
+                //    selected_protozoa->add_cell();
                 break;
 
             case CommandType::RemoveCell:
-                if (selected_protozoa)
-                    selected_protozoa->remove_cell();
+                //if (selected_protozoa)
+                //    selected_protozoa->remove_cell();
                 break;
 
             case CommandType::AddSpring:
@@ -164,8 +164,8 @@ void Simulation::resolve_modifications()
                 break;
 
             case CommandType::InjectProtozoa:
-                if (selected_protozoa)
-                    m_world_.inject_protozoa(selected_protozoa, cmd.float_val);
+                //if (selected_protozoa)
+                //    m_world_.inject_protozoa(selected_protozoa, cmd.float_val);
                 break;
 
             case CommandType::KillProtozoa:
@@ -184,58 +184,62 @@ void Simulation::resolve_modifications()
                 break;
 
             case CommandType::CloneProtozoa:
-                if (selected_protozoa)
-                {
-                    m_world_.create_offspring(selected_protozoa, false);
-                }
+                //if (selected_protozoa)
+                //{
+                //    m_world_.create_offspring(selected_protozoa, false);
+                //}
                 break;
 
             case CommandType::ResetSimulation:
                 break; // todo
 
             case CommandType::NavToProtozoa:
-                m_world_.selected_protozoa_ = m_world_.all_protozoa_.at(cmd.int_val);
+                //m_world_.selected_protozoa_ = m_world_.all_protozoa_.at(cmd.int_val);
+                break;
 
             case CommandType::SetSpringAmplitude:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetSpringFrequency:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetSpringOffset:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
+                //}
+                //break;
+                    //m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetSpringVerticalShift:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                    //m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetDampingConst:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].damping = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].damping = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetSpringConst:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
+                //}
                 break;
             }
             m_commands.pop();
@@ -247,15 +251,15 @@ void Simulation::resolve_modifications()
 
 void Simulation::camera_follow_selected_protozoa()
 {
-    Protozoa* selected = m_world_.get_selected_protozoa();
-    if (selected == nullptr)
-        return;
+    //Protozoa* selected = m_world_.get_selected_protozoa();
+    //if (selected == nullptr)
+    //    return;
 
-    const sf::Rect<float> bounds = Protozoa::calc_protozoa_bounds(selected);
-    const sf::Vector2f    target = bounds.position + bounds.size / 2.f;
-    const sf::Vector2f    current = camera_.m_view_.getCenter();
+    //const sf::Rect<float> bounds = Protozoa::calc_protozoa_bounds(selected);
+    //const sf::Vector2f    target = bounds.position + bounds.size / 2.f;
+    //const sf::Vector2f    current = camera_.m_view_.getCenter();
 
-    camera_.m_view_.setCenter(current + (target - current) * camera_lerp_factor);
+    //camera_.m_view_.setCenter(current + (target - current) * camera_lerp_factor);
     camera_.update_window_view();
 }
 

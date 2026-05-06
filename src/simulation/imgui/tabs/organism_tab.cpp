@@ -82,7 +82,7 @@ static void colored_progress(const float fraction, const ImVec4 color,
 void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
     const ProtozoaTracker& protozoa = snap.protozoa_tracker;
-    if (!snap.selected_a_protozoa)
+    if (!snap.selected_a_cell)
     {
 	    draw_no_selection(); 
     	return;

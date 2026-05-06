@@ -32,6 +32,7 @@ void World::update()
 void World::update_position_container()
 {
 	spatial_hash_grid_.clear();
+	all_cells_.clear();
 
 	// Single pass: count cells
 	statistics_.entity_count = 0;
@@ -58,6 +59,7 @@ void World::update_position_container()
 	{
 		for (Cell& cell : protozoa->get_cells())
 		{
+			all_cells_.push_back(&cell);
 			cell.bound(world_circular_bounds_);
 
 			render_data_.outer_colors[idx] = cell.get_outer_color();
@@ -95,25 +97,23 @@ void World::update_statistics()
 	if (protozoa_count == 0)
 		return;
 
-	statistics_.average_cells_per_protozoa = 0.f;
+	statistics_.average_cells_per_protozoa = 0.f; // todo
 	statistics_.average_offspring_count = 0.f;
 	statistics_.average_mutation_rate = 0.f;
 	statistics_.average_mutation_range = 0.f;
 
 	// Calculating averages for cells per protozoa, offspring count, mutation rate, and mutation range across all protozoa
 	int cell_count = 0;
-	for (Protozoa* protozoa : all_protozoa_)
+	
+	for (Cell* cell : all_cells_)
 	{
-		for (Cell& cell : protozoa->get_cells())
-		{
-			statistics_.average_mutation_rate += cell.mutation_rate;
-			statistics_.average_mutation_range += cell.mutation_range;
-			statistics_.average_offspring_count += cell.offspring_count;
+		statistics_.average_mutation_rate += cell->mutation_rate;
+		statistics_.average_mutation_range += cell->mutation_range;
+		statistics_.average_offspring_count += cell->offspring_count;
 
-			cell_count++;
-		}
-		statistics_.average_cells_per_protozoa += protozoa->get_cells().size();
+		cell_count++;
 	}
+
 
 	statistics_.average_cells_per_protozoa /= protozoa_count;
 	statistics_.average_offspring_count /= protozoa_count;
@@ -137,27 +137,22 @@ void World::update_statistics()
 
 	// Per-organism aggregates
 	float total_energy = 0.f;
-	float total_springs = 0.f;
+	float total_springs = 0.f; // todo
 	float sum_amp = 0.f, sum_sq = 0.f;
 	int   cell_div_count = 0;
 
-	for (Protozoa* p : all_protozoa_)
+	for (Cell* c : all_cells_)
 	{
-		total_energy = 0.f;
-		for (Cell& c : p->get_cells())
-		{
-			total_energy += c.energy;
-			most_offspring_ever_ = std::max(c.offspring_count, most_offspring_ever_);
-		}
-		total_springs += static_cast<float>(p->get_springs().size());
-		
-		for (const Cell& c : p->get_cells())
-		{
-			sum_amp += c.amplitude;
-			sum_sq += c.amplitude * c.amplitude;
-			++cell_div_count;
-			statistics_.highest_generation_ever = std::max(c.generation, statistics_.highest_generation_ever);
-		}
+		total_energy += c->energy;
+		most_offspring_ever_ = std::max(c->offspring_count, most_offspring_ever_);
+	
+		//total_springs += static_cast<float>(c->get_springs().size());
+
+		sum_amp += c->amplitude;
+		sum_sq += c->amplitude * c->amplitude;
+		++cell_div_count;
+		statistics_.highest_generation_ever = std::max(c->generation, statistics_.highest_generation_ever);
+
 	}
 
 	if (protozoa_count > 0)
