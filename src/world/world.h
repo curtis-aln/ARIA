@@ -108,8 +108,8 @@ public:
 
     void fill_snapshot(SimSnapshot& snapshot);
 
-	Protozoa* at(const int idx) { return all_protozoa_.at(idx); }
-    const Protozoa* at(const int idx) const { return all_protozoa_.at(idx); }
+	Cell* at(const int idx) { return all_cells_.at(idx); }
+    const Cell* at(const int idx) const { return all_cells_.at(idx); }
 
     // ── Render data getters — read by renderer from snapshot ─────────────────
     const std::vector<float>& get_positions_x()    const { return render_data_.positions_x; }
@@ -122,7 +122,6 @@ public:
 
     // ── Statistics getters — read by ImGui from snapshot ─────────────────────
     const WorldStatistics& get_statistics()  const { return statistics_; }
-    int   get_protozoa_count()               const { return all_protozoa_.size(); }
     int   get_food_count()                   const { return food_manager_.get_size(); }
     float get_average_generation()           const { return statistics_.average_generation; }
 

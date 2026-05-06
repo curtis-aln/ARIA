@@ -23,22 +23,16 @@ void World::update()
 	food_manager_.update();
 	resolve_food_interactions_threadded();
 
-	update_all_protozoa(toggles.track_statistics);
-
-
+	update_all_cells();
 }
 
 
 void World::update_position_container()
 {
 	spatial_hash_grid_.clear();
-	all_cells_.clear();
-	all_springs_.clear();
 
 	// Single pass: count cells
-	statistics_.entity_count = 0;
-	for (const Protozoa* protozoa : all_protozoa_)
-		statistics_.entity_count += protozoa->get_cells().size();
+	statistics_.entity_count = all_cells_.size();
 
 	// Resize all containers once, only when outside the buffer band
 	const int container_size = static_cast<int>(collision_resolutions.size());
@@ -56,30 +50,21 @@ void World::update_position_container()
 
 	// Single pass: populate everything, zero collision data inline
 	int idx = 0;
-	for (Protozoa* protozoa : all_protozoa_)
+	for (Cell* cell : all_cells_)
 	{
-		for (Cell& cell : protozoa->get_cells())
-		{
-			all_cells_.push_back(&cell);
-			cell.bound(world_circular_bounds_);
+		cell->bound(world_circular_bounds_);
 
-			render_data_.outer_colors[idx] = cell.get_outer_color();
-			render_data_.inner_colors[idx] = cell.get_inner_color();
-			render_data_.positions_x[idx] = cell.get_pos().x;
-			render_data_.positions_y[idx] = cell.get_pos().y;
-			render_data_.radii[idx] = cell.radius;
+		render_data_.outer_colors[idx] = cell->get_outer_color();
+		render_data_.inner_colors[idx] = cell->get_inner_color();
+		render_data_.positions_x[idx] = cell->get_pos().x;
+		render_data_.positions_y[idx] = cell->get_pos().y;
+		render_data_.radii[idx] = cell->radius;
 
-			cell_pointers_[idx] = &cell;
-			collision_resolutions[idx] = { 0.f, 0.f };  // zeroed inline
+		cell_pointers_[idx] = cell;
+		collision_resolutions[idx] = { 0.f, 0.f };  // zeroed inline
 
-			spatial_hash_grid_.add_object(cell.get_pos().x, cell.get_pos().y, idx);
-			++idx;
-		}
-
-		for (Spring& spring : protozoa->get_springs())
-		{
-			all_springs_.push_back(&spring);
-		}
+		spatial_hash_grid_.add_object(cell->get_pos().x, cell->get_pos().y, idx);
+		++idx;
 	}
 }
 
@@ -98,7 +83,7 @@ void World::update_statistics()
 		tracked_generation_ = statistics_.average_generation;
 	}
 
-	float protozoa_count = static_cast<float>(all_protozoa_.size());
+	float protozoa_count = static_cast<float>(all_cells_.size());
 
 	if (protozoa_count == 0)
 		return;
@@ -138,7 +123,7 @@ void World::update_statistics()
 	}
 
 	// Peak population
-	const int p_count = static_cast<int>(all_protozoa_.size());
+	const int p_count = static_cast<int>(all_cells_.size());
 	statistics_.peak_protozoa_ever = std::max(p_count, statistics_.peak_protozoa_ever);
 
 	// Per-organism aggregates

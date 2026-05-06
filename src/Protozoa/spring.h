@@ -30,8 +30,9 @@ struct Spring : SpringGenome
 	float stress = 0.f; // 0..1, normalised force relative to break threshold
 
 	bool broken = false;
+	bool active = false;
 
-	Spring(const uint8_t _id, const uint8_t _cell_A_id, const uint8_t _cell_B_id)
+	Spring(const uint8_t _id, const uint8_t _cell_A_id=0, const uint8_t _cell_B_id=0)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id(_id), SpringGenome()
 	{
 

@@ -40,6 +40,8 @@ public:
 
 	float sinwave_current_friction_ = 0.f;
 
+	bool active = false;
+
 	// Statistics information
 	uint16_t frames_alive_ = 0;
 	uint8_t  offspring_count = 0;

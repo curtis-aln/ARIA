@@ -159,14 +159,17 @@ protected:
 		const int spring_count = Random::rand_range(cell_count-1, cell_count * 2);
 
 		std::vector<Cell*> cells; // a temporary cell vector
+		std::vector<Spring*> springs; // a temporary spring vector
 
 		for (int i = 0; i < cell_count; ++i)
 		{
 			const sf::Vector2f cell_pos = Random::rand_pos_in_rect(spawn_rect);
 			
-			cells.push_back(all_cells_.add());
+			Cell* cell = all_cells_.add();
+			cell->reset();
+			cell->set_pos(cell_pos);
+			cells.push_back(cell);
 		}
-
 
 		// Now we create springs between the cells
 		for (int i = 0; i < spring_count; ++i)
@@ -182,20 +185,22 @@ protected:
 				return; // better luck next time
 
 			// check if a spring already exists between these two cells, if so we don't add another one
-			for (const Spring& spring : protozoa.get_springs())
+			for (const Spring* spring : springs)
 			{
-				if ((spring.cell_A_id == cell_A_id && spring.cell_B_id == cell_B_id) ||
-					(spring.cell_A_id == cell_B_id && spring.cell_B_id == cell_A_id))
+				if ((spring->cell_A_id == cell_A_id && spring->cell_B_id == cell_B_id) ||
+					(spring->cell_A_id == cell_B_id && spring->cell_B_id == cell_A_id))
 				{
 					return; // spring already exists
 				}
 			}
 
-			const auto spring_id = static_cast<int>(protozoa.get_springs().size());
-			protozoa.get_springs().emplace_back(spring_id, cell_A_id, cell_B_id);
+			Spring* spring = all_springs_.add();
+			spring->cell_A_id = cell_A_id;
+			spring->cell_B_id = cell_B_id;
 		}
 	}
 
+	/*
 	void update_all_protozoa(bool track_statistics)
 	{
 		for (Protozoa* protozoa : all_protozoa_)
@@ -224,27 +229,28 @@ protected:
 			all_protozoa_.remove(protozoa);
 		}
 
-		const int passes = 100;
-		Protozoa* new_protozoa = all_protozoa_.add();
-		for (Protozoa* current : all_protozoa_)
-		{
-			if (new_protozoa == nullptr)
-				break;
+		//const int passes = 100;
+		//Protozoa* new_protozoa = all_protozoa_.add();
+		//for (Protozoa* current : all_protozoa_)
+		//{
+		//	if (new_protozoa == nullptr)
+		//		break;
 
-			if (current->run_separation(new_protozoa))
-			{
-				new_protozoa = all_protozoa_.add();
-			}
-		}
-	}
+		//	if (current->run_separation(new_protozoa))
+		//	{
+		//		new_protozoa = all_protozoa_.add();
+		//	}
+		//}
+
+*/
 
 	void update_all_cells()
 	{
 		for (Spring* spring : all_springs_)
 		{
-			//Cell* cell_a = all_cells_[spring->cell_A_id]; todo
-			//Cell* cell_b = all_cells_[spring->cell_B_id];
-			//spring->update(*cell_a, *cell_b);
+			Cell* cell_a = all_cells_.at(spring->cell_A_id);
+			Cell* cell_b = all_cells_.at(spring->cell_B_id);
+			spring->update(*cell_a, *cell_b);
 		}
 
 		for (Cell* cell : all_cells_)
@@ -252,7 +258,7 @@ protected:
 			cell->update();
 		}
 
-		collect_reproduction_requests(all_cells_);
+		//collect_reproduction_requests(all_cells_);
 		//apply_birth_requests(all_cells_, all_springs_);
 
 		//apply_connection_requests(all_cells_, all_springs_);
@@ -263,56 +269,23 @@ protected:
 	{
 		int idx = 0;
 		
-		for (Protozoa* protozoa : all_protozoa_)
-		{
-			for (auto& cell : protozoa->get_cells())
-			{
-				cell.accelerate(collision_resolutions[idx++]);
-			}
-		}
-	}
-
-	Protozoa* get_unallocated_protozoa()
-	{
-		// This function will either return an unallocated protozoa from the pool, or if none are available, 
-		// it will return a random existing protozoa to be overwritten.
-		Protozoa* offspring = all_protozoa_.add();
-
-		if (offspring == nullptr)
-		{
-			const size_t idx = Random::rand_range(unsigned(0), all_protozoa_.size() - 1);
-			offspring = all_protozoa_.at(idx);
-		}
-		return offspring;
-	}
-
-	
-	bool reproduce_check(Protozoa* protozoa)
-	{
-		for (Cell& cell : protozoa->get_cells())
-		{
-			if (!cell.can_reproduce())
-			{
-				return false;
-			}
-		}
-
-		return true;
+		for (Cell* cell : all_cells_)
+			cell->accelerate(collision_resolutions[idx++]);
 	}
 
 	void check_for_extinction_event(Circle& world_bounds)
 	{
 		// if protozoas are still alivee or if auto reset on extinction is disabled, we dont need to do anything
-		if (all_protozoa_.size() > 0 || !auto_reset_on_extinction)
+		if (all_cells_.size() > 0 || !auto_reset_on_extinction)
 			return;
 
 		std::cout << "Extinction event occurred, respawning initial protozoa...\n";
 
-		for (unsigned i = 0; i < initial_protozoa; ++i)
-		{
-			Protozoa* protozoa = all_protozoa_.add();
-			build_protozoa(*protozoa, world_bounds, false);
-		}
+		//for (unsigned i = 0; i < initial_protozoa; ++i)
+		//{
+		//	Protozoa* protozoa = all_protozoa_.add();
+		//	build_protozoa(*protozoa, world_bounds, false);
+		//}
 
 		
 		
@@ -346,18 +319,26 @@ protected:
 	{
 		// We create the maximum amount of protozoa at the start
 		for (int i = 0; i < max_protozoa; ++i)
-			all_protozoa_.emplace({ i });
+		{
+			all_cells_.emplace(i);
+			all_springs_.emplace(i);
+		}
 
 		// removing any protozoa that are above the initial protozoa count
 		for (int i = initial_protozoa; i < max_protozoa; ++i)
 		{
-			soft_reset_protozoa(all_protozoa_.at(i));
-			all_protozoa_.remove(i);
+			all_cells_.remove(i);
 		}
 
-		for (Protozoa* protozoa : all_protozoa_)
+		const int size = all_springs_.size();
+		for (int i = 0; i < size; ++i)
 		{
-			build_protozoa(*protozoa, world_bounds);
+			all_springs_.remove(i);
+		}
+
+		for (Cell* cell : all_cells_)
+		{
+			build_protozoa(world_bounds);
 		}
 	}
 
