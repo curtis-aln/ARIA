@@ -35,6 +35,8 @@ public:
 	uint8_t stomach_ = 0;
 	float integrity = ProtozoaSettings::integrity;
 
+	float sinwave_current_friction_ = 0.f;
+
 	// Statistics information
 	uint16_t frames_alive_ = 0;
 
@@ -232,6 +234,7 @@ private:
 	void update_physics()
 	{
 		const float friction = calculate_friction();
+		sinwave_current_friction_ = friction;
 
 		// updating the velocity with the new friction
 		velocity_ *= friction;
