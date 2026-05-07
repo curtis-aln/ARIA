@@ -119,7 +119,7 @@ add_executable(ProjectARIA
  "src/entities/cell/cell_settings.h" "src/managers/food_manager/food_manager_settings.h" "src/entities/spring/spring_settings.h" "src/managers/cell_manager/ext/birth_management.cpp" "src/managers/cell_manager/ext/death_management.cpp" "src/managers/cell_manager/ext/updating.cpp" "src/managers/cell_manager/cell_manager_settings.h" "src/managers/cell_manager/ext/init.cpp" "src/managers/cell_manager/ext/statistics.cpp" "src/world/world_border.h" "src/entities/cell/ext/cell.cpp" "src/world/world_settings.h")
 
  target_compile_definitions(ProjectARIA PRIVATE
-    ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/media/aria_settings.toml"
+    ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"
 )
 
 

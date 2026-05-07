@@ -1,6 +1,6 @@
 ==================== CRASH REPORT ====================
-Time     : 2026-05-07 19:02:48.4044150
-Uptime   : 0h 0m 4s
+Time     : 2026-05-07 19:08:09.3111785
+Uptime   : 0h 0m 3s
 Type     : std::exception
 Message  : Failed to create render texture
 

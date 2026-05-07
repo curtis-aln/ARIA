@@ -1,8 +1,6 @@
 # ── World ─────────────────────────────────────────────────────────────────────
 [world]
-bounds_radius            = 20000.0
-max_protozoa             = 15000
-initial_protozoa         = 5000
+bounds_radius            = 20000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
 cells_x = 300
@@ -22,11 +20,19 @@ reproductive_cooldown    = 200
 digestive_time           = 100
 initial_energy           = 70.0
 
+# ── Cell Manager ──────────────────────────────────────────────────────────────────────
+[cell_manager]
+max_protozoa             = 15000
+initial_protozoa         = 5000
+
+# ── Food Manager ──────────────────────────────────────────────────────────────────────
+[food_manager]
+max_food                 = 30000
+initial_food             = 30000
+
 
 # ── Food ──────────────────────────────────────────────────────────────────────
 [food]
-max_food = 30000
-initial_food = 30000
 
 # --- spatial grid ---
 cells_x = 300

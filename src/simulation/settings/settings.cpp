@@ -91,8 +91,6 @@ static void load_food_settings(toml::table& tbl)
     REQUIRE(FoodManagerSettings::kFoodMaxAlpha, tbl["food"]["food_max_alpha"]);
     REQUIRE(FoodManagerSettings::vibration_strength, tbl["food"]["vibration_strength"]);
     REQUIRE(FoodManagerSettings::update_freq, tbl["food"]["update_freq"]);
-    REQUIRE(FoodManagerSettings::initial_food, tbl["food"]["initial_food"]);
-    REQUIRE(FoodManagerSettings::max_food, tbl["food"]["max_food"]);
     REQUIRE(FoodManagerSettings::cell_max_capacity, tbl["food"]["cell_max_capacity"]);
     REQUIRE(FoodManagerSettings::cells_x, tbl["food"]["cells_x"]);
     REQUIRE(FoodManagerSettings::cells_y, tbl["food"]["cells_y"]);
