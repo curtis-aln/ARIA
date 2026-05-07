@@ -11,7 +11,7 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{100};
 
 World::World(sf::RenderWindow* window)
     : m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.bounds_radius, world_circular_bounds_.center_)),
-    outer_circle_renderer_(window, tex_rad, max_circles), inner_circle_renderer_(window, tex_rad, max_circles)
+    outer_circle_renderer_(window, tex_rad, CellManagerSettings::max_protozoa), inner_circle_renderer_(window, tex_rad, CellManagerSettings::max_protozoa)
 {
     claim_buffer.reserve(FoodManagerSettings::max_food);
 
