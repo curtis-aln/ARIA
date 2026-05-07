@@ -25,6 +25,9 @@ struct WorldToggles
 	bool track_spatial_grids = false;  // gather spatial grid statistics each frame
 	bool  open_extinction_window = false; // whether to open the extinction confirmation popup
 
+    bool run_physics_only = true;
+
+
     float min_speed = 0.f;
     float delta_min_speed = 0.f;
 };

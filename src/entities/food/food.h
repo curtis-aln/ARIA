@@ -2,7 +2,7 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Color.hpp>
-
+#include "entities/body.h"
 
 /* FoodManager
 
@@ -27,16 +27,13 @@ Nutrition:
 - The nutrients of a food are what the protozoa gain when they eat it
 */
 
-struct Food
+struct Food : Body
 {
-	int id = 0;
 	int age = 0;
 	int time_since_last_reproduced = 0;
 
 	float nutrients = 0.0f;
 
-	sf::Vector2f position{};
-	sf::Vector2f velocity{};
 	sf::Color color{};
 
 	bool active = true;

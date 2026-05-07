@@ -39,15 +39,6 @@ bool  Cell::consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f&
 	return (food_pos - cell_pos).lengthSquared() < combined_rad * combined_rad;
 }
 
-
-void  Cell::update()
-{
-	update_statistics();
-	update_organics();
-	update_physics();
-}
-
-
 void  Cell::accelerate(const sf::Vector2f acceleration)
 {
 	velocity_ += acceleration;
@@ -127,6 +118,8 @@ void  Cell::update_statistics()
 
 void  Cell::update_organics()
 {
+	sinwave_current_friction_ = calculate_friction();
+
 	convert_nutrients_to_energy();
 	convert_nutrients_to_integrity();
 	energy -= energy_decay_rate;
@@ -137,11 +130,9 @@ void  Cell::update_organics()
 
 void  Cell::update_physics()
 {
-	const float friction = calculate_friction();
-	sinwave_current_friction_ = friction;
 
 	// updating the velocity with the new friction
-	velocity_ *= friction;
+	velocity_ *= sinwave_current_friction_;
 
 	position_ += velocity_;
 }

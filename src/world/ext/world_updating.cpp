@@ -22,7 +22,7 @@ void World::update()
 	food_manager_.update();
 	resolve_food_interactions_threadded();
 
-	cell_manager_.update_all_cells();
+	cell_manager_.update();
 }
 
 

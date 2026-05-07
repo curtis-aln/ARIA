@@ -11,11 +11,11 @@ struct SpringResult { float work_done; float force_magnitude; bool broken; };
 struct Spring : SpringGenome, SpringSettings
 {
 	// we store the id's of the cells here so whe we call update in the main class we know where to look for the cells, relative to the protozoa
-	uint8_t cell_A_id{};
-	uint8_t cell_B_id{};
+	uint32_t cell_A_id{};
+	uint32_t cell_B_id{};
 
 	// unique spring ID, used for genome referencing, must not change during the spring's lifetime
-	uint8_t id{};
+	uint32_t id{};
 
 	uint16_t clock_{};
 
@@ -55,14 +55,9 @@ struct Spring : SpringGenome, SpringSettings
 		offspring.generation++;
 	}
 
-
-	void update(Cell& cell_a, Cell& cell_b)
+	void update_physics(Cell& cell_a, Cell& cell_b)
 	{
-		clock_++; 
-
-		handle_reproduction(cell_a, cell_b);
-		
-		transfer_energy(cell_a, cell_b);
+		clock_++;
 
 		const sf::Vector2f& pos_a = cell_a.get_pos();
 		const sf::Vector2f& pos_b = cell_b.get_pos();
@@ -110,10 +105,16 @@ struct Spring : SpringGenome, SpringSettings
 
 		// Stress: 0 = relaxed, 1 = at breaking point
 		stress = force_magnitude / spring_break_force;
+	}
+
+	void update_organics(Cell& cell_a, Cell& cell_b)
+	{
+		handle_reproduction(cell_a, cell_b);
+
+		transfer_energy(cell_a, cell_b);
 
 		cell_a.energy -= work_done / 2.f; // Eventually springs will be their own organic systems with energy
 		cell_b.energy -= work_done / 2.f;
-
 
 		if (stress > spring_damage_threshold)
 		{

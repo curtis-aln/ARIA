@@ -35,14 +35,14 @@ The connection request is detected
 
 struct BirthRequest
 {
-	uint8_t parent_cell_id;
+	uint32_t parent_cell_id;
 };
 
 struct ConnectionRequest
 {
-	uint8_t offspring_id;
-	uint8_t connect_to_id;
-	int8_t  spring_to_copy_index;
+	uint32_t offspring_id;
+	uint32_t connect_to_id;
+	int32_t  spring_to_copy_index;
 };
 
 
@@ -102,7 +102,7 @@ public:
 
 	void build_protozoa();
 
-	void update_all_cells();
+	void update(bool update_physics_only = false);
 
 	void update_cell_collisions() const;
 	void check_for_extinction_event();

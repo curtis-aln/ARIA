@@ -43,8 +43,8 @@ void FoodManager::update_position_data()
 	int idx = 0;
 	for (Food* food : food_vector)
 	{
-		food_data.positions_x[idx] = food->position.x;
-		food_data.positions_y[idx] = food->position.y;
+		food_data.positions_x[idx] = food->position_.x;
+		food_data.positions_y[idx] = food->position_.y;
 
 		sf::Color c = food->color;
 
@@ -60,7 +60,7 @@ void FoodManager::update_position_data()
 void FoodManager::remove_food(const int food_id)
 {
 	Food* food = food_vector.at(food_id);
-	food->position = { 0, 0 };
+	food->position_ = { 0, 0 };
 	food->age = 0;
 	food->time_since_last_reproduced = 0;
 	food->nutrients = initial_nutrients;

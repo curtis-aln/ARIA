@@ -276,7 +276,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
                 SimCommand cmd;
                 cmd.type = type;
                 cmd.float_val = val;
-				cmd.cell_spring_idx = c.id;
+				cmd.cell_spring_idx = c.id_;
                 ctx.push(cmd);
             }
         };
@@ -290,7 +290,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
     // ── Stats ─────────────────────────────────────────────────────────────
     ImGui::BeginChild("CL_stat", spring_cell_box_size, true);
 
-    ImGui::TextDisabled("Cell %d  Gen %d", c.id, c.generation);
+    ImGui::TextDisabled("Cell %d  Gen %d", c.id_, c.generation);
     ImGui::Text("Pos      (%.0f, %.0f)", pos.x, pos.y);
     ImGui::Text("Speed    %.3f", speed);
     ImGui::Text("Radius   %.1f", c.radius);

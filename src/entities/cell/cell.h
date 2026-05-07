@@ -7,26 +7,23 @@
 
 #include "cell_settings.h"
 #include "cell_genome.h"
+#include "entities/body.h"
 
 // Each organism consists of cells which work together via springs
 // Each cell has their own radius and friction coefficient, as well as cosmetic factors such as color
 
 
-struct Cell : public CellGenome, CellSettings
+struct Cell : public CellGenome, CellSettings, Body
 {
 private:
 	uint16_t clock_ = 0;
 
 protected:
-	sf::Vector2f position_{};
-	sf::Vector2f velocity_{};
-
 	bool dead = false;
 	bool immortal = false;
 
 public:
 	// The Cell ID is used when referencing the cell inside the protozoa, and identifying its genome
-	uint8_t id{}; 
 	float energy = initial_energy;
 
 	// Stomach and food
@@ -39,8 +36,6 @@ public:
 
 	float sinwave_current_friction_ = 0.f;
 
-	bool active = true;
-
 	// Statistics information
 	uint16_t frames_alive_ = 0;
 	uint8_t  offspring_count = 0;
@@ -52,9 +47,9 @@ public:
 	int8_t spring_to_copy_index = -1; // tells the protozoa manager which spring to copy 
 
 	Cell(const uint32_t _id = 0, const sf::Vector2f position = {0, 0})
-		: position_(position), id(_id)
 	{
-		
+		position_ = position;
+		id_ = _id;
 	}
 
 	[[nodiscard]] bool is_alive() const { return !dead; }
@@ -73,7 +68,6 @@ public:
 	void eat(const float nutrients);
 
 	static bool consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f& food_pos, const float combined_rad);
-	void update();
 
 	void accelerate(const sf::Vector2f acceleration);
 
@@ -87,7 +81,6 @@ public:
 
 	[[nodiscard]] float calculate_friction() const;
 
-private:
 	void update_statistics();
 
 

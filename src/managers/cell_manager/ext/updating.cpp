@@ -9,18 +9,30 @@ void CellManager::deselect_cell()
 }
 
 
-void CellManager::update_all_cells()
+void CellManager::update(bool update_physics_only)
 {
 	for (Spring* spring : all_springs_)
 	{
 		Cell* cell_a = all_cells_.at(spring->cell_A_id);
 		Cell* cell_b = all_cells_.at(spring->cell_B_id);
-		spring->update(*cell_a, *cell_b);
+		spring->update_physics(*cell_a, *cell_b);
+
+		if (!update_physics_only)
+		{
+			spring->update_organics(*cell_a, *cell_b);
+		}
 	}
+
 
 	for (Cell* cell : all_cells_)
 	{
-		cell->update();
+		cell->update_physics();
+
+		if (!update_physics_only)
+		{
+			cell->update_statistics();
+			cell->update_organics();
+		}
 	}
 
 	//collect_reproduction_requests(all_cells_);

@@ -68,7 +68,7 @@ void CellManager::collect_reproduction_requests(std::vector<Cell*>& cells)
 		if (cell->reproduce)
 		{
 			cell->reproduce = false;
-			birth_requests.push_back({ cell->id });
+			birth_requests.push_back({ cell->id_ });
 
 			if (Random::rand01_float() > 0.01)
 				break;
@@ -102,7 +102,7 @@ void CellManager::apply_birth_requests(std::vector<Cell>& cells, std::vector<Spr
 		cells.emplace_back();
 		Cell* offspring = &cells.back();
 		cells[req.parent_cell_id].create_offspring(offspring);
-		offspring->id = offspring_id;
+		offspring->id_ = offspring_id;
 
 		// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests
 		cells[req.parent_cell_id].offspring_index = offspring_id;

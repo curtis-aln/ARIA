@@ -50,12 +50,12 @@ bool FoodManager::reproduce_food(Food* food)
 		return true; // max food has been reached
 
 	// spawning the food next to another existing food 
-	sf::Vector2f other_food_pos = food->position;
+	sf::Vector2f other_food_pos = food->position_;
 	sf::FloatRect spawn_rect = {
 		{other_food_pos.x - food_spawn_distance, other_food_pos.y - food_spawn_distance},
 		{food_spawn_distance * 2, food_spawn_distance * 2}
 	};
-	new_food->position = Random::rand_pos_in_rect(spawn_rect);
+	new_food->position_ = Random::rand_pos_in_rect(spawn_rect);
 	new_food->age = 0;
 	new_food->color = Random::rand_color(food_darkest_color, food_lightest_color);
 
@@ -64,7 +64,7 @@ bool FoodManager::reproduce_food(Food* food)
 	float food_launch_chance = 0.05f;
 
 	if (Random::rand01_float() < food_launch_chance)
-		new_food->velocity = Random::rand_vector(-food_launch_strength, food_launch_strength);
+		new_food->velocity_ = Random::rand_vector(-food_launch_strength, food_launch_strength);
 
 	food->time_since_last_reproduced = 0;
 	return false;

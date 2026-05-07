@@ -2,7 +2,7 @@
 
 void FoodManager::vibrate_food(Food* food, float strength)
 {
-	food->velocity += Random::rand_vector(-strength, strength);
+	food->velocity_ += Random::rand_vector(-strength, strength);
 }
 
 
@@ -17,8 +17,8 @@ void FoodManager::update_food()
 
 		vibrate_food(food, vibration_strength * Random::rand01_float() < vibrate_freq);
 
-		food->velocity *= friction;
-		food->position += food->velocity;
+		food->velocity_ *= friction;
+		food->position_ += food->velocity_;
 
 		bound_food_to_world(food);
 
@@ -31,16 +31,16 @@ void FoodManager::bound_food_to_world(Food* food) const
 {
 	sf::Vector2f center = world_bounds_->center_;
 	const float radius = world_bounds_->bounds_radius;
-	const float dist_sq = (food->position - center).lengthSquared();
+	const float dist_sq = (food->position_ - center).lengthSquared();
 
 	const float max_dist = radius - food_radius;
 
 	if (dist_sq < max_dist * max_dist)
 		return;
 
-	const sf::Vector2f to_center = center - food->position;
+	const sf::Vector2f to_center = center - food->position_;
 	const sf::Vector2f normal = to_center.normalized();
-	food->position = center + normal * max_dist;
+	food->position_ = center + normal * max_dist;
 }
 
 void FoodManager::check_food_death(const Food* food)
@@ -49,7 +49,7 @@ void FoodManager::check_food_death(const Food* food)
 		return;
 
 	if (Random::rand01_float() < death_age_chance)
-		remove_food(food->id);
+		remove_food(food->id_);
 }
 
 
@@ -74,7 +74,7 @@ void FoodManager::update_hash_grid()
 	spatial_hash_grid.clear();
 	for (Food* food : food_vector)
 	{
-		spatial_hash_grid.add_object(food->position.x, food->position.y, food->id);
+		spatial_hash_grid.add_object(food->position_.x, food->position_.y, food->id_);
 	}
 }
 
@@ -83,9 +83,9 @@ void FoodManager::init_food()
 	for (int i = 0; i < max_food; ++i)
 	{
 		Food food{};
-		food.id = i;
-		food.position = Random::rand_position_in_circle(world_bounds_->center_, world_bounds_->bounds_radius);
-		food.velocity = Random::rand_vector(-10.f, 10.f);
+		food.id_ = i;
+		food.position_ = Random::rand_position_in_circle(world_bounds_->center_, world_bounds_->bounds_radius);
+		food.velocity_ = Random::rand_vector(-10.f, 10.f);
 		food.color = Random::rand_color(food_darkest_color, food_lightest_color);
 		food_vector.emplace(food);
 	}

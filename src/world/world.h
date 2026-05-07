@@ -36,6 +36,10 @@ class World : public WorldSettings
     // Render data — written each update tick, read by the renderer.
     RenderData render_data_;
 
+    // Statistics accumulated each tick by the update thread.
+    WorldStatistics statistics_{};
+
+
     std::vector<Cell*> cell_pointers_{};
 
     float tex_rad = 120;
@@ -61,9 +65,6 @@ class World : public WorldSettings
     int max_circles = CellManagerSettings::max_protozoa;
 
     std::vector<int> colour_job_boundaries_;
-
-    // Statistics accumulated each tick by the update thread.
-    WorldStatistics statistics_{};
 
     // Generation tracking (internal — summarised into statistics_)
     float tracked_generation_ = 0.f;

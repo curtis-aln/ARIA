@@ -88,7 +88,7 @@ void World::draw_cell_physical_information(const OrganismTracker& protozoa, Font
         const auto top_left = rect.position;
         const auto spacing = font->get_text_size("0").y;
         const sf::Vector2f offset = { 0, spacing };
-        font->draw(top_left, "id: " + std::to_string(cell.id), false);
+        font->draw(top_left, "id: " + std::to_string(cell.id_), false);
     }
 }
 
@@ -131,7 +131,7 @@ int World::check_mouse_press(const OrganismTracker& protozoa, const sf::Vector2f
         const float rad = cell.radius * tollarance_factor;
         if (dist_sq < rad * rad)
         {
-            return cell.id;
+            return cell.id_;
         }
     }
 

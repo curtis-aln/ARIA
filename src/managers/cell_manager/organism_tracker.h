@@ -121,7 +121,7 @@ private:
             const Food* food = food_vector.at(food_id);
             if (food != nullptr)
             {
-                nearby_food_positions[food_in_neighbourhood++] = food->position;
+                nearby_food_positions[food_in_neighbourhood++] = food->position_;
             }
         }
 
