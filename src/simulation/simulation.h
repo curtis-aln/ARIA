@@ -1,5 +1,5 @@
 #pragma once
-#include "../settings.h"
+#include "settings/settings.h"
 #include "../world/world.h"
 #include "imgui/population_history.h"
 #include "imgui/control_panel.h"
@@ -11,12 +11,12 @@
 #include <imgui-SFML.h>
 #include <implot.h>
 
-#include "sim_snapshot.h"
-#include "triple_buffer.h"
-#include "sim_command.h"
+#include "context/sim_snapshot.h"
+#include "context/sim_command.h"
+#include "context/triple_buffer.h"
 #include <mutex>
 #include <queue>
-#include "../world/protozoa_tracker.h"
+#include "../managers/cell_manager/organism_tracker.h"
 
 
 
@@ -55,7 +55,7 @@ class Simulation : SimulationSettings, TextSettings
     ImPlotColormap m_plot_colormap_{};
 
     // Multithreading
-    int max = static_cast<int>(WorldSettings::max_protozoa * ProtozoaSettings::max_cells);
+    int max = static_cast<int>(CellManagerSettings::max_protozoa);
 	TripleBuffer<SimSnapshot> m_sim_buffer_{ max }; // sim -> render (lock-free)
 
     // render → sim  (low frequency, mutex protected)

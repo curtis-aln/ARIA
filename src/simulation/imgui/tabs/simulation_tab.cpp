@@ -2,6 +2,8 @@
 #include "../helpers/plot_utils.h"
 #include <imgui.h>
 
+#include "world/world_settings.h"
+
 void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
     // ── 4 panels: Playback | Fast Forward | World Settings | Save/Load + Keybinds

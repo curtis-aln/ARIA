@@ -1,6 +1,7 @@
 #pragma once
-#include "../../sim_snapshot.h"
-#include "../../sim_command.h"
+#include "../../context/sim_snapshot.h"
+#include "../../context/sim_command.h"
+
 
 struct ITab
 {

@@ -20,7 +20,7 @@ void TaggedTab::draw_tag_input(const SimSnapshot& snapshot)
     ImGui::SameLine();
     if (ImGui::Button("Toggle Tag##tagged")) toggle_tag(input_id);
 
-	const ProtozoaTracker& sel = snapshot.protozoa_tracker;
+	const OrganismTracker& sel = snapshot.protozoa_tracker;
     if (snapshot.selected_a_cell)
     {
         ImGui::SameLine(0, 16);

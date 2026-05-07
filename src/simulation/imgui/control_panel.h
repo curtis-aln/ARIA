@@ -3,7 +3,7 @@
 #include "tabs/tagged_tab.h"
 #include <vector>
 #include <memory>
-#include "../sim_snapshot.h"
+#include "../context/sim_snapshot.h"
 
 
 class ControlPanel

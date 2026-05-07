@@ -1,33 +1,35 @@
 #pragma once
 
-#include "../Food/food_manager.h"
-#include "ProtozoaManager.h"
+#include "../managers/food_manager/food_manager.h"
+#include "../managers/cell_manager/cell_manager.h"
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "../Protozoa/Protozoa.h"
-
-#include "../settings.h"
+#include "world_settings.h"
 #include "world_state.h"
-#include "food_claim_buffer.h"
+#include "../managers/cell_manager/cell_manager_settings.h"
+
+#include "collision/food_claim_buffer.h"
 
 #include "../Utils/thread_pool.h"
-#include "../Utils/o_vector.hpp"
-#include "../Utils/Graphics/Circle.h"
+
 #include "../Utils/Graphics/CircleBatchRenderer.h"
-#include "../Utils/Graphics/spatial_grid/simple_spatial_grid.h"
-#include "../Utils/Graphics/spatial_grid/spatial_grid_renderer.h"
-#include "../simulation/sim_snapshot.h"
+#include "../Utils/spatial_grid/simple_spatial_grid.h"
+#include "../Utils/spatial_grid/spatial_grid_renderer.h"
+#include "../simulation/context/sim_snapshot.h"
+#include "managers/cell_manager/organism_tracker.h"
 
 #include "Utils/fps_manager.h"
+#include "Utils/Graphics/font_renderer.hpp"
 
 
 
-class World : public ProtozoaManager
+
+class World : public WorldSettings
 {
     sf::RenderWindow* m_window_ = nullptr;
 
-    Circle        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
+    WorldBorder        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
     sf::FloatRect world_rect_bounds_{ {0.f, 0.f}, {bounds_radius * 2.f, bounds_radius * 2.f} };
     sf::VertexArray world_border_renderer_{};
 
@@ -36,13 +38,14 @@ class World : public ProtozoaManager
 
     std::vector<Cell*> cell_pointers_{};
 
-    size_t max_circles = max_protozoa * ProtozoaSettings::max_cells;
     float tex_rad = 120;
     CircleBatchRenderer outer_circle_renderer_;
     CircleBatchRenderer inner_circle_renderer_;
     std::vector<float>  inner_radii_{};
 
     FoodManager        food_manager_{ m_window_, &world_circular_bounds_ };
+	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_ };
+
     SimpleSpatialGrid  spatial_hash_grid_{ cells_x, cells_y, cell_max_capacity,
                                            bounds_radius * 2.f, bounds_radius * 2.f };
     SpatialGridRenderer cell_grid_renderer_{ &spatial_hash_grid_ };
@@ -54,6 +57,8 @@ class World : public ProtozoaManager
     uint8_t max_capacity_area = cell_max_capacity * 9;
     static thread_local FixedSpan<uint32_t> tl_nearby_ids;
     static thread_local FixedSpan<obj_idx> tl_nearby_food;
+
+    int max_circles = CellManagerSettings::max_protozoa;
 
     std::vector<int> colour_job_boundaries_;
 
@@ -73,7 +78,7 @@ class World : public ProtozoaManager
     std::vector<std::function<void()>> collision_jobs_;
     std::vector<std::function<void()>> food_jobs_;
 
-	ProtozoaTracker protozoa_tracker_{};
+	OrganismTracker protozoa_tracker_{};
 
 public:
     // ── Toggles — written by ImGui (main thread), read by update thread ──────
@@ -108,8 +113,8 @@ public:
 
     void fill_snapshot(SimSnapshot& snapshot);
 
-	Cell* at(const int idx) { return all_cells_.at(idx); }
-    const Cell* at(const int idx) const { return all_cells_.at(idx); }
+	Cell* at(const int idx) { return cell_manager_.all_cells_.at(idx); }
+    const Cell* at(const int idx) const { return cell_manager_.all_cells_.at(idx); }
 
     // ── Render data getters — read by renderer from snapshot ─────────────────
     const std::vector<float>& get_positions_x()    const { return render_data_.positions_x; }
@@ -134,13 +139,13 @@ public:
 
 private:
     void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
-    void draw_cell_outlines(const ProtozoaTracker& protozoa);
-    void nearby_food_information(const ProtozoaTracker& protozoa) const;
-    void draw_springs(const ProtozoaTracker& protozoa, bool thick_lines) const;
-    void draw_cell_physical_information(const ProtozoaTracker& protozoa, Font* font) const;
+    void draw_cell_outlines(const OrganismTracker& protozoa);
+    void nearby_food_information(const OrganismTracker& protozoa) const;
+    void draw_springs(const OrganismTracker& protozoa, bool thick_lines) const;
+    void draw_cell_physical_information(const OrganismTracker& protozoa, Font* font) const;
     void draw_spring_information(Font* font) const;
-    int check_mouse_press(const ProtozoaTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
-    const Cell* get_selected_cell(const ProtozoaTracker& protozoa, sf::Vector2f mouse_pos);
+    int check_mouse_press(const OrganismTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
+    const Cell* get_selected_cell(const OrganismTracker& protozoa, sf::Vector2f mouse_pos);
 
     void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids);
     void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids);

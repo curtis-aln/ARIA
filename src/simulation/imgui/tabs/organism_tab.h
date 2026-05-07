@@ -1,6 +1,5 @@
 #pragma once
 #include "i_tab.h"
-#include "../../../Protozoa/Protozoa.h"
 
 class OrganismTab : public ITab
 {
@@ -20,10 +19,10 @@ private:
     float m_feed_amount_ = 50.f;
 
     static void draw_no_selection();
-    static void draw_overview(const ProtozoaTracker& protozoa);
-    void draw_cells_springs_tab(ImGuiContext& ctx, const ProtozoaTracker& protozoa);
+    static void draw_overview(const OrganismTracker& protozoa);
+    void draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracker& protozoa);
     void draw_cell_detail(ImGuiContext& ctx, const Cell& c);
-    void draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p, const Spring& s);
+    void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);
     static void draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot& snap);
     void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);
 };

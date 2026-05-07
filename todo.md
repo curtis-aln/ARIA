@@ -138,3 +138,9 @@ pass SpringResult by reference
 # - make a food tab to change all of the food settings
 # - make the protozoa container dynamic
 
+
+- add spring rendering for all protozoa
+- create a move force for the mouse to move the protozoa
+
+- organise the imgui tab files a bit better, brak up the organism tab into its sub-tabs
+- Add better rendering for the world border

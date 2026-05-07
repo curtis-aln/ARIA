@@ -75,18 +75,15 @@ set(IMGUI_DIR ${imgui_SOURCE_DIR} CACHE PATH "" FORCE)
 add_executable(ProjectARIA
     # ── Entry point
     src/main.cpp
-    src/pch.cpp
+    src/pch/pch.cpp
 
-    # ── Food system
-    src/Food/FoodManager.cpp
-    src/Food/FoodManager_spawn.cpp
-    src/Food/FoodManager_update.cpp
+    # ── Entities
+    src/entities/cell/ext/cell.cpp
 
-    # ── Protozoa behaviours (split across extension files)
-    
-    src/Protozoa/extension/mutations.cpp
-    
-    src/Protozoa/extension/physics.cpp
+    # ── managers
+    "src/managers/food_manager/ext/FoodManager.cpp"
+    "src/managers/food_manager/ext/FoodManager_spawn.cpp"
+    "src/managers/food_manager/ext/FoodManager_update.cpp"
 
     # ── Simulation core
     src/simulation/events.cpp
@@ -106,21 +103,20 @@ add_executable(ProjectARIA
     src/simulation/imgui/tabs/tools_tab.cpp
 
     # ── Utilities
-    src/Utils/Graphics/spatial_grid/spatial_grid_renderer.cpp
-    src/settings.cpp
+    src/Utils/spatial_grid/spatial_grid_renderer.cpp
+    src/simulation/settings/settings.cpp
 
     # ── World / simulation update loop
-    src/world/collision_resolution.cpp
-    src/world/food_resolution.cpp
-    src/world/world.cpp
-    src/world/world_updating.cpp
+    src/world/collision/collision_resolution.cpp
+    src/world/collision/food_resolution.cpp
+    src/world/ext/world.cpp
+    src/world/ext/world_updating.cpp
+    src/world/ext/draw_cell_debug.cpp
 
     # ── ImPlot (header-only library — sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/settings.cpp" "src/world/world_state.h" "src/simulation/sim_snapshot.h" 
- "src/simulation/triple_buffer.h" "src/simulation/sim_command.h" 
- "src/world/food_claim_buffer.h" "src/world/draw_cell_debug.cpp" "src/world/protozoa_tracker.h" "src/Food/food_data.h" "src/Protozoa/genetics/genome_base.h")
+ "src/entities/cell/cell_settings.h" "src/managers/food_manager/food_manager_settings.h" "src/entities/spring/spring_settings.h" "src/managers/cell_manager/ext/birth_management.cpp" "src/managers/cell_manager/ext/death_management.cpp" "src/managers/cell_manager/ext/updating.cpp" "src/managers/cell_manager/cell_manager_settings.h" "src/managers/cell_manager/ext/init.cpp" "src/managers/cell_manager/ext/statistics.cpp" "src/world/world_border.h" "src/entities/cell/ext/cell.cpp" "src/world/world_settings.h")
 
  target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/media/aria_settings.toml"
@@ -158,7 +154,7 @@ target_compile_definitions(ProjectARIA PRIVATE
 # Speeds up compilation by pre-parsing heavy headers (imgui, STL) once.
 # We skip ImPlot's own .cpp files because they have their own include order
 # and don't expect a forced external PCH injected before their own includes.
-target_precompile_headers(ProjectARIA PRIVATE src/pch.h)
+target_precompile_headers(ProjectARIA PRIVATE src/pch/pch.h)
 
 set_source_files_properties(
     ${implot_SOURCE_DIR}/implot.cpp

@@ -13,7 +13,7 @@ void Simulation::handle_mouse_press(const sf::Vector2f& cam_pos)
 		mouse_pressed_event = true;
 	else
 	{
-		m_world_.deselect_cell();
+		//m_world_.deselect_cell();
 		camera_.begin_pan();  // start pan only if we didn't click an organism
 	}
 }
