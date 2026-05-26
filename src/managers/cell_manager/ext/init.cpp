@@ -1,6 +1,6 @@
 #include "../cell_manager.h"
 
-CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds) : m_window_(window), world_bounds_(world_bounds), all_cells_(max_protozoa), all_springs_(max_protozoa)
+CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies) : m_window_(window), world_bounds_(world_bounds), bodies_(bodies), all_cells_(max_protozoa), all_springs_(max_protozoa)
 {
 	birth_requests.reserve(10);
 	connection_requests.reserve(10);
@@ -14,16 +14,17 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds) : 
 
 void CellManager::init_protozoa_container()
 {
-	const int max_cells = max_protozoa; // 
+	// The cells container needs to be in sync with the bodies container
+
 	// We create the maximum amount of protozoa at the start
-	for (int i = 0; i < max_cells; ++i)
+	for (int i = 0; i < max_protozoa; ++i)
 	{
 		all_cells_.emplace(i);
 		all_springs_.emplace(i);
 	}
 
 	// removing any protozoa that are above the initial protozoa count
-	for (int i = 0; i < max_cells; ++i)
+	for (int i = 0; i < max_protozoa; ++i)
 	{
 		all_cells_.remove(i);
 	}

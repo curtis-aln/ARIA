@@ -78,6 +78,7 @@ public:
 	std::vector<BirthRequest> birth_requests;
 	std::vector<ConnectionRequest> connection_requests;
 
+	o_vector<Body>* bodies_;
 	o_vector<Cell> all_cells_;
 	o_vector<Spring> all_springs_;
 
@@ -86,7 +87,7 @@ public:
 	alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
 
 
-	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds);
+	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
 
 	Cell* get_selected_cell() const { return selected_cell; }
 

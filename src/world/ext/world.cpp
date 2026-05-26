@@ -17,14 +17,27 @@ World::World(sf::RenderWindow* window)
 
     init_food_jobs();
     init_collision_jobs();
+    init_body_vector();
     cell_manager_.init_protozoa_container();
 
 
     render_data_.reserve(static_cast<int>(max_circles));
     distribution_.reserve(max_circles);
-    cell_pointers_.resize(max_circles);
     inner_radii_.resize(max_circles);
     cell_manager_.collision_resolutions.resize(max_circles);
+}
+
+void World::init_body_vector()
+{
+	int max_entities = max_circles + FoodManagerSettings::max_food;
+	for (int i = 0; i < max_entities; ++i)
+	{
+        bodies_.emplace(i);
+	}
+    for (int i = 0; i < max_entities; ++i)
+    {
+        bodies_.remove(i);
+    }
 }
 
 void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f mouse_pos)

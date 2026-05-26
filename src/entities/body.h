@@ -15,8 +15,14 @@ struct Body
 	float mass_;
 	float radius_;
 
-	Body()
+	Body(uint32_t id)
+		: id_(id)
 	{
 		
+	}
+
+	void accelerate(const sf::Vector2f& acceleration)
+	{
+		velocity_ += acceleration;
 	}
 };

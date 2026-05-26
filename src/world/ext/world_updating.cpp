@@ -44,24 +44,28 @@ void World::update_position_container()
 		render_data_.positions_x.resize(new_size);
 		render_data_.positions_y.resize(new_size);
 		render_data_.radii.resize(new_size);
-		cell_pointers_.resize(new_size);
 	}
 
 	// Single pass: populate everything, zero collision data inline
 	int idx = 0;
 	for (Cell* cell : cell_manager_.all_cells_)
 	{
+		// Fetching the cell's position from the body vector
+		const sf::Vector2f& pos = bodies_.at(cell->id_)->position_;
+
+		// Clamping the cell into the world bounds so that the spatial grid doesn't get messed up by out-of-bounds positions
 		cell_manager_.bound_cell(cell);
+
 		render_data_.outer_colors[idx] = cell->get_outer_color();
 		render_data_.inner_colors[idx] = cell->get_inner_color();
-		render_data_.positions_x[idx] = cell->get_pos().x;
-		render_data_.positions_y[idx] = cell->get_pos().y;
+		render_data_.positions_x[idx] = pos.x;
+		render_data_.positions_y[idx] = pos.y;
 		render_data_.radii[idx] = cell->radius;
 
-		cell_pointers_[idx] = cell;
-		cell_manager_.collision_resolutions[idx] = { 0.f, 0.f };  // zeroed inline
+		// Resetting collision resolution for this cell
+		cell_manager_.collision_resolutions[idx] = { 0.f, 0.f };
 
-		spatial_hash_grid_.add_object(cell->get_pos().x, cell->get_pos().y, idx);
+		spatial_hash_grid_.add_object(pos.x, pos.y, idx);
 		++idx;
 	}
 }

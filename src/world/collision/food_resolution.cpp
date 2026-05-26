@@ -63,7 +63,7 @@ void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby
 
 	for (int idx = 0; idx < cell_size; ++idx)
 	{
-		Cell* cell = cell_pointers_[cell_contents[idx]];
+		Cell* cell = cell_manager_.all_cells_.at(cell_contents[idx]);
 
 		for (int i = 0; i < nearby_food.count; ++i)
 		{

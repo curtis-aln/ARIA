@@ -55,14 +55,14 @@ struct Spring : SpringGenome, SpringSettings
 		offspring.generation++;
 	}
 
-	void update_physics(Cell& cell_a, Cell& cell_b)
+	void update_physics(Body& body_a, Body& body_b)
 	{
 		clock_++;
 
-		const sf::Vector2f& pos_a = cell_a.get_pos();
-		const sf::Vector2f& pos_b = cell_b.get_pos();
-		const sf::Vector2f& vel_a = cell_a.get_vel();
-		const sf::Vector2f& vel_b = cell_b.get_vel();
+		const sf::Vector2f& pos_a = body_a.position_;
+		const sf::Vector2f& pos_b = body_b.position_;
+		const sf::Vector2f& vel_a = body_a.velocity_;
+		const sf::Vector2f& vel_b = body_b.velocity_;
 
 		current_length = (pos_b - pos_a).length();
 
@@ -87,8 +87,8 @@ struct Spring : SpringGenome, SpringSettings
 		const float total_force = spring_force + damping_force;
 
 		// moving each cell
-		cell_a.accelerate(total_force * ((pos_b - pos_a) / current_length));
-		cell_b.accelerate(total_force * ((pos_a - pos_b) / current_length));
+		body_a.accelerate(total_force * ((pos_b - pos_a) / current_length));
+		body_b.accelerate(total_force * ((pos_a - pos_b) / current_length));
 
 		// we can calculate the amount of energy this contraction / extension took
 		work_done = std::abs(spring_force) * std::abs(current_length - rest_length);

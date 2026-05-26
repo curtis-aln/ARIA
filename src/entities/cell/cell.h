@@ -13,16 +13,20 @@
 // Each cell has their own radius and friction coefficient, as well as cosmetic factors such as color
 
 
-struct Cell : public CellGenome, CellSettings, Body
+struct Cell : public CellGenome, CellSettings
 {
 private:
 	uint16_t clock_ = 0;
+
 
 protected:
 	bool dead = false;
 	bool immortal = false;
 
 public:
+	uint32_t id_ = 0; // unique cell ID, relative to the cell container
+	uint32_t body_id_ = 0; // the body ID is used to reference the cell's position and velocity in the physics engine container
+
 	// The Cell ID is used when referencing the cell inside the protozoa, and identifying its genome
 	float energy = initial_energy;
 
@@ -46,20 +50,13 @@ public:
 	int8_t connection_index = -1; // tells the protozoa manager what to connect offspring index to
 	int8_t spring_to_copy_index = -1; // tells the protozoa manager which spring to copy 
 
-	Cell(const uint32_t _id = 0, const sf::Vector2f position = {0, 0})
+	Cell(const uint32_t _id = 0)
 	{
-		position_ = position;
 		id_ = _id;
 	}
 
 	[[nodiscard]] bool is_alive() const { return !dead; }
 	[[nodiscard]] bool should_reproduce() const { return reproduce; }
-
-	[[nodiscard]] const sf::Vector2f& get_pos() const { return position_; }
-	[[nodiscard]] sf::Vector2f& get_pos() { return position_; }
-	[[nodiscard]] const sf::Vector2f& get_vel() const { return velocity_; }
-
-	void set_pos(const sf::Vector2f& position) { position_ = position;}
 
 	[[nodiscard]] sf::Color get_outer_color() const { return { outer_r, outer_g, outer_b, outer_transparency }; }
 	[[nodiscard]] sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, inner_transparency }; }
@@ -71,7 +68,7 @@ public:
 
 	void accelerate(const sf::Vector2f acceleration);
 
-	void create_offspring(Cell* child, const bool mutate = true);
+	void create_offspring(Cell* child, Body* body, bool mutate = true);
 
 	[[nodiscard]] bool can_die() const;
 

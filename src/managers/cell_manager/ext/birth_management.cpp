@@ -16,8 +16,9 @@ void CellManager::build_protozoa()
 		const sf::Vector2f cell_pos = Random::rand_pos_in_rect(spawn_rect);
 
 		Cell* cell = all_cells_.add();
+		Body* body = bodies_->add();
 		cell->reset();
-		cell->set_pos(cell_pos);
+		body->position_ = cell_pos;
 		cells.push_back(cell);
 	}
 
@@ -101,7 +102,7 @@ void CellManager::apply_birth_requests(std::vector<Cell>& cells, std::vector<Spr
 
 		cells.emplace_back();
 		Cell* offspring = &cells.back();
-		cells[req.parent_cell_id].create_offspring(offspring);
+		cells[req.parent_cell_id].create_offspring(offspring, TODO);
 		offspring->id_ = offspring_id;
 
 		// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests

@@ -39,16 +39,17 @@ class World : public WorldSettings
     // Statistics accumulated each tick by the update thread.
     WorldStatistics statistics_{};
 
-
-    std::vector<Cell*> cell_pointers_{};
+    // for the physics updating 
+    // both food and cells query id's from this vector
+	o_vector<Body> bodies_{ max_circles + FoodManagerSettings::max_food };
 
     float tex_rad = 120;
     CircleBatchRenderer outer_circle_renderer_;
     CircleBatchRenderer inner_circle_renderer_;
     std::vector<float>  inner_radii_{};
 
-    FoodManager        food_manager_{ m_window_, &world_circular_bounds_ };
-	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_ };
+    FoodManager        food_manager_{ m_window_, &world_circular_bounds_, &bodies_ };
+	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_, &bodies_ };
 
     SimpleSpatialGrid  spatial_hash_grid_{ cells_x, cells_y, cell_max_capacity,
                                            bounds_radius * 2.f, bounds_radius * 2.f };
@@ -89,6 +90,7 @@ public:
 
 public:
     explicit World(sf::RenderWindow* window = nullptr);
+    void init_body_vector();
 
     // ── Update ───────────────────────────────────────────────────────────────
     void update();

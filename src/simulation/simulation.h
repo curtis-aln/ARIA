@@ -63,7 +63,7 @@ class Simulation : SimulationSettings, TextSettings
     std::queue<SimCommand> m_commands{};
 
     std::thread m_sim_thread_;
-    std::atomic<bool> running{ true }; // replace your existing bool if you have one
+    std::atomic<bool> running{ true };
 
 
 public:

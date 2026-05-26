@@ -20,6 +20,8 @@ class FoodManager : public FoodManagerSettings
     WorldBorder* world_bounds_;
 
     CircleBatchRenderer food_renderer;
+
+    o_vector<Body>* bodies_;
     o_vector<Food> food_vector{ max_food };
 
 	FoodData food_data{};
@@ -31,7 +33,7 @@ public:
     int frames = 0;
 
 public:
-    FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds);
+    FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
 
     int    get_size()               const;
     void update_food_grid_renderer();

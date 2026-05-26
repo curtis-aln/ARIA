@@ -48,6 +48,7 @@
 - Add wind Currents Using a grid of vectors which can be queried by the cells and food.
 - Add Obsticals which are a collection of circles and a grid to allow cells and food to query it.
 - Track velocity, and previous position outside of the protozoa class
+- Create a forcefield around the world border which pushes protozoa and food back into the world instead of just clamping them
 
 -----------------------------------------------------------------------
 
@@ -144,3 +145,18 @@ pass SpringResult by reference
 
 - organise the imgui tab files a bit better, brak up the organism tab into its sub-tabs
 - Add better rendering for the world border
+
+
+
+Order of operations for cell updating
+
+Velocity changes:
+- Collision resolution
+- Spring forces
+- Friction
+
+Position changes:
+- Clamping into world
+
+Todo when next logged on:
+- finish creating the body_id system for the cells and food and add compatability

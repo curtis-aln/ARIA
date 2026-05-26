@@ -3,8 +3,8 @@
 struct SimSnapshot;
 struct FoodData;
 
-FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds)
-	: world_bounds_(world_bounds), food_renderer(window, food_radius, max_food), window_(window),
+FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies)
+	: world_bounds_(world_bounds), bodies_(bodies), food_renderer(window, food_radius, max_food), window_(window),
 	spatial_hash_grid(cells_x, cells_y, cell_max_capacity, world_bounds_->bounds_radius * 2, world_bounds_->bounds_radius * 2), 
 	food_grid_renderer(&spatial_hash_grid)
 {
