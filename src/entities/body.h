@@ -25,4 +25,9 @@ struct Body
 	{
 		velocity_ += acceleration;
 	}
+
+	void update_physics()
+	{
+		position_ += velocity_;
+	}
 };

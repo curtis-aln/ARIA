@@ -21,7 +21,7 @@ private:
     static void draw_no_selection();
     static void draw_overview(const OrganismTracker& protozoa);
     void draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracker& protozoa);
-    void draw_cell_detail(ImGuiContext& ctx, const Cell& c);
+    void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel);
     void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);
     static void draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot& snap);
     void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);

@@ -105,7 +105,7 @@ public:
 
 	void update(bool update_physics_only = false);
 
-	void update_cell_collisions() const;
+	void update_cell_collisions();
 	void check_for_extinction_event();
 	void bound_cell(Cell* cell);
 

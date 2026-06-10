@@ -34,7 +34,9 @@ void World::draw_cell_outlines(const OrganismTracker& protozoa)
     circle_outline.setPointCount(30); // Reduce aliasing, set once
     for (const Cell& cell : protozoa.cells)
     {
-        const sf::Vector2f pos = cell.get_pos();
+		Body* body = bodies_.at(cell.id_);
+
+        const sf::Vector2f pos = body->position_;
         const float rad = cell.radius + GraphicalSettings::cell_outline_thickness;
 
         circle_outline.setRadius(rad);
@@ -70,8 +72,10 @@ void World::draw_cell_physical_information(const OrganismTracker& protozoa, Font
     // for each cell we draw its bounding box
     for (const Cell& cell : protozoa.cells)
     {
-        const sf::Vector2f& pos = cell.get_pos();
-		const sf::Vector2f& vel = cell.get_vel();
+		const Body* body = bodies_.at(cell.id_);
+
+        const sf::Vector2f& pos = body->position_;
+		const sf::Vector2f& vel = body->velocity_;
 		const float speed = vel.length();
         const float rad = cell.radius;
 
@@ -97,8 +101,13 @@ void World::draw_springs(const OrganismTracker& protozoa, const bool thick_lines
 {
     for (const Spring& spring : protozoa.springs)
     {
-        const sf::Vector2f& pos1 = protozoa.cells[spring.cell_A_id].get_pos();
-        const sf::Vector2f& pos2 = protozoa.cells[spring.cell_B_id].get_pos();
+		const Cell& cell_a = protozoa.cells[spring.cell_A_id];
+		const Cell& cell_b = protozoa.cells[spring.cell_B_id];
+		const Body& body_a = *bodies_.at(spring.cell_A_id);
+		const Body& body_b = *bodies_.at(spring.cell_B_id);
+
+        const sf::Vector2f& pos1 = body_a.position_;
+        const sf::Vector2f& pos2 = body_b.position_;
 
         if (thick_lines)
         {
@@ -126,7 +135,8 @@ int World::check_mouse_press(const OrganismTracker& protozoa, const sf::Vector2f
 {
     for (const Cell& cell : protozoa.cells)
     {
-        const float dist_sq = (cell.get_pos() - mousePosition).lengthSquared();
+		const Body* body = bodies_.at(cell.id_);
+        const float dist_sq = (body->position_ - mousePosition).lengthSquared();
         float tollarance_factor = 1.2f;
         const float rad = cell.radius * tollarance_factor;
         if (dist_sq < rad * rad)
@@ -146,7 +156,8 @@ const Cell* World::get_selected_cell(const OrganismTracker& protozoa, const sf::
 
     for (const Cell& cell : protozoa.cells)
     {
-        const float dist_sq = (cell.get_pos() - mouse_pos).lengthSquared();
+        const Body* body = bodies_.at(cell.id_);
+        const float dist_sq = (body->position_ - mouse_pos).lengthSquared();
         const float rad = cell.radius;
         if (dist_sq < rad * rad)
         {

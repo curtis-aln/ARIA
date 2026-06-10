@@ -160,3 +160,6 @@ Position changes:
 
 Todo when next logged on:
 - finish creating the body_id system for the cells and food and add compatability
+
+
+# Note for next visit

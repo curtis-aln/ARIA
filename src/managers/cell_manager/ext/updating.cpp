@@ -15,7 +15,9 @@ void CellManager::update(bool update_physics_only)
 	{
 		Cell* cell_a = all_cells_.at(spring->cell_A_id);
 		Cell* cell_b = all_cells_.at(spring->cell_B_id);
-		spring->update_physics(*cell_a, *cell_b);
+		Body* body_a = bodies_->at(spring->cell_A_id);
+		Body* body_b = bodies_->at(spring->cell_B_id);
+		spring->update_physics(*body_a, *body_b);
 
 		if (!update_physics_only)
 		{
@@ -26,12 +28,13 @@ void CellManager::update(bool update_physics_only)
 
 	for (Cell* cell : all_cells_)
 	{
-		cell->update_physics();
+		Body* body = bodies_->at(cell->id_);
+		body->update_physics();
 
 		if (!update_physics_only)
 		{
 			cell->update_statistics();
-			cell->update_organics();
+			cell->update_organics(body);
 		}
 	}
 
@@ -42,12 +45,14 @@ void CellManager::update(bool update_physics_only)
 }
 
 
-void CellManager::update_cell_collisions() const
+void CellManager::update_cell_collisions()
 {
 	int idx = 0;
 
-	for (Cell* cell : all_cells_)
-		cell->accelerate(collision_resolutions[idx++]);
+	for (Body* body : *bodies_)
+	{
+		body->accelerate(collision_resolutions[idx++]);
+	}
 }
 
 void CellManager::check_for_extinction_event()
@@ -71,7 +76,8 @@ void CellManager::check_for_extinction_event()
 void CellManager::bound_cell(Cell* cell)
 {
 	const sf::Vector2f center = world_bounds_->center_;
-	sf::Vector2f& position = cell->get_pos();
+	Body* body = bodies_->at(cell->id_);
+	sf::Vector2f& position = body->position_;
 	const float cell_radius = cell->radius;
 	const float world_radius = world_bounds_->bounds_radius;
 
@@ -91,7 +97,7 @@ void CellManager::bound_cell(Cell* cell)
 		// Apply velocity adjustment to prevent escaping
 		const float k = world_bounds_->border_repulsion_magnitude;
 		const float diff = dist - bounds_radius;
-		cell->accelerate(-normal * k * diff);
+		body->accelerate(-normal * k * diff);
 
 	}
 }

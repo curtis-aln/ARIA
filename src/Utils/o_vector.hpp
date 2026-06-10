@@ -157,7 +157,7 @@ public:
     }
 
 
-    void remove(Obj* obj) { if (obj->active) remove(obj->id); }
+    void remove(Obj* obj) { if (obj->active) remove(obj->id_); }
     void remove(const unsigned vector_index)
     {
         if (array[vector_index]->active)

@@ -24,8 +24,9 @@ protected:
 	bool immortal = false;
 
 public:
+	bool active = false;
+
 	uint32_t id_ = 0; // unique cell ID, relative to the cell container
-	uint32_t body_id_ = 0; // the body ID is used to reference the cell's position and velocity in the physics engine container
 
 	// The Cell ID is used when referencing the cell inside the protozoa, and identifying its genome
 	float energy = initial_energy;
@@ -74,15 +75,14 @@ public:
 
 	[[nodiscard]] bool can_reproduce() const;
 
-	[[nodiscard]] sf::Vector2f get_pos_nearby(const float range) const;
+	[[nodiscard]] sf::Vector2f get_pos_nearby(const Body* body, const float range) const;
 
 	[[nodiscard]] float calculate_friction() const;
 
 	void update_statistics();
 
 
-	void update_organics();
-	void update_physics();
+	void update_organics(const Body* body);
 
 	void convert_nutrients_to_integrity();
 

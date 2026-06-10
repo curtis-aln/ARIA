@@ -90,7 +90,9 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
 	for (Cell* cell : cell_manager_.all_cells_)
 	{
-        float dist_sq = (mouse_position - cell->get_pos()).lengthSquared();
+		Body* body = bodies_.at(cell->id_);
+
+        float dist_sq = (mouse_position - body->position_).lengthSquared();
 
 		bool in_bounds = dist_sq < cell->radius * cell->radius;
 		if (in_bounds)

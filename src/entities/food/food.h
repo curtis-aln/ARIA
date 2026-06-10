@@ -27,8 +27,9 @@ Nutrition:
 - The nutrients of a food are what the protozoa gain when they eat it
 */
 
-struct Food : Body
+struct Food
 {
+	int id_ = 0; // unique food ID, relative to the food container
 	int age = 0;
 	int time_since_last_reproduced = 0;
 

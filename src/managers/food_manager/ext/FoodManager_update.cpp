@@ -2,7 +2,8 @@
 
 void FoodManager::vibrate_food(Food* food, float strength)
 {
-	food->velocity_ += Random::rand_vector(-strength, strength);
+	Body* body = bodies_->at(food->id_);
+	body->velocity_ += Random::rand_vector(-strength, strength);
 }
 
 
@@ -10,6 +11,8 @@ void FoodManager::update_food()
 {
 	for (Food* food : food_vector)
 	{
+		Body* body = bodies_->at(food->id_);
+
 		food->time_since_last_reproduced++;
 		food->age++;
 
@@ -17,8 +20,8 @@ void FoodManager::update_food()
 
 		vibrate_food(food, vibration_strength * Random::rand01_float() < vibrate_freq);
 
-		food->velocity_ *= friction;
-		food->position_ += food->velocity_;
+		body->velocity_ *= friction;
+		body->position_ += body->velocity_;
 
 		bound_food_to_world(food);
 
@@ -29,18 +32,20 @@ void FoodManager::update_food()
 
 void FoodManager::bound_food_to_world(Food* food) const
 {
+	Body* body = bodies_->at(food->id_);
+
 	sf::Vector2f center = world_bounds_->center_;
 	const float radius = world_bounds_->bounds_radius;
-	const float dist_sq = (food->position_ - center).lengthSquared();
+	const float dist_sq = (body->position_ - center).lengthSquared();
 
 	const float max_dist = radius - food_radius;
 
 	if (dist_sq < max_dist * max_dist)
 		return;
 
-	const sf::Vector2f to_center = center - food->position_;
+	const sf::Vector2f to_center = center - body->position_;
 	const sf::Vector2f normal = to_center.normalized();
-	food->position_ = center + normal * max_dist;
+	body->position_ = center + normal * max_dist;
 }
 
 void FoodManager::check_food_death(const Food* food)
@@ -74,7 +79,8 @@ void FoodManager::update_hash_grid()
 	spatial_hash_grid.clear();
 	for (Food* food : food_vector)
 	{
-		spatial_hash_grid.add_object(food->position_.x, food->position_.y, food->id_);
+		Body* body = bodies_->at(food->id_);
+		spatial_hash_grid.add_object(body->position_.x, body->position_.y, food->id_);
 	}
 }
 
@@ -82,16 +88,23 @@ void FoodManager::init_food()
 {
 	for (int i = 0; i < max_food; ++i)
 	{
+		Body* body = bodies_->add();
 		Food food{};
-		food.id_ = i;
-		food.position_ = Random::rand_position_in_circle(world_bounds_->center_, world_bounds_->bounds_radius);
-		food.velocity_ = Random::rand_vector(-10.f, 10.f);
+
+		food.id_ = body->id_;
+		body->position_ = Random::rand_position_in_circle(world_bounds_->center_, world_bounds_->bounds_radius);
+		body->velocity_ = Random::rand_vector(-10.f, 10.f);
 		food.color = Random::rand_color(food_darkest_color, food_lightest_color);
 		food_vector.emplace(food);
 	}
 
 	for (int i = 0; i < max_food - initial_food; ++i)
 	{
-		food_vector.remove(i);
+		Food* food = food_vector.at(i);
+		Body* body = bodies_->at(food->id_);
+
+		food_vector.remove(food);
+		bodies_->remove(body);
+
 	}
 }

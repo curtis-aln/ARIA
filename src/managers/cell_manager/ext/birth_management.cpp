@@ -98,27 +98,28 @@ void CellManager::apply_birth_requests(std::vector<Cell>& cells, std::vector<Spr
 
 	for (const BirthRequest& req : birth_requests)
 	{
-		const uint8_t offspring_id = static_cast<uint8_t>(cells.size());
-
 		cells.emplace_back();
 		Cell* offspring = &cells.back();
-		cells[req.parent_cell_id].create_offspring(offspring, TODO);
-		offspring->id_ = offspring_id;
+		Body* body = bodies_->add();
+
+		cells[req.parent_cell_id].create_offspring(offspring, body);
+		offspring->id_ = body->id_;
 
 		// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests
-		cells[req.parent_cell_id].offspring_index = offspring_id;
+		cells[req.parent_cell_id].offspring_index = offspring->id_;
 
 		// when we create this offspring we create a spring to it, the spring has a weak connection as it is made to break
 		// This is a temporary spring, it needs hold the new cell close to the parent cell until the real spring is made
 		// this is because if the two new cells are too far apart when the spring is made, the spring will break immediately and the offspring will die before it can reproduce
 
 		const uint8_t spring_id = static_cast<uint8_t>(springs.size());
-		springs.emplace_back(spring_id, req.parent_cell_id, offspring_id);
+		springs.emplace_back(spring_id, req.parent_cell_id, offspring->id_);
 		springs.back().spring_const = 0.00001f;
 		springs.back().amplitude = 0.f;
 		springs.back().damping = 0.9f;
 
-		const sf::Vector2f diff = cells[req.parent_cell_id].get_pos() - offspring->get_pos();
+		Body* parent_body = bodies_->at(req.parent_cell_id);
+		const sf::Vector2f diff = parent_body->position_ - body->position_;
 		springs.back().rest_length = diff.length();
 	}
 }

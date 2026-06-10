@@ -30,6 +30,7 @@ public:
 
     std::vector<Cell> cells{};
     std::vector<Spring> springs{};
+    std::vector<Body> bodies{};
 
     sf::Vector2f acceleration{};
     float speed{};
@@ -121,7 +122,9 @@ private:
             const Food* food = food_vector.at(food_id);
             if (food != nullptr)
             {
-                nearby_food_positions[food_in_neighbourhood++] = food->position_;
+                // todo
+				//Body* body = bodies_->at(food_id);
+                //nearby_food_positions[food_in_neighbourhood++] = body->position_;
             }
         }
 

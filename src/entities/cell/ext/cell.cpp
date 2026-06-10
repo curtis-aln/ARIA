@@ -19,8 +19,6 @@ void Cell::reset()
 	spring_to_copy_index = -1;
 	energy = initial_energy;
 
-	velocity_ = { 0, 0 };
-
 	dead = false;
 	immortal = false;
 }
@@ -47,7 +45,7 @@ void  Cell::create_offspring(Cell* child, Body* body, const bool mutate)
 	// if mutate is true then the child will go through mutation 
 
 	// When creating an offspring, this is ran for every cell in the protozoa
-	body->position_ = get_pos_nearby(2.f);
+	body->position_ = get_pos_nearby(body, 2.f);
 
 	time_since_last_reproduced_ = 0;
 	offspring_count++;
@@ -83,11 +81,11 @@ void  Cell::create_offspring(Cell* child, Body* body, const bool mutate)
 
 
 // When a child cell is created, it should be spawned somewhere near the parent cell.
-[[nodiscard]] sf::Vector2f  Cell::get_pos_nearby(const float range) const
+[[nodiscard]] sf::Vector2f  Cell::get_pos_nearby(const Body* body, const float range) const
 {
 	// Range in terms of radii
 	const sf::FloatRect spawn_area = {
-	{position_.x - radius * range, position_.y - radius * range},
+	{body->position_.x - radius * range, body->position_.y - radius * range},
 	{radius * range * 2 , radius * range * 2}
 	};
 	return Random::rand_pos_in_rect(spawn_area);
@@ -111,7 +109,7 @@ void  Cell::update_statistics()
 }
 
 
-void  Cell::update_organics()
+void Cell::update_organics(const Body* body)
 {
 	sinwave_current_friction_ = calculate_friction();
 
@@ -123,14 +121,6 @@ void  Cell::update_organics()
 		reproduce = true;
 }
 
-void  Cell::update_physics()
-{
-
-	// updating the velocity with the new friction
-	velocity_ *= sinwave_current_friction_;
-
-	position_ += velocity_;
-}
 
 void  Cell::convert_nutrients_to_integrity()
 {

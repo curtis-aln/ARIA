@@ -250,7 +250,11 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracke
     ImGui::SameLine();
 
     if (!m_sel_is_spring_ && !cell_count == 0)
-        draw_cell_detail(ctx, protozoa.cells[m_sel_cell_idx_]);
+    {
+		const Cell& cell = protozoa.cells[m_sel_cell_idx_];
+		const Body& body = protozoa.bodies[m_sel_cell_idx_];
+        draw_cell_detail(ctx, cell, body.position_, body.velocity_);
+    }
 
     else if (m_sel_is_spring_ && !spring_count == 0)
         draw_spring_detail(ctx, protozoa, protozoa.springs[m_sel_spring_idx_]);
@@ -259,10 +263,9 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracke
 // ─────────────────────────────────────────────────────────────────────────────
 //  Cell detail (stats + sinwave)
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
+void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel)
 {
-	const sf::Vector2f& pos = c.get_pos();
-	const sf::Vector2f& vel = c.get_vel();
+
 	const float speed = vel.length();
     const int frames_alive = c.frames_alive_;
     const float current_friction = c.calculate_friction();

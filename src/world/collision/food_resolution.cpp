@@ -64,12 +64,15 @@ void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby
 	for (int idx = 0; idx < cell_size; ++idx)
 	{
 		Cell* cell = cell_manager_.all_cells_.at(cell_contents[idx]);
+		Body* cell_body = bodies_.at(cell->id_);
 
 		for (int i = 0; i < nearby_food.count; ++i)
 		{
 			const Food* food = food_manager_.at(nearby_food[i]);
+			const Body* food_body = bodies_.at(food->id_);
+
 			// Check proximity BEFORE claiming
-			if (!Cell::consume_food_check(cell->get_pos(), food->position_, cell->radius + food_manager_.food_radius))
+			if (!Cell::consume_food_check(cell_body->position_, food_body->position_, cell->radius + food_manager_.food_radius))
 				continue;  // too far, try next food
 
 			// Close enough — now race to claim it
