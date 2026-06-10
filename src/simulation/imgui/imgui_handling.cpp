@@ -8,6 +8,7 @@ void Simulation::init_imGUI()
     ImGui::GetIO().FontGlobalScale = ui_scale_percent / 100.f;
 
     ImPlot::CreateContext();
+    std::cout << "ImGUI initialised\n";
 }
 
 

@@ -12,6 +12,7 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	food_data.positions_y.resize(max_food, {});
 	food_data.colors.resize(max_food, {});
 	food_data.radii.resize(max_food, food_radius);
+	std::cout << "food manager containers resized FoodManager::FoodManager()\n";
 }
 
 

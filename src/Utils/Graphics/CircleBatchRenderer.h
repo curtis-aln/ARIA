@@ -4,6 +4,9 @@
 
 inline sf::Texture generateCircleTexture(float radius)
 {
+    if (radius == 0)
+        return sf::Texture();
+
     const auto r = static_cast<unsigned>(radius * 2.f);
     sf::RenderTexture renderTexture({ r, r });
     sf::CircleShape circle(radius);

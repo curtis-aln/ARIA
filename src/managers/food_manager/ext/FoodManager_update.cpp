@@ -90,6 +90,12 @@ void FoodManager::init()
 	for (int i = 0; i < max_food; ++i)
 	{
 		Body* body = bodies_->add();
+
+		if (body == nullptr)
+		{
+			break;
+		}
+
 		Food food{};
 
 		food.id_ = body->id_;

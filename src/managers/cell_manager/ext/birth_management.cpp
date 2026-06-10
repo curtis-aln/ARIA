@@ -16,6 +16,12 @@ void CellManager::build_protozoa()
 		const sf::Vector2f cell_pos = Random::rand_pos_in_rect(spawn_rect);
 
 		Cell* cell = all_cells_.add();
+
+		if (cell == nullptr)
+		{
+			break;
+		}
+
 		Body* body = bodies_->add();
 		cell->reset();
 		body->position_ = cell_pos;

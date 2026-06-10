@@ -19,6 +19,7 @@ Simulation::Simulation() : m_world_(&m_window_)
     cell_statistic_font.set_font_size(cell_statistic_font_size);
 
     init_imGUI();
+    std::cout << "Program Finished initialising. running. . .\n";
 }
 
 void Simulation::run_simulation()

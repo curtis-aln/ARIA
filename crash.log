@@ -1,16 +1,16 @@
 ==================== CRASH REPORT ====================
-Time     : 2026-06-10 21:45:25.2228506
-Uptime   : 0h 0m 0s
+Time     : 2026-06-10 21:55:29.8372350
+Uptime   : 0h 0m 21s
 Type     : std::exception
 Message  : Failed to create render texture
 
 --- Build Info ---
-Compiled: Jun 10 2026 22:44:41  |  C++202400  |  MSVC 1951
+Compiled: Jun 10 2026 22:53:38  |  C++202400  |  MSVC 1951
 
 --- Stack Trace ---
 --- Your Code (most recent call first) ---
   (none found — ensure /Zi and /DEBUG flags are set in CMake)
 
-  (8 system/runtime frames omitted)
+  (11 system/runtime frames omitted)
 
 =======================================================
