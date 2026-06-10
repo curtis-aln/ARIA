@@ -10,21 +10,28 @@ thread_local FixedSpan<uint32_t> World::tl_nearby_ids{100};
 thread_local FixedSpan<obj_idx> World::tl_nearby_food{100};
 
 World::World(sf::RenderWindow* window)
-    : m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.bounds_radius, world_circular_bounds_.center_)),
-    outer_circle_renderer_(window, tex_rad, CellManagerSettings::max_protozoa), inner_circle_renderer_(window, tex_rad, CellManagerSettings::max_protozoa)
+    : m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.bounds_radius, world_circular_bounds_.center_))
 {
     claim_buffer.reserve(FoodManagerSettings::max_food);
 
+    init_circle_renderers();
     init_food_jobs();
     init_collision_jobs();
     init_body_vector();
     cell_manager_.init_protozoa_container();
+    food_manager_.init();
 
 
     render_data_.reserve(static_cast<int>(max_circles));
     distribution_.reserve(max_circles);
     inner_radii_.resize(max_circles);
     cell_manager_.collision_resolutions.resize(max_circles);
+}
+
+void World::init_circle_renderers()
+{
+	outer_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
+	inner_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
 }
 
 void World::init_body_vector()
@@ -38,6 +45,9 @@ void World::init_body_vector()
     {
         bodies_.remove(i);
     }
+
+	std::cout << "Initialized body vector with capacity for " << max_entities 
+        << " entities." << "(" << max_circles << " cells, " << FoodManagerSettings::max_food << " food)" << std::endl;
 }
 
 void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f mouse_pos)

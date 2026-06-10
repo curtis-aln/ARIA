@@ -84,8 +84,9 @@ void FoodManager::update_hash_grid()
 	}
 }
 
-void FoodManager::init_food()
+void FoodManager::init()
 {
+	std::cout << "Initializing food with " << initial_food << " food...\n";
 	for (int i = 0; i < max_food; ++i)
 	{
 		Body* body = bodies_->add();
@@ -105,6 +106,6 @@ void FoodManager::init_food()
 
 		food_vector.remove(food);
 		bodies_->remove(body);
-
 	}
+	std::cout << "Initialized " << initial_food << " food.\n";
 }

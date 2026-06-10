@@ -8,13 +8,12 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	spatial_hash_grid(cells_x, cells_y, cell_max_capacity, world_bounds_->bounds_radius * 2, world_bounds_->bounds_radius * 2), 
 	food_grid_renderer(&spatial_hash_grid)
 {
-	init_food();
-
 	food_data.positions_x.resize(max_food, {});
 	food_data.positions_y.resize(max_food, {});
 	food_data.colors.resize(max_food, {});
 	food_data.radii.resize(max_food, food_radius);
 }
+
 
 void FoodManager::update()
 {

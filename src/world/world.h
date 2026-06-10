@@ -90,6 +90,7 @@ public:
 
 public:
     explicit World(sf::RenderWindow* window = nullptr);
+    void init_circle_renderers();
     void init_body_vector();
 
     // ── Update ───────────────────────────────────────────────────────────────

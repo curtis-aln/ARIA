@@ -1,11 +1,11 @@
 ==================== CRASH REPORT ====================
-Time     : 2026-06-10 21:30:24.8355434
-Uptime   : 0h 0m 9s
-Type     : Unknown exception
-Message  : No details available.
+Time     : 2026-06-10 21:45:25.2228506
+Uptime   : 0h 0m 0s
+Type     : std::exception
+Message  : Failed to create render texture
 
 --- Build Info ---
-Compiled: Jun 10 2026 22:29:38  |  C++202400  |  MSVC 1951
+Compiled: Jun 10 2026 22:44:41  |  C++202400  |  MSVC 1951
 
 --- Stack Trace ---
 --- Your Code (most recent call first) ---

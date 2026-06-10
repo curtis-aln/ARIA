@@ -34,6 +34,7 @@ public:
 
 public:
     FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
+    void  init();
 
     int    get_size()               const;
     void update_food_grid_renderer();
@@ -48,7 +49,6 @@ public:
     void   draw_food_grid(sf::Vector2f mouse_pos) const;
 
 private:
-    void  init_food();
     void  update_food();
     static void  update_food_nutrients(Food* food);
     void  vibrate_food(Food* food, float strength);
