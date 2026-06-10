@@ -27,16 +27,16 @@ void CellManager::init_protozoa_container()
 	for (int i = 0; i < max_protozoa; ++i)
 	{
 		all_cells_.remove(i);
-	}
-
-	const int size = all_springs_.size();
-	for (int i = 0; i < size; ++i)
-	{
-		all_springs_.remove(i);
+		all_springs_.emplace(i);
 	}
 
 	for (int i = 0; i < initial_protozoa; ++i)
 	{
-		build_protozoa();
+		if (!build_protozoa())
+		{
+			break;
+		}
 	}
+
+	std::cout << "Finished building protozoa's, total: " << all_cells_.size() << "\n";
 }

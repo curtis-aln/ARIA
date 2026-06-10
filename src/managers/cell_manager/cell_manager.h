@@ -101,7 +101,7 @@ public:
 	Cell* find_cell_by_id(const int id) { return all_cells_.at(id);}
 
 
-	void build_protozoa();
+	bool build_protozoa();
 
 	void update(bool update_physics_only = false);
 

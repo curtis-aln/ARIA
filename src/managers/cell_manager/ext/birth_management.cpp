@@ -1,6 +1,6 @@
 #include "../cell_manager.h"
 
-void CellManager::build_protozoa()
+bool CellManager::build_protozoa()
 {
 	sf::Vector2f spawn_position = world_bounds_->rand_pos();
 	float spawn_dist = 20.f;
@@ -19,27 +19,29 @@ void CellManager::build_protozoa()
 
 		if (cell == nullptr)
 		{
-			break;
+			return false;
 		}
 
 		Body* body = bodies_->add();
 		cell->reset();
 		body->position_ = cell_pos;
 		cells.push_back(cell);
+
+		return true;
 	}
 
 	// Now we create springs between the cells
 	for (int i = 0; i < spring_count; ++i)
 	{
 		if (cells.size() < 2)
-			return;
+			return true;
 
 		// choose two different cell ids
 		int cell_A_id = Random::rand_range(size_t(0), cells.size() - 1);
 		int cell_B_id = Random::rand_range(size_t(0), cells.size() - 1);
 
 		if (cell_A_id == cell_B_id)
-			return; // better luck next time
+			return true;
 
 		// check if a spring already exists between these two cells, if so we don't add another one
 		for (const Spring* spring : springs)
@@ -47,14 +49,14 @@ void CellManager::build_protozoa()
 			if ((spring->cell_A_id == cell_A_id && spring->cell_B_id == cell_B_id) ||
 				(spring->cell_A_id == cell_B_id && spring->cell_B_id == cell_A_id))
 			{
-				return; // spring already exists
+				return true; // spring already exists
 			}
 		}
 
 		Spring* spring = all_springs_.add();
 		if (spring == nullptr)
 		{
-			return;
+			return false;
 		}
 		spring->cell_A_id = cell_A_id;
 		spring->cell_B_id = cell_B_id;

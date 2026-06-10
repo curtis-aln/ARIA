@@ -51,7 +51,7 @@ void CellManager::update_cell_collisions()
 
 	for (Body* body : *bodies_)
 	{
-		body->accelerate(collision_resolutions[idx++]);
+		//body->accelerate(collision_resolutions[idx++]); todo
 	}
 }
 
