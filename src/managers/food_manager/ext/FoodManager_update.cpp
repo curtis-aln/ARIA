@@ -89,25 +89,32 @@ void FoodManager::init()
 	std::cout << "Initializing food with " << initial_food << " food...\n";
 	for (int i = 0; i < max_food; ++i)
 	{
-		Body* body = bodies_->add();
+		// Creating the body
+		int id = bodies_->emplace({});
+		Body* body = bodies_->at(id);
+		body->id_ = id;
 
-		if (body == nullptr)
-		{
-			break;
-		}
-
-		Food food{};
-
-		food.id_ = body->id_;
 		body->position_ = Random::rand_position_in_circle(world_bounds_->center_, world_bounds_->bounds_radius);
-		body->velocity_ = Random::rand_vector(-10.f, 10.f);
+		body->velocity_ = Random::rand_vector(-10.f, 10.f);		
+
+		// Creating the food and connecting it to the body
+		Food food{};
+		food.id_ = body->id_;
+		
+		// Setting food attributes
 		food.color = Random::rand_color(food_darkest_color, food_lightest_color);
 		food_vector.emplace(food);
 	}
 
-	for (int i = 0; i < max_food - initial_food; ++i)
+	int i = 0;
+	int to_remove = max_food - initial_food;
+	for (Food* food : food_vector)
 	{
-		Food* food = food_vector.at(i);
+		if (i++ >= to_remove)
+		{
+			break;
+		}
+
 		Body* body = bodies_->at(food->id_);
 
 		food_vector.remove(food);

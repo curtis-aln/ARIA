@@ -3,6 +3,8 @@
 
 void World::init_food_jobs()
 {
+	std::cout << "[INFO]: Initializing food jobs for " << updating_threads << " threads.\n";
+
 	const int total = spatial_hash_grid_.CellsX * spatial_hash_grid_.CellsY;
 	const int chunk = std::max(1, (total + updating_threads - 1) / updating_threads);
 

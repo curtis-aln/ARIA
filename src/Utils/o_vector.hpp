@@ -2,6 +2,19 @@
 
 #include <vector>
 
+/*
+* o_vector is my highly optimized datastructure for managing the adding and removal of objects
+* it works with several containers:
+- std::vector<bool> active_{}; - Tracks what indexes are active or inactive
+- std::vector<uint32_t> array{}; - Contains all the indexes // todo - does this need to exist
+
+// Usage:
+- to add objects to this datastructure use emplace() it allocates new memory and stores an object in its internal container
+- to add and remove existing objects use the add() and remove() functions
+- To iterate, for (Obj* object : o_vector)
+
+*/
+
 
  // add this as a public parent struct to the Obj class/structure
 struct o_vec_object
@@ -22,21 +35,30 @@ public:
     int resize_buffering = 300; // if the array is full, we add this amount of empty slots to the end of the array 
 
 private:
+    // this vector tracks which objects are active and which are not, it is used to iterate over the array and skip inactive objects
+    // every object emplaced into this datastructure gets its own index in this vector
+    std::vector<bool> active_{};
+
     // this array contains all the items and is never directly modified
-    std::vector<Obj*> array{};
+    std::vector<uint32_t> all_object_indexes_{};
 
     // this tracks the actual initilised and implemented Objects being used
     uint32_t array_size = 0;
 
     // this vectorPtr stores all the actual objects on the heap, they are never modified or removed from. only added to
-    std::vector<Obj> objectStore{};
+    std::vector<Obj> raw_object_store_{};
 
+    // These are all of the indexes where active_[id_] is false, this is used to find the next available slot in the array when adding a new object
     std::vector<uint32_t> free_list{};
+    
+    // This metric allows the datastructure to know when to resize the array, or when to stop letting the add function be called
     int free_count = 0;
 
 
 private:
-    // Iterator class definition
+    // This iterator allows the datastructure to be used in a for loop as so
+    // It iterates through all *active* objects in the datastructure, any inactive objects will be skipped
+    // for (Obj* object : o_vector)
     class Iterator
     {
     public:
@@ -46,19 +68,21 @@ private:
         using pointer = Obj*;
         using reference = Obj&;
 
-        explicit Iterator(o_vector* vec = nullptr, const unsigned index = 0) : vectorPtr(vec), currentIndex(index) {}
+        explicit Iterator(o_vector* vec = nullptr, const unsigned index = 0) 
+            : vectorPtr(vec), currentIndex(index) {}
+
         Iterator() : vectorPtr(nullptr) {}
 
         Iterator& operator++()
         {
             ++currentIndex;
-            while (currentIndex < vectorPtr->array_size && !vectorPtr->array[currentIndex]->active)
+            while (currentIndex < vectorPtr->array_size && !vectorPtr->active_[currentIndex])
                 ++currentIndex;
             return *this;
         }
 
-        pointer operator*()   const { return vectorPtr->array[currentIndex]; }
-        pointer operator->()  const { return vectorPtr->array[currentIndex]; }
+        pointer operator*()   const { return &vectorPtr->raw_object_store_[currentIndex]; }
+        pointer operator->()  const { return &vectorPtr->raw_object_store_[currentIndex]; }
 
         bool operator==(const Iterator& other) const { return currentIndex == other.currentIndex; }
         bool operator!=(const Iterator& other) const { return !(*this == other); }
@@ -72,7 +96,7 @@ private:
     unsigned getFirstAvalableIteration() const
     {
         unsigned currentIndex = 0;
-        while (currentIndex < array_size && !array[currentIndex]->active)
+        while (currentIndex < array_size && !active_[currentIndex])
             ++currentIndex;
         return currentIndex;
     }
@@ -81,8 +105,9 @@ private:
 public:
     explicit o_vector(const std::size_t N)
     {
-        objectStore.reserve(N);
-        array.reserve(N);
+        raw_object_store_.reserve(N);
+        all_object_indexes_.reserve(N);
+		active_.reserve(N);
         free_list.reserve(N);
     }
 
@@ -91,14 +116,17 @@ public:
     [[nodiscard]] unsigned size()  const { return active_objs; }
 
 
-    // used to initilise items inside of objectStore.
-    void emplace(Obj item)
+    // used to initilise items inside of raw_object_store_.
+	// returns the index of the item in the array, which is used to reference it later
+    int emplace(Obj item)
     {
-        objectStore.emplace_back(item);
-        array.push_back(&objectStore.back());
+        raw_object_store_.emplace_back(item);
+        all_object_indexes_.push_back(raw_object_store_.size() - 1);
+        active_.push_back(true);
         free_list.push_back(-1);
         ++array_size;
         ++active_objs;
+        return array_size - 1;
     }
 
     void smart_resize()
@@ -107,11 +135,13 @@ public:
         if (free_count < resize_buffering / 2)
         {
             const uint32_t old_size = array_size;
-            objectStore.reserve(objectStore.size() + resize_buffering);
+
+            // todo reserve doesn't prevent reallocation on emplace_back if called multiple times
+            raw_object_store_.reserve(raw_object_store_.size() + resize_buffering);
             for (int i = 0; i < resize_buffering; ++i)
             {
-                objectStore.emplace_back();
-                array.push_back(&objectStore.back());
+                raw_object_store_.emplace_back();
+                all_object_indexes_.push_back(raw_object_store_.size() - 1);
                 free_list.push_back(old_size + i);
                 ++free_count;
             }
@@ -122,9 +152,9 @@ public:
         else if (free_count > resize_buffering * 2)
         {
             int trimmed = 0;
-            while (trimmed < resize_buffering && array_size > 0 && !array[array_size - 1]->active)
+            while (trimmed < resize_buffering && array_size > 0 && !active_[array_size - 1])
             {
-                array.pop_back();
+                all_object_indexes_.pop_back();
                 --array_size;
                 // remove the corresponding entry from free_list
                 for (int i = 0; i < free_count; ++i)
@@ -141,8 +171,8 @@ public:
     }
 
 
-    Obj* at(const unsigned i) { return array[i]; }
-    const Obj* at(const unsigned i) const { return array[i]; }
+    Obj* at(const unsigned i) { return &raw_object_store_[i]; }
+    const Obj* at(const unsigned i) const { return &raw_object_store_[i]; }
 
 
     Obj* add()
@@ -151,18 +181,18 @@ public:
             return nullptr;
 
         const unsigned idx = free_list[--free_count];
-        array[idx]->active = true;
+        active_[idx] = true;
         ++active_objs;
-        return array[idx];
+        return &raw_object_store_[idx];
     }
 
 
     void remove(Obj* obj) { if (obj->active) remove(obj->id_); }
     void remove(const unsigned vector_index)
     {
-        if (array[vector_index]->active)
+        if (active_[vector_index])
         {
-            array[vector_index]->active = false;
+            active_[vector_index] = false;
             --active_objs;
             free_list[free_count++] = vector_index;
         }
@@ -170,3 +200,5 @@ public:
 
     int      free_slots()   const { return free_count; }
 };
+
+// Current: 191 lines, gonna try and write 30 lines of commenting

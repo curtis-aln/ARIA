@@ -15,7 +15,7 @@ struct Body
 	float mass_;
 	float radius_;
 
-	Body(uint32_t id)
+	Body(uint32_t id = 0)
 		: id_(id)
 	{
 		

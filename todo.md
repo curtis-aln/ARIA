@@ -163,3 +163,7 @@ Todo when next logged on:
 
 
 # Note for next visit
+The cell vector and food vector have id's which are smaller than the body vector, 
+this is an issue and my current thoughts for a sollution is to have 2 id's per object
+a body id and a personal id, other than that i have optimized the o_vector once again as for some reason
+i used pointers as an object store instead of just ints

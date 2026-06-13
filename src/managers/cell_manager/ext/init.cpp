@@ -19,15 +19,27 @@ void CellManager::init_protozoa_container()
 	// We create the maximum amount of protozoa at the start
 	for (int i = 0; i < max_protozoa; ++i)
 	{
-		all_cells_.emplace(i);
-		all_springs_.emplace(i);
+		int id = bodies_->emplace({});
+		Body* body = bodies_->at(id);
+		body->id_ = id;
+
+		all_cells_.emplace(id);
+		all_springs_.emplace(i); // todo
 	}
 
 	// removing any protozoa that are above the initial protozoa count
-	for (int i = 0; i < max_protozoa; ++i)
+	int i = 0;
+	int to_remove = max_protozoa - initial_protozoa;
+	for (const Cell* cell : all_cells_)
 	{
-		all_cells_.remove(i);
-		all_springs_.emplace(i);
+		if (i++ >= to_remove)
+		{
+			break;
+		}
+
+		all_cells_.remove(cell->id_);
+		bodies_->remove(cell->id_);
+		all_springs_.remove(cell->id_);
 	}
 
 	for (int i = 0; i < initial_protozoa; ++i)

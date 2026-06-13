@@ -11,7 +11,7 @@ class FoodClaimBuffer
     };
     std::unique_ptr<PaddedFlag[]> flags_;
     int                        capacity_ = 0;
-    int                        active_ = 0;
+    int                        active_objects_ = 0;
 
 public:
     FoodClaimBuffer() = default;
@@ -34,7 +34,7 @@ public:
         if (active_count > capacity_)
             reserve(active_count * 2);
 
-        active_ = active_count;
+        active_objects_ = active_count;
         std::memset(flags_.get(), 0, static_cast<size_t>(capacity_) * sizeof(PaddedFlag));
     }
 
@@ -52,6 +52,6 @@ public:
         return flags_[index].value != 0;
     }
 
-    [[nodiscard]] int active_count() const { return active_; }
+    [[nodiscard]] int active_count() const { return active_objects_; }
     [[nodiscard]] int capacity()     const { return capacity_; }
 };

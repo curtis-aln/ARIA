@@ -17,7 +17,6 @@ World::World(sf::RenderWindow* window)
     init_circle_renderers();
     init_food_jobs();
     init_collision_jobs();
-    init_body_vector();
     cell_manager_.init_protozoa_container();
     food_manager_.init();
 
@@ -34,21 +33,6 @@ void World::init_circle_renderers()
 	inner_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
 }
 
-void World::init_body_vector()
-{
-	int max_entities = max_circles + FoodManagerSettings::max_food;
-	for (int i = 0; i < max_entities; ++i)
-	{
-        bodies_.emplace(i);
-	}
-    for (int i = 0; i < max_entities; ++i)
-    {
-        bodies_.remove(i);
-    }
-
-	std::cout << "Initialized body vector with capacity for " << max_entities 
-        << " entities." << "(" << max_circles << " cells, " << FoodManagerSettings::max_food << " food)" << std::endl;
-}
 
 void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f mouse_pos)
 {
