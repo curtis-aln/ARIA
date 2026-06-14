@@ -51,6 +51,7 @@ void World::resolve_food_interactions_threadded()
 
 void World::resolve_food_grid_cell(const int cell_id, FixedSpan<obj_idx>& nearby_food)
 {
+	return; // todo
 	SimpleSpatialGrid* food_grid = get_food_spatial_grid();
 
 	// if the cell grid cell is empty, dont bother

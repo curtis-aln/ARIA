@@ -54,7 +54,7 @@ void FoodManager::check_food_death(const Food* food)
 		return;
 
 	if (Random::rand01_float() < death_age_chance)
-		remove_food(food->body_id_);
+		remove_food(food->id_);
 }
 
 
