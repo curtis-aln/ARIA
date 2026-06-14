@@ -51,7 +51,7 @@ private:
     // These are all of the indexes where active_[id_] is false, this is used to find the next available slot in the array when adding a new object
     std::vector<uint32_t> free_list{};
     
-    // This metric allows the datastructure to know when to resize the array, or when to stop letting the add function be called
+    // The current size of the free_list container, this lets us avoid true removal from the vector
     int free_count = 0;
 
 
@@ -117,16 +117,35 @@ public:
 
 
     // used to initilise items inside of raw_object_store_.
-	// returns the index of the item in the array, which is used to reference it later
-    int emplace(Obj item)
+	// returns the item in the array
+    Obj* emplace(bool is_active = true)
     {
-        raw_object_store_.emplace_back(item);
-        all_object_indexes_.push_back(raw_object_store_.size() - 1);
-        active_.push_back(true);
-        free_list.push_back(-1);
+        // Add the actual object to our object store
+        raw_object_store_.emplace_back();
+		int id_ = raw_object_store_.size() - 1;
+
+		// add the object's index to the list of all object indexes
+        all_object_indexes_.push_back(id_);
         ++array_size;
-        ++active_objs;
-        return array_size - 1;
+
+		// allocating memory in both of these containers
+        active_.push_back(is_active);
+		free_list.push_back(-1); // value does not matter as free_count will overwrite it when incremented
+
+        if (is_active)
+        {
+            ++active_objs;
+        }
+		else // Not active, add to free list
+        {
+            free_list[free_count++] = id_;
+        }
+        
+        // setting the object's body_id_
+		Obj* object = &raw_object_store_.back();
+		object->id_ = array_size - 1;
+
+        return object;
     }
 
     void smart_resize()
@@ -187,7 +206,7 @@ public:
     }
 
 
-    void remove(Obj* obj) { if (obj->active) remove(obj->id_); }
+    void remove(Obj* obj) { if (obj->active) remove(obj->body_id_); }
     void remove(const unsigned vector_index)
     {
         if (active_[vector_index])

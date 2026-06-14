@@ -28,7 +28,7 @@ void CellManager::update(bool update_physics_only)
 
 	for (Cell* cell : all_cells_)
 	{
-		Body* body = bodies_->at(cell->id_);
+		Body* body = bodies_->at(cell->body_id_);
 		body->update_physics();
 
 		if (!update_physics_only)
@@ -38,7 +38,7 @@ void CellManager::update(bool update_physics_only)
 		}
 	}
 
-	//collect_reproduction_requests(all_cells_);
+	//collect_reproduction_requests(all_cells_); todo
 	//apply_birth_requests(all_cells_, all_springs_);
 
 	//apply_connection_requests(all_cells_, all_springs_);
@@ -76,7 +76,7 @@ void CellManager::check_for_extinction_event()
 void CellManager::bound_cell(Cell* cell)
 {
 	const sf::Vector2f center = world_bounds_->center_;
-	Body* body = bodies_->at(cell->id_);
+	Body* body = bodies_->at(cell->body_id_);
 	sf::Vector2f& position = body->position_;
 	const float cell_radius = cell->radius;
 	const float world_radius = world_bounds_->bounds_radius;

@@ -42,7 +42,7 @@ void FoodManager::update_position_data()
 	int idx = 0;
 	for (Food* food : food_vector)
 	{
-		Body* body = bodies_->at(food->id_);
+		Body* body = bodies_->at(food->body_id_);
 		food_data.positions_x[idx] = body->position_.x;
 		food_data.positions_y[idx] = body->position_.y;
 

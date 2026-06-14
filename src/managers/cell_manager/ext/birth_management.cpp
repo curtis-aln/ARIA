@@ -77,7 +77,7 @@ void CellManager::collect_reproduction_requests(std::vector<Cell*>& cells)
 		if (cell->reproduce)
 		{
 			cell->reproduce = false;
-			birth_requests.push_back({ cell->id_ });
+			birth_requests.push_back({ cell->body_id_ });
 
 			if (Random::rand01_float() > 0.01)
 				break;
@@ -111,17 +111,17 @@ void CellManager::apply_birth_requests(std::vector<Cell>& cells, std::vector<Spr
 		Body* body = bodies_->add();
 
 		cells[req.parent_cell_id].create_offspring(offspring, body);
-		offspring->id_ = body->id_;
+		offspring->body_id_ = body->id_;
 
 		// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests
-		cells[req.parent_cell_id].offspring_index = offspring->id_;
+		cells[req.parent_cell_id].offspring_index = offspring->body_id_;
 
 		// when we create this offspring we create a spring to it, the spring has a weak connection as it is made to break
 		// This is a temporary spring, it needs hold the new cell close to the parent cell until the real spring is made
 		// this is because if the two new cells are too far apart when the spring is made, the spring will break immediately and the offspring will die before it can reproduce
 
 		const uint8_t spring_id = static_cast<uint8_t>(springs.size());
-		springs.emplace_back(spring_id, req.parent_cell_id, offspring->id_);
+		springs.emplace_back(spring_id, req.parent_cell_id, offspring->body_id_);
 		springs.back().spring_const = 0.00001f;
 		springs.back().amplitude = 0.f;
 		springs.back().damping = 0.9f;

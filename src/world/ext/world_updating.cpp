@@ -51,7 +51,7 @@ void World::update_position_container()
 	for (Cell* cell : cell_manager_.all_cells_)
 	{
 		// Fetching the cell's position from the body vector
-		const sf::Vector2f& pos = bodies_.at(cell->id_)->position_;
+		const sf::Vector2f& pos = bodies_.at(cell->body_id_)->position_;
 
 		// Clamping the cell into the world bounds so that the spatial grid doesn't get messed up by out-of-bounds positions
 		cell_manager_.bound_cell(cell);

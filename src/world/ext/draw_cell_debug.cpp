@@ -34,7 +34,7 @@ void World::draw_cell_outlines(const OrganismTracker& protozoa)
     circle_outline.setPointCount(30); // Reduce aliasing, set once
     for (const Cell& cell : protozoa.cells)
     {
-		Body* body = bodies_.at(cell.id_);
+		Body* body = bodies_.at(cell.body_id_);
 
         const sf::Vector2f pos = body->position_;
         const float rad = cell.radius + GraphicalSettings::cell_outline_thickness;
@@ -72,7 +72,7 @@ void World::draw_cell_physical_information(const OrganismTracker& protozoa, Font
     // for each cell we draw its bounding box
     for (const Cell& cell : protozoa.cells)
     {
-		const Body* body = bodies_.at(cell.id_);
+		const Body* body = bodies_.at(cell.body_id_);
 
         const sf::Vector2f& pos = body->position_;
 		const sf::Vector2f& vel = body->velocity_;
@@ -92,7 +92,7 @@ void World::draw_cell_physical_information(const OrganismTracker& protozoa, Font
         const auto top_left = rect.position;
         const auto spacing = font->get_text_size("0").y;
         const sf::Vector2f offset = { 0, spacing };
-        font->draw(top_left, "id: " + std::to_string(cell.id_), false);
+        font->draw(top_left, "id: " + std::to_string(cell.body_id_), false);
     }
 }
 
@@ -135,13 +135,13 @@ int World::check_mouse_press(const OrganismTracker& protozoa, const sf::Vector2f
 {
     for (const Cell& cell : protozoa.cells)
     {
-		const Body* body = bodies_.at(cell.id_);
+		const Body* body = bodies_.at(cell.body_id_);
         const float dist_sq = (body->position_ - mousePosition).lengthSquared();
         float tollarance_factor = 1.2f;
         const float rad = cell.radius * tollarance_factor;
         if (dist_sq < rad * rad)
         {
-            return cell.id_;
+            return cell.body_id_;
         }
     }
 
@@ -156,7 +156,7 @@ const Cell* World::get_selected_cell(const OrganismTracker& protozoa, const sf::
 
     for (const Cell& cell : protozoa.cells)
     {
-        const Body* body = bodies_.at(cell.id_);
+        const Body* body = bodies_.at(cell.body_id_);
         const float dist_sq = (body->position_ - mouse_pos).lengthSquared();
         const float rad = cell.radius;
         if (dist_sq < rad * rad)

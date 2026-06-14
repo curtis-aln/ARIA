@@ -45,7 +45,7 @@ void FoodManager::spawn_food_improved()
 
 bool FoodManager::reproduce_food(Food* food)
 {
-	Body* body = bodies_->at(food->id_);
+	Body* body = bodies_->at(food->body_id_);
 
 	Food* new_food = food_vector.add();
 	Body* new_body = bodies_->add();

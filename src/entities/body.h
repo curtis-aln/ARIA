@@ -6,6 +6,7 @@ struct Body
 {
 	bool active = true;
 
+	// This id references the body itself
 	uint32_t id_ = 0;
 
 	inline static constexpr float density = 1.f; // the density of the cell, used to calculate radius from mass

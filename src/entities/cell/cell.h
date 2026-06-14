@@ -26,9 +26,9 @@ protected:
 public:
 	bool active = false;
 
-	uint32_t id_ = 0; // unique cell ID, relative to the cell container
+	uint32_t id_ = 0; // The unique identifier for this cell
+	uint32_t body_id_ = 0; // Reference to the body 
 
-	// The Cell ID is used when referencing the cell inside the protozoa, and identifying its genome
 	float energy = initial_energy;
 
 	// Stomach and food
@@ -53,7 +53,7 @@ public:
 
 	Cell(const uint32_t _id = 0)
 	{
-		id_ = _id;
+		body_id_ = _id;
 	}
 
 	[[nodiscard]] bool is_alive() const { return !dead; }

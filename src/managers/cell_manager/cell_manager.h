@@ -115,6 +115,8 @@ public:
 
 	void init_protozoa_container();
 
+	bool link_cell_to_body(Cell* cell, bool is_active = true);
+
 private:
 	void collect_reproduction_requests(std::vector<Cell*>& cells);
 	void apply_birth_requests(std::vector<Cell>& cells, std::vector<Spring>& springs);

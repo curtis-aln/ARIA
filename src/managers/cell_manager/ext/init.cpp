@@ -14,34 +14,26 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 
 void CellManager::init_protozoa_container()
 {
-	// The cells container needs to be in sync with the bodies container
-
-	// We create the maximum amount of protozoa at the start
+	bool is_object_active = true; // the first few objects will be active, the rest will be inactive
 	for (int i = 0; i < max_protozoa; ++i)
 	{
-		int id = bodies_->emplace({});
-		Body* body = bodies_->at(id);
-		body->id_ = id;
+		Cell* cell = all_cells_.emplace(is_object_active);
 
-		all_cells_.emplace(id);
-		all_springs_.emplace(i); // todo
-	}
-
-	// removing any protozoa that are above the initial protozoa count
-	int i = 0;
-	int to_remove = max_protozoa - initial_protozoa;
-	for (const Cell* cell : all_cells_)
-	{
-		if (i++ >= to_remove)
+		if (!link_cell_to_body(cell, is_object_active))
 		{
+			std::cerr << "[ERROR]: Failed to link cell to body during initialization. Max bodies reached.\n";
 			break;
 		}
 
-		all_cells_.remove(cell->id_);
-		bodies_->remove(cell->id_);
-		all_springs_.remove(cell->id_);
+		if (i >= initial_protozoa)
+		{
+			is_object_active = false; // the rest of the objects will be inactive
+		}
+		
+		all_springs_.emplace(i);
 	}
 
+	// The cells we currently have act as seeds that allow us to build the protozoa
 	for (int i = 0; i < initial_protozoa; ++i)
 	{
 		if (!build_protozoa())
@@ -51,4 +43,18 @@ void CellManager::init_protozoa_container()
 	}
 
 	std::cout << "Finished building protozoa's, total: " << all_cells_.size() << "\n";
+}
+
+bool CellManager::link_cell_to_body(Cell* cell, bool is_active)
+{
+	// This function creates a new body for the cell and links them together
+	// returns true if successful, false if there are no more bodies available
+	Body* body = bodies_->emplace(is_active);
+	if (body == nullptr)
+	{
+		return false;
+	}
+
+	cell->body_id_ = body->id_;
+	return true;
 }

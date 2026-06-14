@@ -84,7 +84,7 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
 	for (Cell* cell : cell_manager_.all_cells_)
 	{
-		Body* body = bodies_.at(cell->id_);
+		Body* body = bodies_.at(cell->body_id_);
 
         float dist_sq = (mouse_position - body->position_).lengthSquared();
 

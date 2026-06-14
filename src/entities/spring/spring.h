@@ -15,7 +15,7 @@ struct Spring : SpringGenome, SpringSettings
 	uint32_t cell_B_id{};
 
 	// unique spring ID, used for genome referencing, must not change during the spring's lifetime
-	uint32_t id{};
+	uint32_t id_{};
 
 	uint16_t clock_{};
 
@@ -31,8 +31,8 @@ struct Spring : SpringGenome, SpringSettings
 	bool broken = false;
 	bool active = true;
 
-	Spring(const uint8_t _id, const uint8_t _cell_A_id=0, const uint8_t _cell_B_id=0)
-		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id(_id), SpringGenome()
+	Spring(const uint8_t _id=0, const uint8_t _cell_A_id=0, const uint8_t _cell_B_id=0)
+		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id_(_id), SpringGenome()
 	{
 
 	}
@@ -132,7 +132,7 @@ private:
 		if (cell_a.offspring_index >= 0 && cell_b.offspring_index >= 0)
 		{
 			cell_a.connection_index = cell_b.offspring_index;
-			cell_a.spring_to_copy_index = id;
+			cell_a.spring_to_copy_index = id_;
 		}
 	}
 

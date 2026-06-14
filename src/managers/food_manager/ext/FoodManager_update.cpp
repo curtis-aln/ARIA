@@ -2,7 +2,7 @@
 
 void FoodManager::vibrate_food(Food* food, float strength)
 {
-	Body* body = bodies_->at(food->id_);
+	Body* body = bodies_->at(food->body_id_);
 	body->velocity_ += Random::rand_vector(-strength, strength);
 }
 
@@ -11,7 +11,7 @@ void FoodManager::update_food()
 {
 	for (Food* food : food_vector)
 	{
-		Body* body = bodies_->at(food->id_);
+		Body* body = bodies_->at(food->body_id_);
 
 		food->time_since_last_reproduced++;
 		food->age++;
@@ -32,7 +32,7 @@ void FoodManager::update_food()
 
 void FoodManager::bound_food_to_world(Food* food) const
 {
-	Body* body = bodies_->at(food->id_);
+	Body* body = bodies_->at(food->body_id_);
 
 	sf::Vector2f center = world_bounds_->center_;
 	const float radius = world_bounds_->bounds_radius;
@@ -54,7 +54,7 @@ void FoodManager::check_food_death(const Food* food)
 		return;
 
 	if (Random::rand01_float() < death_age_chance)
-		remove_food(food->id_);
+		remove_food(food->body_id_);
 }
 
 
@@ -79,46 +79,45 @@ void FoodManager::update_hash_grid()
 	spatial_hash_grid.clear();
 	for (Food* food : food_vector)
 	{
-		Body* body = bodies_->at(food->id_);
-		spatial_hash_grid.add_object(body->position_.x, body->position_.y, food->id_);
+		Body* body = bodies_->at(food->body_id_);
+		spatial_hash_grid.add_object(body->position_.x, body->position_.y, food->body_id_);
 	}
 }
 
 void FoodManager::init()
 {
 	std::cout << "Initializing food with " << initial_food << " food...\n";
+
+	bool is_object_active = true; // the first few objects will be active, the rest will be inactive
+
 	for (int i = 0; i < max_food; ++i)
 	{
-		// Creating the body
-		int id = bodies_->emplace({});
-		Body* body = bodies_->at(id);
-		body->id_ = id;
+		Food* food = food_vector.emplace(is_object_active);
+		food->color = Random::rand_color(food_darkest_color, food_lightest_color);
 
-		body->position_ = Random::rand_position_in_circle(world_bounds_->center_, world_bounds_->bounds_radius);
-		body->velocity_ = Random::rand_vector(-10.f, 10.f);		
-
-		// Creating the food and connecting it to the body
-		Food food{};
-		food.id_ = body->id_;
-		
-		// Setting food attributes
-		food.color = Random::rand_color(food_darkest_color, food_lightest_color);
-		food_vector.emplace(food);
-	}
-
-	int i = 0;
-	int to_remove = max_food - initial_food;
-	for (Food* food : food_vector)
-	{
-		if (i++ >= to_remove)
+		if (!link_food_to_body(food, is_object_active))
 		{
+			std::cerr << "[ERROR]: Failed to link food to body during initialization. Max bodies reached.\n";
 			break;
 		}
-
-		Body* body = bodies_->at(food->id_);
-
-		food_vector.remove(food);
-		bodies_->remove(body);
+		if (i >= initial_food)
+		{
+			is_object_active = false; // the rest of the objects will be inactive
+		}
 	}
+
 	std::cout << "Initialized " << initial_food << " food.\n";
+}
+
+bool FoodManager::link_food_to_body(Food* food, bool is_active)
+{
+	// This function creates a new body for the food and links them together
+	// returns true if successful, false if there are no more bodies available
+	Body* body = bodies_->emplace(is_active);
+	if (body == nullptr)
+	{
+		return false;
+	}
+	food->body_id_ = body->id_;
+	return true;
 }

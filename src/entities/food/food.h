@@ -30,6 +30,7 @@ Nutrition:
 struct Food
 {
 	int id_ = 0; // unique food ID, relative to the food container
+	int body_id_ = 0; // unique body ID, relative to the body container
 	int age = 0;
 	int time_since_last_reproduced = 0;
 

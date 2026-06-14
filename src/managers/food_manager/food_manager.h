@@ -36,6 +36,8 @@ public:
     FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
     void  init();
 
+    bool link_food_to_body(Food* food, bool is_active);
+
     int    get_size()               const;
     void update_food_grid_renderer();
     void fill_data(FoodData& other_food_data);
