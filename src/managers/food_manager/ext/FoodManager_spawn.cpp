@@ -55,6 +55,7 @@ bool FoodManager::reproduce_food(Food* parent_food)
 
 	// setting the attributes for this new_body
 	child_body->position_ = Random::rand_pos_in_rect(spawn_rect);
+	child_body->radius_ = food_initial_radius;
 	child_food->age = 0;
 	child_food->color = Random::rand_color(food_darkest_color, food_lightest_color);
 

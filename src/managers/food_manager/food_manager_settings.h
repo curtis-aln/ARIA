@@ -32,4 +32,7 @@ struct FoodManagerSettings
 
 	inline static float death_age;
 	inline static float death_age_chance; // every frame past its death age gives it this chance of dying
+
+	inline static float food_initial_radius = 3;
+	inline static size_t food_growth_frames = 160;
 };

@@ -1,6 +1,6 @@
 #include "../food_manager.h"
 
-inline static constexpr float vibrate_freq = 0.1f;
+inline static constexpr float vibrate_freq = 0.0065f;
 
 void FoodManager::vibrate_food(Body* body, float strength)
 {
@@ -16,6 +16,8 @@ void FoodManager::update_food()
 
 		food->time_since_last_reproduced++;
 		food->age++;
+
+		update_food_size(food, body);
 
 		if (Random::rand01_float() < vibrate_freq)
 			vibrate_food(body, vibration_strength);
@@ -59,6 +61,19 @@ void FoodManager::update_food_nutrients(Food* food)
 		std::min(initial_nutrients, final_nutrients),
 		std::max(initial_nutrients, final_nutrients)
 	);
+}
+
+void FoodManager::update_food_size(Food* food, Body* body)
+{
+	// Grow from food_initial_radius to food_radius over food_growth_frames frames
+	if (food->age >= food_growth_frames)
+	{
+		body->radius_ = food_radius;
+		return;
+	}
+
+	const float t = static_cast<float>(food->age) / static_cast<float>(food_growth_frames);
+	body->radius_ = food_initial_radius + t * (food_radius - food_initial_radius);
 }
 
 void FoodManager::update_hash_grid()
@@ -112,7 +127,7 @@ bool FoodManager::link_food_to_body(Food* food, bool is_active)
 
 	// Set the initial position of the food to a random location within the world bounds
 	body->position_ = world_bounds_->rand_pos();
-	body->radius_ = food_radius;
+	body->radius_ = food_initial_radius;
 
 	return true;
 }
