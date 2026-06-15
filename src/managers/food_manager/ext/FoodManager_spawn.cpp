@@ -47,11 +47,12 @@ bool FoodManager::reproduce_food(Food* food)
 {
 	Body* body = bodies_->at(food->body_id_);
 
+	if (food_vector.can_add() == false || bodies_->can_add() == false)
+		return true;
+
 	Food* new_food = food_vector.add();
 	Body* new_body = bodies_->add();
-
-	if (new_food == nullptr)
-		return true; // max food has been reached
+	new_food->body_id_ = new_body->id_;
 
 	// spawning the food next to another existing food 
 	sf::Vector2f other_food_pos = body->position_;

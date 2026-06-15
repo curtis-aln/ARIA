@@ -54,6 +54,9 @@ bool CellManager::link_cell_to_body(Cell* cell, bool is_active)
 	{
 		return false;
 	}
+	
+	body->position_ = world_bounds_->rand_pos();
+	body->radius_ = cell->radius;
 
 	cell->body_id_ = body->id_;
 	return true;

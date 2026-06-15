@@ -168,7 +168,6 @@ Perhaps try to get them to move more fluidly, and perhaps want to stick together
 
 
 
-
-Food defo needs a lot less friction
-Reduce the launch speed when reducing friction
-my physics implementation does have elastic collision
+- the bodies dont collide with the boundaries properly
+- - they get half way pass it before being clamped
+	- - velocity isnt updated on collision only position

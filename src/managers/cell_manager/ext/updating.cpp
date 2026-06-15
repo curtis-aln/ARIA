@@ -26,15 +26,14 @@ void CellManager::update(bool update_physics_only)
 	}
 
 
-	for (Cell* cell : all_cells_)
+	if (!update_physics_only)
 	{
-		Body* body = bodies_->at(cell->body_id_);
-		body->update_physics();
-
-		if (!update_physics_only)
+		for (Cell* cell : all_cells_)
 		{
+			Body* body = bodies_->at(cell->body_id_);
 			cell->update_statistics();
 			cell->update_organics(body);
+
 		}
 	}
 

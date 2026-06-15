@@ -15,14 +15,15 @@ bool CellManager::build_protozoa()
 	{
 		const sf::Vector2f cell_pos = Random::rand_pos_in_rect(spawn_rect);
 
-		Cell* cell = all_cells_.add();
-
-		if (cell == nullptr)
+		if (all_cells_.can_add() == false || bodies_->can_add() == false)
 		{
 			return false;
 		}
 
+		Cell* cell = all_cells_.add();
 		Body* body = bodies_->add();
+
+		cell->body_id_ = body->id_;
 		cell->reset();
 		body->position_ = cell_pos;
 		cells.push_back(cell);
@@ -101,6 +102,7 @@ void CellManager::collect_reproduction_requests(std::vector<Cell*>& cells)
 
 void CellManager::apply_birth_requests(std::vector<Cell>& cells, std::vector<Spring>& springs)
 {
+	return; // todo
 	cells.reserve(cells.size() + birth_requests.size());
 	springs.reserve(springs.size() + birth_requests.size());
 
@@ -108,6 +110,10 @@ void CellManager::apply_birth_requests(std::vector<Cell>& cells, std::vector<Spr
 	{
 		cells.emplace_back();
 		Cell* offspring = &cells.back();
+
+		if (bodies_->can_add() == false)
+			return;
+
 		Body* body = bodies_->add();
 
 		cells[req.parent_cell_id].create_offspring(offspring, body);

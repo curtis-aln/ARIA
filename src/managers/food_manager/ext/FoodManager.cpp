@@ -60,14 +60,19 @@ void FoodManager::update_position_data()
 // world interacting with the food
 void FoodManager::remove_food(const int food_id)
 {
-	Body* body = bodies_->at(food_id);
+	// Fetching the food that we want to remove and using its body_id to find the body we want to remove
 	Food* food = food_vector.at(food_id);
+	Body* body = bodies_->at(food->body_id_);
+	
+	// we now reset the body and the food
 	body->position_ = { 0, 0 };
 	food->age = 0;
 	food->time_since_last_reproduced = 0;
 	food->nutrients = initial_nutrients;
+	
+	// and remove them from their respective vectors
 	food_vector.remove(food_id);
-	bodies_->remove(food_id);
+	bodies_->remove(body->id_);
 }
 
 Food* FoodManager::at(const int idx)
