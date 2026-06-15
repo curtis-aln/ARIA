@@ -8,20 +8,18 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	spatial_hash_grid(cells_x, cells_y, cell_max_capacity, world_bounds_->bounds_radius * 2, world_bounds_->bounds_radius * 2), 
 	food_grid_renderer(&spatial_hash_grid)
 {
-	food_data.positions_x.resize(max_food, {});
-	food_data.positions_y.resize(max_food, {});
-	food_data.colors.resize(max_food, {});
-	food_data.radii.resize(max_food, food_radius);
+	food_data.positions_x.reserve(max_food);
+	food_data.positions_y.reserve(max_food);
+	food_data.colors.reserve(max_food);
+	food_data.radii.reserve(max_food);
 	std::cout << "food manager containers resized FoodManager::FoodManager()\n";
 }
 
 
 void FoodManager::update()
 {
-	food_data.active_count = food_vector.size();
-
 	update_position_data();
-	spawn_food_improved(); //spawn_food();
+	let_food_reproduce();
 	update_food();
 	update_hash_grid();
 }
@@ -40,12 +38,22 @@ void FoodManager::render(const FoodData& snapshot_food_data)
 
 void FoodManager::update_position_data()
 {
+	// This function fills the food data container so it can be sent off to the rendering thread, to save on memory we resize the containers every frame
+
+	int food_count = food_vector.size();
+	food_data.positions_x.resize(food_count);
+	food_data.positions_y.resize(food_count);
+	food_data.radii.resize(food_count);
+	food_data.colors.resize(food_count);
+	food_data.active_count = food_count;
+
 	int idx = 0;
 	for (Food* food : food_vector)
 	{
 		Body* body = bodies_->at(food->body_id_);
 		food_data.positions_x[idx] = body->position_.x;
 		food_data.positions_y[idx] = body->position_.y;
+		food_data.radii[idx] = body->radius_;
 
 		sf::Color c = food->color;
 

@@ -50,7 +50,7 @@ food_visibility_ramp_frames = 90.0
 food_max_alpha           = 200.0
 
 # --- Birth ---
-spawn_proportionality_constant = 0.025
+spawn_proportionality_constant = 0.125
 food_spawn_distance      = 200.0 
 reproductive_cooldown    = 320
 reproductive_threshold   = 400

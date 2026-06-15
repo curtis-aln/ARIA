@@ -33,15 +33,51 @@ void World::update()
 
 void World::update_bodies()
 {
+	constexpr float inward_force = 0.0001f; // how strongly bodies are attracted to the centre of the sim
+
 	int idx = 0;
 	for (Body* body : bodies_)
 	{
 		body->position_ += collision_resolutions[idx]; // apply the collision resolution to the body's position
 		body->velocity_ += velocity_resolutions[idx]; // apply the velocity resolution to the body's velocity
+
+		const sf::Vector2f diff = world_circular_bounds_.center_ - body->position_;
+		const sf::Vector2f normal = diff.normalized();
+		body->velocity_ += normal * inward_force; // apply a small inward force to keep bodies from escaping the world bounds
+
 		body->update_physics();
 		idx++;
 	}
 }
+
+void World::bound_body_to_world(Body* body)
+{
+	const sf::Vector2f center = world_circular_bounds_.center_;
+	sf::Vector2f& position = body->position_;
+	const float radius = body->radius_;
+	const float world_radius = world_circular_bounds_.bounds_radius - radius;
+
+	const sf::Vector2f direction = position - center;
+	const float dist_sq = (position - center).lengthSquared();
+	const float bounds_radius = world_radius - radius - radius * 0.1f; // Ensure the entire circle stays inside
+	const float bounds_radius_sq = bounds_radius * bounds_radius;
+
+	if (dist_sq > bounds_radius_sq) // Outside the boundary
+	{
+		const float dist = std::sqrt(dist_sq);
+		sf::Vector2f normal = direction / dist; // Normalize direction
+
+		// Move the circle back inside
+		position = center + normal * bounds_radius;
+
+		// Apply velocity adjustment to prevent escaping
+		const float k = world_circular_bounds_.border_repulsion_magnitude;
+		const float diff = dist - bounds_radius;
+		body->accelerate(-normal * k * diff);
+	}
+}
+
+
 
 
 
@@ -86,7 +122,7 @@ void World::update_position_container()
 		const sf::Vector2f& pos = body->position_;
 
 		// Clamping the body into the world bounds so that the spatial grid doesn't get messed up by out-of-bounds positions
-		bound_body(body);
+		bound_body_to_world(body);
 
 		// Resetting collision resolution for this cell
 		collision_resolutions[idx] = { 0.f, 0.f };
@@ -116,22 +152,6 @@ void World::update_position_container()
 	}
 }
 
-
-void World::bound_body(Body* body)
-{
-	// keeps this body within the circular world confines
-	const sf::Vector2f& pos = body->position_;
-	const float world_rad = world_circular_bounds_.bounds_radius;
-	const sf::Vector2f diff = pos - world_circular_bounds_.center_;
-	const float dist_sq = diff.x * diff.x + diff.y * diff.y;
-	if (dist_sq > world_rad * world_rad)
-	{
-		const float dist = std::sqrt(dist_sq);
-		const float overlap = dist - world_rad;
-		const sf::Vector2f normal = diff / dist; // normalized direction from center to body
-		body->position_ -= normal * overlap; // move the body back inside the circle
-	}
-}
 
 void World::update_statistics()
 {

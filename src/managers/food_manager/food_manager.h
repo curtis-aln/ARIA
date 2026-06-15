@@ -55,14 +55,13 @@ private:
     static void  update_food_nutrients(Food* food);
     void  vibrate_food(Body* body, float strength);
     
-    void  bound_food_to_world(Food* food) const;
     void  check_food_death(const Food* food);
     void  update_hash_grid();
 
-    static void  spawn_food();
-    void  spawn_food_improved();
+    void  let_food_reproduce();
     bool  reproduce_food(Food* food);
     float calculate_spawn_chance() const;
-    static bool  can_food_reproduce(const Food* food);
-    bool  food_container_full() const;
+    static bool can_food_reproduce(const Food* food) { return food->time_since_last_reproduced >= reproductive_cooldown && food->age >= reproductive_threshold;}
+
+    bool  food_container_full() { return food_vector.size() >= max_food; }
 };

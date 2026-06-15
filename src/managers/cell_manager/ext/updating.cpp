@@ -61,32 +61,3 @@ void CellManager::check_for_extinction_event()
 
 
 }
-
-void CellManager::bound_cell(Cell* cell)
-{
-	const sf::Vector2f center = world_bounds_->center_;
-	Body* body = bodies_->at(cell->body_id_);
-	sf::Vector2f& position = body->position_;
-	const float cell_radius = cell->radius;
-	const float world_radius = world_bounds_->bounds_radius;
-
-	const sf::Vector2f direction = position - center;
-	const float dist_sq = (position - center).lengthSquared();
-	const float bounds_radius = world_radius - cell_radius - cell_radius * 0.1f; // Ensure the entire circle stays inside
-	const float bounds_radius_sq = bounds_radius * bounds_radius;
-
-	if (dist_sq > bounds_radius_sq) // Outside the boundary
-	{
-		const float dist = std::sqrt(dist_sq);
-		sf::Vector2f normal = direction / dist; // Normalize direction
-
-		// Move the circle back inside
-		position = center + normal * bounds_radius;
-
-		// Apply velocity adjustment to prevent escaping
-		const float k = world_bounds_->border_repulsion_magnitude;
-		const float diff = dist - bounds_radius;
-		body->accelerate(-normal * k * diff);
-
-	}
-}

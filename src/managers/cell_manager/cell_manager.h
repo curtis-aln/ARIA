@@ -102,7 +102,6 @@ public:
 	void update(bool update_physics_only = false);
 
 	void check_for_extinction_event();
-	void bound_cell(Cell* cell);
 
 	void register_death_stat(const float lifetime, const bool had_offspring);
 

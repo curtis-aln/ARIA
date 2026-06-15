@@ -1,5 +1,7 @@
 #include "../food_manager.h"
 
+inline static constexpr float vibrate_freq = 0.1f;
+
 void FoodManager::vibrate_food(Body* body, float strength)
 {
 	body->accelerate(Random::rand_vector(-strength, strength));
@@ -15,36 +17,16 @@ void FoodManager::update_food()
 		food->time_since_last_reproduced++;
 		food->age++;
 
-		constexpr float vibrate_freq = 0.1f;
-
-		vibrate_food(body, vibration_strength * Random::rand01_float() < vibrate_freq);
+		if (Random::rand01_float() < vibrate_freq)
+			vibrate_food(body, vibration_strength);
 
 		body->velocity_ *= friction;
-
-		bound_food_to_world(food);
 
 		update_food_nutrients(food);
 		check_food_death(food);
 	}
 }
 
-void FoodManager::bound_food_to_world(Food* food) const
-{
-	Body* body = bodies_->at(food->body_id_);
-
-	sf::Vector2f center = world_bounds_->center_;
-	const float radius = world_bounds_->bounds_radius;
-	const float dist_sq = (body->position_ - center).lengthSquared();
-
-	const float max_dist = radius - food_radius;
-
-	if (dist_sq < max_dist * max_dist)
-		return;
-
-	const sf::Vector2f to_center = center - body->position_;
-	const sf::Vector2f normal = to_center.normalized();
-	body->position_ = center + normal * max_dist;
-}
 
 void FoodManager::check_food_death(const Food* food)
 {
@@ -58,15 +40,25 @@ void FoodManager::check_food_death(const Food* food)
 
 void FoodManager::update_food_nutrients(Food* food)
 {
-	
-	const bool is_max = food->nutrients > final_nutrients;
+	// Nutrients develop from initial_nutrients toward final_nutrients over nutrient_development_time frames.
+	// Once the target is reached, no further change is applied.
+
 	const float diff = final_nutrients - initial_nutrients;
-	
+	const float increment = diff / static_cast<float>(nutrient_development_time);
 
-	const float increment = (diff / nutrient_development_time) * !is_max;
-	food->nutrients += increment;
+	const bool increasing = diff > 0.f;
+	const bool reached_target = increasing
+		? food->nutrients >= final_nutrients
+		: food->nutrients <= final_nutrients;
 
+	if (reached_target)
+		return;
 
+	food->nutrients = std::clamp(
+		food->nutrients + increment,
+		std::min(initial_nutrients, final_nutrients),
+		std::max(initial_nutrients, final_nutrients)
+	);
 }
 
 void FoodManager::update_hash_grid()

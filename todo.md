@@ -169,5 +169,7 @@ Perhaps try to get them to move more fluidly, and perhaps want to stick together
 
 
 - the bodies dont collide with the boundaries properly
-- - they get half way pass it before being clamped
-	- - velocity isnt updated on collision only position
+they get half way pass it before being clamped
+velocity isnt updated on collision only position
+
+food need to start small and grow into their normal size to stop the explosiveness issue, this is caused when a food spawns inside another food

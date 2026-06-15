@@ -105,6 +105,7 @@ public:
     // ── Update ───────────────────────────────────────────────────────────────
     void update();
     void update_bodies();
+    void bound_body_to_world(Body* body);
     void init_collision_jobs();
     void resolve_collisions_threaded();
     void resolve_collisions();
@@ -167,7 +168,6 @@ private:
     void update_nearby_container(int32_t neighbour_index_x, int32_t neighbour_index_y, FixedSpan<uint32_t>& nearby_ids);
 
     void update_position_container();
-    void bound_body(Body* body);
     void update_statistics();
 
     void render_protozoa(const SimSnapshot& snapshot, Font* font);
