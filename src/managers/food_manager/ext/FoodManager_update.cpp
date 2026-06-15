@@ -1,9 +1,8 @@
 #include "../food_manager.h"
 
-void FoodManager::vibrate_food(Food* food, float strength)
+void FoodManager::vibrate_food(Body* body, float strength)
 {
-	Body* body = bodies_->at(food->body_id_);
-	body->velocity_ += Random::rand_vector(-strength, strength);
+	body->accelerate(Random::rand_vector(-strength, strength));
 }
 
 
@@ -18,10 +17,9 @@ void FoodManager::update_food()
 
 		constexpr float vibrate_freq = 0.1f;
 
-		vibrate_food(food, vibration_strength * Random::rand01_float() < vibrate_freq);
+		vibrate_food(body, vibration_strength * Random::rand01_float() < vibrate_freq);
 
 		body->velocity_ *= friction;
-		body->position_ += body->velocity_;
 
 		bound_food_to_world(food);
 
@@ -122,6 +120,7 @@ bool FoodManager::link_food_to_body(Food* food, bool is_active)
 
 	// Set the initial position of the food to a random location within the world bounds
 	body->position_ = world_bounds_->rand_pos();
+	body->radius_ = food_radius;
 
 	return true;
 }

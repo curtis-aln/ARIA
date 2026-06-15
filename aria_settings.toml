@@ -3,9 +3,9 @@
 bounds_radius            = 15000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
-cells_x = 50
-cells_y = 50
-cell_max_capacity = 15
+cells_x = 80
+cells_y = 80
+cell_max_capacity = 20
 
 # ── Protozoa ──────────────────────────────────────────────────────────────────
 [protozoa]
@@ -27,7 +27,7 @@ initial_protozoa         = 0
 
 # ── Food Manager ──────────────────────────────────────────────────────────────────────
 [food_manager]
-max_food                 = 3000
+max_food                 = 50000
 initial_food             = 3
 
 
@@ -41,7 +41,7 @@ cell_max_capacity        = 15
 update_freq = 4
 
 # --- physics ---
-food_radius              = 30.0
+food_radius              = 60.0
 friction                 = 0.915
 vibration_strength       = 3.0
 

@@ -53,7 +53,7 @@ public:
 private:
     void  update_food();
     static void  update_food_nutrients(Food* food);
-    void  vibrate_food(Food* food, float strength);
+    void  vibrate_food(Body* body, float strength);
     
     void  bound_food_to_world(Food* food) const;
     void  check_food_death(const Food* food);

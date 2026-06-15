@@ -36,6 +36,10 @@ class World : public WorldSettings
     // Render data — written each update tick, read by the renderer.
     RenderData render_data_;
 
+    // both of these vectors are used for collision resolution
+    std::vector<sf::Vector2f> entity_positions_;
+	std::vector<float> entity_radii_;
+
     // Statistics accumulated each tick by the update thread.
     WorldStatistics statistics_{};
 

@@ -16,14 +16,19 @@ void World::update()
 	if (toggles.track_statistics)
 		update_statistics();
 
-	resolve_collisions_threaded();  
+	
+	resolve_collisions_threaded();
+
+	resolve_food_interactions_threadded();
+
 	update_bodies();
 
 	food_manager_.update();
-	resolve_food_interactions_threadded();
 
 	cell_manager_.update();
 }
+
+
 
 
 void World::update_bodies()
@@ -31,8 +36,8 @@ void World::update_bodies()
 	int idx = 0;
 	for (Body* body : bodies_)
 	{
-		body->accelerate(collision_resolutions[idx++]); 
-		body->position_ += body->velocity_;
+		body->update_physics();
+		body->position_ += collision_resolutions[idx++]; // apply the collision resolution to the body's position
 	}
 }
 
@@ -46,6 +51,9 @@ void World::update_position_container()
 	statistics_.protozoa_count = static_cast<int>(cell_manager_.all_cells_.size());
 	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
 	statistics_.entity_count = statistics_.protozoa_count + statistics_.food_count;
+
+	entity_positions_.resize(statistics_.entity_count);
+	entity_radii_.resize(statistics_.entity_count);
 
 	// Resize all containers once, only when outside the buffer band
 	const int container_size = static_cast<int>(collision_resolutions.size());
@@ -72,6 +80,8 @@ void World::update_position_container()
 
 		// Resetting collision resolution for this cell
 		collision_resolutions[idx] = { 0.f, 0.f };
+		entity_positions_[idx] = pos;
+		entity_radii_[idx] = body->radius_;
 
 		spatial_hash_grid_.add_object(pos.x, pos.y, idx);
 		++idx;

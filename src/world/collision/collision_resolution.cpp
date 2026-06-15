@@ -127,8 +127,8 @@ void World::update_nearby_container(const int32_t neighbour_index_x, const int32
 
 void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids)
 {
-	const float pos_a_x = render_data_.positions_x[protozoa_cell_index];
-	const float pos_a_y = render_data_.positions_y[protozoa_cell_index];
+	sf::Vector2f pos_a = entity_positions_[protozoa_cell_index];
+	float rad = entity_radii_[protozoa_cell_index];
 
 	for (const uint32_t id : nearby_ids)
 	{
@@ -136,14 +136,13 @@ void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<
 		if (protozoa_cell_index == id)
 			continue;
 
-		const float pos_b_x = render_data_.positions_x[id];
-		const float pos_b_y = render_data_.positions_y[id];
-
-		const float diff_x = pos_a_x - pos_b_x;
-		const float diff_y = pos_a_y - pos_b_y;
+		sf::Vector2f pos_b = entity_positions_[id];
+		sf::Vector2f diff = pos_a - pos_b;
+		const float diff_x = diff.x;
+		const float diff_y = diff.y;
 
 		const float dist_sq = diff_x * diff_x + diff_y * diff_y;
-		const float local_diam = render_data_.radii[protozoa_cell_index] + render_data_.radii[id];
+		const float local_diam = rad + entity_radii_[id];
 
 		if (dist_sq > local_diam * local_diam)
 			continue;

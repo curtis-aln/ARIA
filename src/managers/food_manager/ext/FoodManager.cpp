@@ -19,6 +19,7 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 void FoodManager::update()
 {
 	food_data.active_count = food_vector.size();
+
 	update_position_data();
 	spawn_food_improved(); //spawn_food();
 	update_food();
