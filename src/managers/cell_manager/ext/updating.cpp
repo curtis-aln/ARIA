@@ -45,16 +45,6 @@ void CellManager::update(bool update_physics_only)
 }
 
 
-void CellManager::update_cell_collisions()
-{
-	int idx = 0;
-
-	for (Body* body : *bodies_)
-	{
-		//body->accelerate(collision_resolutions[idx++]); todo
-	}
-}
-
 void CellManager::check_for_extinction_event()
 {
 	// if protozoas are still alivee or if auto reset on extinction is disabled, we dont need to do anything

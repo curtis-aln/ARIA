@@ -24,7 +24,7 @@ World::World(sf::RenderWindow* window)
     render_data_.reserve(static_cast<int>(max_circles));
     distribution_.reserve(max_circles);
     inner_radii_.resize(max_circles);
-    cell_manager_.collision_resolutions.resize(max_circles);
+    collision_resolutions.resize(max_circles);
 }
 
 void World::init_circle_renderers()
@@ -55,20 +55,20 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
     outer_circle_renderer_.set_positions_y(snapshot.render.positions_y);
     outer_circle_renderer_.set_radii(snapshot.render.radii);
 
-    outer_circle_renderer_.set_size(snapshot.stats.entity_count);
+    outer_circle_renderer_.set_size(snapshot.stats.protozoa_count);
 	outer_circle_renderer_.update();
     outer_circle_renderer_.render();
 
     if (!toggles.simple_mode)
     {
-        for (int i = 0; i < snapshot.stats.entity_count; ++i)
+        for (int i = 0; i < snapshot.stats.protozoa_count; ++i)
             inner_radii_[i] = snapshot.render.radii[i] / GraphicalSettings::cell_outline_thickness;
 
         inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
         inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
         inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
         inner_circle_renderer_.set_radii(inner_radii_);
-        inner_circle_renderer_.set_size(snapshot.stats.entity_count);
+        inner_circle_renderer_.set_size(snapshot.stats.protozoa_count);
         inner_circle_renderer_.update();
         inner_circle_renderer_.render();
     }
@@ -200,7 +200,7 @@ void World::advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data)
 
 void World::fill_snapshot(SimSnapshot& snapshot)
 {
-    const int n = statistics_.entity_count;
+    const int n = statistics_.protozoa_count;
 
     snapshot.render.positions_x.resize(n);
     snapshot.render.positions_y.resize(n);
@@ -213,12 +213,14 @@ void World::fill_snapshot(SimSnapshot& snapshot)
     std::memcpy(snapshot.render.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
     std::memcpy(snapshot.render.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
     std::memcpy(snapshot.render.radii.data(), render_data_.radii.data(), n * sizeof(float));
-    snapshot.render.entity_count = n;
+    snapshot.stats.protozoa_count = n;
 
     snapshot.stats = get_statistics();
     snapshot.toggles = toggles;
 	snapshot.stats.protozoa_count = cell_manager_.get_protozoa_count();
 	snapshot.stats.food_count = food_manager_.get_food_vector().size();
+	snapshot.stats.entity_count = snapshot.stats.protozoa_count + snapshot.stats.food_count;
+
 	snapshot.stats.average_generation = cell_manager_.calculate_average_generation();
     snapshot.stats.average_lifetime = cell_manager_.average_lifetime_;
     snapshot.stats.longest_lived_ever = cell_manager_.longest_lived_ever_;

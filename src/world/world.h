@@ -80,6 +80,10 @@ class World : public WorldSettings
     std::vector<std::function<void()>> collision_jobs_;
     std::vector<std::function<void()>> food_jobs_;
 
+    // every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
+    // this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
+    alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
+
 	OrganismTracker protozoa_tracker_{};
 
 public:
@@ -94,6 +98,7 @@ public:
 
     // ── Update ───────────────────────────────────────────────────────────────
     void update();
+    void update_bodies();
     void init_collision_jobs();
     void resolve_collisions_threaded();
     void resolve_collisions();
@@ -156,6 +161,7 @@ private:
     void update_nearby_container(int32_t neighbour_index_x, int32_t neighbour_index_y, FixedSpan<uint32_t>& nearby_ids);
 
     void update_position_container();
+    void bound_body(Body* body);
     void update_statistics();
 
     void render_protozoa(const SimSnapshot& snapshot, Font* font);

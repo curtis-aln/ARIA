@@ -119,5 +119,9 @@ bool FoodManager::link_food_to_body(Food* food, bool is_active)
 		return false;
 	}
 	food->body_id_ = body->id_;
+
+	// Set the initial position of the food to a random location within the world bounds
+	body->position_ = world_bounds_->rand_pos();
+
 	return true;
 }

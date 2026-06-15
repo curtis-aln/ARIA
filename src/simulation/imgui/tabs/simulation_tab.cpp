@@ -6,6 +6,19 @@
 
 void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
+    auto slider_float_cmd = [&](const char* label, float current, float min, float max,
+        const char* fmt, CommandType type)
+        {
+            float val = current;
+            if (ImGui::SliderFloat(label, &val, min, max, fmt))
+            {
+                SimCommand cmd;
+                cmd.type = type;
+                cmd.float_val = val;
+                ctx.push(cmd);
+            }
+        };
+
     // ── 4 panels: Playback | Fast Forward | World Settings | Save/Load + Keybinds
     const float total = ImGui::GetContentRegionAvail().x;
     const float sp = ImGui::GetStyle().ItemSpacing.x;
@@ -39,7 +52,23 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     ImGui::Spacing();
     ImGui::SetNextItemWidth(-1.f);
-    ImGui::SliderFloat("##speed", &m_speed_, 0.1f, 10.f, "Speed %.1fx");
+
+    {
+        constexpr float kSliderMax = 210.f; // top 10 units = "Max" zone
+        constexpr float kMaxThreshold = 200.f;
+
+        const bool is_unlimited = snap.toggles.max_frame_rate <= 0.f;
+        float fps_val = is_unlimited ? kSliderMax : snap.toggles.max_frame_rate;
+
+        const char* fmt = is_unlimited ? "sim max fps: MAX" : "sim max fps %.1f";
+
+        if (ImGui::SliderFloat("##fps", &fps_val, 30.f, kSliderMax, fmt))
+        {
+            SimCommand cmd{ CommandType::SetFrameRate };
+            cmd.float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val;
+            ctx.push(cmd);
+        }
+    }
 
     ImGui::Spacing();
     if (ImGui::Button("Reset Simulation", { -1.f, 0.f }))
@@ -81,23 +110,13 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::Separator();
 
     ImGui::SetNextItemWidth(-1.f);
-    auto slider_float_cmd = [&](const char* label, float current, float min, float max,
-        const char* fmt, CommandType type)
-        {
-            float val = current;
-            if (ImGui::SliderFloat(label, &val, min, max, fmt))
-            {
-                SimCommand cmd;
-                cmd.type = type;
-                ctx.push(cmd);
-            }
-        };
-    slider_float_cmd("##minsp", snap.toggles.min_speed, 0.f, 135.f, "Min Speed %.1f", CommandType::SetToggles);
+    
+    //slider_float_cmd("##minsp", snap.toggles.min_speed, 0.f, 135.f, "Min Speed %.1f", CommandType::SetToggles);
 	
     float ds = snap.toggles.delta_min_speed * 1000.f;
     ImGui::SetNextItemWidth(-1.f);
 
-	slider_float_cmd("##dsp", ds, 0.2f, 2.f, "Delta Spd %.3f", CommandType::SetToggles);
+	//slider_float_cmd("##dsp", ds, 0.2f, 2.f, "Delta Spd %.3f", CommandType::SetToggles);
 
     static float world_radius = WorldSettings::bounds_radius;
     ImGui::SetNextItemWidth(-1.f);

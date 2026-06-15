@@ -45,6 +45,11 @@ void Simulation::run_simulation()
 
 void Simulation::update_one_frame()
 {
+    if (m_world_.toggles.max_frame_rate != 0)
+    {
+        m_frame_rater_.sleep();
+    }
+
     resolve_modifications();
 
     if (m_world_.toggles.m_tick_frame_time)
@@ -103,6 +108,11 @@ void Simulation::resolve_modifications()
             case CommandType::SetToggles:
                 m_world_.toggles = cmd.toggles;
                 break;
+
+			case CommandType::SetFrameRate:
+                m_world_.toggles.max_frame_rate = cmd.float_val;
+				m_frame_rater_.set_fps(cmd.float_val);
+				break;
 
             //case CommandType::SetRadius:
             //    if (selected_protozoa)

@@ -82,10 +82,6 @@ public:
 	o_vector<Cell> all_cells_;
 	o_vector<Spring> all_springs_;
 
-	// every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
-	// this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
-	alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
-
 
 	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
 
@@ -105,7 +101,6 @@ public:
 
 	void update(bool update_physics_only = false);
 
-	void update_cell_collisions();
 	void check_for_extinction_event();
 	void bound_cell(Cell* cell);
 

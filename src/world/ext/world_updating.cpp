@@ -17,7 +17,7 @@ void World::update()
 		update_statistics();
 
 	resolve_collisions_threaded();  
-	cell_manager_.update_cell_collisions();
+	update_bodies();
 
 	food_manager_.update();
 	resolve_food_interactions_threadded();
@@ -26,19 +26,33 @@ void World::update()
 }
 
 
+void World::update_bodies()
+{
+	int idx = 0;
+	for (Body* body : bodies_)
+	{
+		body->accelerate(collision_resolutions[idx++]); 
+		body->position_ += body->velocity_;
+	}
+}
+
+
+
 void World::update_position_container()
 {
 	spatial_hash_grid_.clear();
 
-	// Single pass: count cells
-	statistics_.entity_count = cell_manager_.all_cells_.size();
+	// Single pass: count cells and food
+	statistics_.protozoa_count = static_cast<int>(cell_manager_.all_cells_.size());
+	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
+	statistics_.entity_count = statistics_.protozoa_count + statistics_.food_count;
 
 	// Resize all containers once, only when outside the buffer band
-	const int container_size = static_cast<int>(cell_manager_.collision_resolutions.size());
+	const int container_size = static_cast<int>(collision_resolutions.size());
 	if (statistics_.entity_count > container_size || statistics_.entity_count < container_size - 100)
 	{
 		const int new_size = statistics_.entity_count + 100;
-		cell_manager_.collision_resolutions.resize(new_size);
+		collision_resolutions.resize(new_size);
 		render_data_.outer_colors.resize(new_size);
 		render_data_.inner_colors.resize(new_size);
 		render_data_.positions_x.resize(new_size);
@@ -48,28 +62,52 @@ void World::update_position_container()
 
 	// Single pass: populate everything, zero collision data inline
 	int idx = 0;
-	for (Cell* cell : cell_manager_.all_cells_)
+	for (Body* body : bodies_)
 	{
 		// Fetching the cell's position from the body vector
-		const sf::Vector2f& pos = bodies_.at(cell->body_id_)->position_;
+		const sf::Vector2f& pos = body->position_;
 
-		// Clamping the cell into the world bounds so that the spatial grid doesn't get messed up by out-of-bounds positions
-		cell_manager_.bound_cell(cell);
-
-		render_data_.outer_colors[idx] = cell->get_outer_color();
-		render_data_.inner_colors[idx] = cell->get_inner_color();
-		render_data_.positions_x[idx] = pos.x;
-		render_data_.positions_y[idx] = pos.y;
-		render_data_.radii[idx] = cell->radius;
+		// Clamping the body into the world bounds so that the spatial grid doesn't get messed up by out-of-bounds positions
+		bound_body(body);
 
 		// Resetting collision resolution for this cell
-		cell_manager_.collision_resolutions[idx] = { 0.f, 0.f };
+		collision_resolutions[idx] = { 0.f, 0.f };
 
 		spatial_hash_grid_.add_object(pos.x, pos.y, idx);
 		++idx;
 	}
+
+	// updating render data
+	int i = 0;
+	for (Cell* cell : cell_manager_.all_cells_)
+	{
+		const Body* body = bodies_.at(cell->body_id_);
+
+		render_data_.outer_colors[i] = cell->get_outer_color();
+		render_data_.inner_colors[i] = cell->get_inner_color();
+		render_data_.positions_x[i] = body->position_.x;
+		render_data_.positions_y[i] = body->position_.y;
+		render_data_.radii[i] = cell->radius;
+		i++;
+	}
 }
 
+
+void World::bound_body(Body* body)
+{
+	// keeps this body within the circular world confines
+	const sf::Vector2f& pos = body->position_;
+	const float world_rad = world_circular_bounds_.bounds_radius;
+	const sf::Vector2f diff = pos - world_circular_bounds_.center_;
+	const float dist_sq = diff.x * diff.x + diff.y * diff.y;
+	if (dist_sq > world_rad * world_rad)
+	{
+		const float dist = std::sqrt(dist_sq);
+		const float overlap = dist - world_rad;
+		const sf::Vector2f normal = diff / dist; // normalized direction from center to body
+		body->position_ -= normal * overlap; // move the body back inside the circle
+	}
+}
 
 void World::update_statistics()
 {

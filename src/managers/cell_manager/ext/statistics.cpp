@@ -2,8 +2,7 @@
 
 int CellManager::get_protozoa_count() const
 {
-	return 1; // todo
-	//return all_protozoa_.size();
+	return all_cells_.size();
 }
 
 float CellManager::calculate_average_generation() const

@@ -6,6 +6,7 @@
 
 #include "../Utils/time.h"
 #include "../Utils/fps_manager.h"
+#include "../Utils/fps_limiter.h"
 #include "../Utils/UI/Camera.hpp"
 
 #include <imgui-SFML.h>
@@ -38,6 +39,8 @@ class Simulation : SimulationSettings, TextSettings
     sf::RenderWindow m_window_{ videoMode, "Project ARIA", windowStyle };
 
     FrameRateSmoothing<frame_smoothing> m_clock_{};
+	frame_rater m_frame_rater_{ 60 }; // used to cap the frame rate in the update thread
+
     Camera camera_{ &m_window_, 1.f };
 
     StopWatch m_delta_time_{};
