@@ -36,9 +36,10 @@ class World : public WorldSettings
     // Render data — written each update tick, read by the renderer.
     RenderData render_data_;
 
-    // both of these vectors are used for collision resolution
-    std::vector<sf::Vector2f> entity_positions_;
-	std::vector<float> entity_radii_;
+    // these vectors are used for collision resolution
+    alignas(64) std::vector<sf::Vector2f> entity_positions_;
+    alignas(64) std::vector<sf::Vector2f> entity_velocities_;
+    alignas(64) std::vector<float> entity_radii_;
 
     // Statistics accumulated each tick by the update thread.
     WorldStatistics statistics_{};
@@ -87,6 +88,7 @@ class World : public WorldSettings
     // every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
     // this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
     alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
+    alignas(64) std::vector<sf::Vector2f> velocity_resolutions{};
 
 	OrganismTracker protozoa_tracker_{};
 

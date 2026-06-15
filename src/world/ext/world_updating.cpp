@@ -36,8 +36,10 @@ void World::update_bodies()
 	int idx = 0;
 	for (Body* body : bodies_)
 	{
+		body->position_ += collision_resolutions[idx]; // apply the collision resolution to the body's position
+		body->velocity_ += velocity_resolutions[idx]; // apply the velocity resolution to the body's velocity
 		body->update_physics();
-		body->position_ += collision_resolutions[idx++]; // apply the collision resolution to the body's position
+		idx++;
 	}
 }
 
@@ -54,19 +56,27 @@ void World::update_position_container()
 
 	entity_positions_.resize(statistics_.entity_count);
 	entity_radii_.resize(statistics_.entity_count);
+	entity_velocities_.resize(statistics_.entity_count);
+	velocity_resolutions.resize(statistics_.entity_count);
+	collision_resolutions.resize(statistics_.entity_count);
+	render_data_.outer_colors.resize(statistics_.entity_count);
+	render_data_.inner_colors.resize(statistics_.entity_count);
+	render_data_.positions_x.resize(statistics_.entity_count);
+	render_data_.positions_y.resize(statistics_.entity_count);
+	render_data_.radii.resize(statistics_.entity_count);
 
 	// Resize all containers once, only when outside the buffer band
-	const int container_size = static_cast<int>(collision_resolutions.size());
-	if (statistics_.entity_count > container_size || statistics_.entity_count < container_size - 100)
-	{
-		const int new_size = statistics_.entity_count + 100;
-		collision_resolutions.resize(new_size);
-		render_data_.outer_colors.resize(new_size);
-		render_data_.inner_colors.resize(new_size);
-		render_data_.positions_x.resize(new_size);
-		render_data_.positions_y.resize(new_size);
-		render_data_.radii.resize(new_size);
-	}
+	//const int container_size = static_cast<int>(collision_resolutions.size());
+	//if (statistics_.entity_count > container_size || statistics_.entity_count < container_size - 100)
+	//{
+	//	const int new_size = statistics_.entity_count + 100;
+	//	collision_resolutions.resize(new_size);
+	//	render_data_.outer_colors.resize(new_size);
+	//	render_data_.inner_colors.resize(new_size);
+	//	render_data_.positions_x.resize(new_size);
+	//	render_data_.positions_y.resize(new_size);
+	//	render_data_.radii.resize(new_size);
+	//}
 
 	// Single pass: populate everything, zero collision data inline
 	int idx = 0;
@@ -80,7 +90,11 @@ void World::update_position_container()
 
 		// Resetting collision resolution for this cell
 		collision_resolutions[idx] = { 0.f, 0.f };
+		velocity_resolutions[idx] = { 0.f, 0.f };
+
 		entity_positions_[idx] = pos;
+
+		entity_velocities_[idx] = body->velocity_;
 		entity_radii_[idx] = body->radius_;
 
 		spatial_hash_grid_.add_object(pos.x, pos.y, idx);

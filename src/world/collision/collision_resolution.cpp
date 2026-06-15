@@ -127,40 +127,73 @@ void World::update_nearby_container(const int32_t neighbour_index_x, const int32
 
 void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids)
 {
+	// Fetching information on the Focus particle
 	sf::Vector2f pos_a = entity_positions_[protozoa_cell_index];
-	float rad = entity_radii_[protozoa_cell_index];
+	const float rad_a = entity_radii_[protozoa_cell_index];
+	const float mass_a = rad_a; // mass ∝ radius
 
+	// For each particle which is nearby this one
 	for (const uint32_t id : nearby_ids)
 	{
-		// check if the cells are the same
 		if (protozoa_cell_index == id)
 			continue;
-
-		sf::Vector2f pos_b = entity_positions_[id];
-		sf::Vector2f diff = pos_a - pos_b;
+		
+		// Calculate the distance between the two particles
+		const sf::Vector2f pos_b = entity_positions_[id];
+		const sf::Vector2f diff = pos_a - pos_b;
 		const float diff_x = diff.x;
 		const float diff_y = diff.y;
 
 		const float dist_sq = diff_x * diff_x + diff_y * diff_y;
-		const float local_diam = rad + entity_radii_[id];
+		const float rad_b = entity_radii_[id];
+		const float local_diam = rad_a + rad_b;
 
+		// if the distance is greater than the sum of the radii, they are not colliding
 		if (dist_sq > local_diam * local_diam)
 			continue;
 
-		// Cells are not the same & they are intersecting
+		// if the distance is zero, we have a problem, so skip this collision
 		const float dist = std::sqrt(dist_sq);
-		if (dist == 0.0f) // Prevent division by zero
+		if (dist == 0.0f)
 			continue;
 
-		// Compute the overlap
+		// Positional resolution
 		const float overlap = local_diam - dist;
+		const sf::Vector2f normal = sf::Vector2f(diff_x, diff_y) / dist;
 
-		// Compute the collision normal
-		const sf::Vector2f collisionNormal = sf::Vector2f(diff_x, diff_y) / dist;
+		const float correction_factor = 0.3f;
+		collision_resolutions[protozoa_cell_index] += normal * (overlap * 0.5f * correction_factor);
+		collision_resolutions[id] -= normal * (overlap * 0.5f * correction_factor);
 
-		// Move the cells apart
-		collision_resolutions[protozoa_cell_index] += collisionNormal * (overlap * 0.5f);
-	}
+		//Velocity resolution (inelastic impulse)
+		const float mass_b = rad_b;
+		const float total_mass = mass_a + mass_b;
+		const float inv_total = 1.0f / total_mass;
+
+		// Relative velocity along the collision normal
+		const sf::Vector2f vel_a = entity_velocities_[protozoa_cell_index];
+		const sf::Vector2f vel_b = entity_velocities_[id];
+		const float rel_vel_n = (vel_a - vel_b).x * normal.x + (vel_a - vel_b).y * normal.y;
+
+		// Only resolve if cells are approaching
+		if (rel_vel_n >= 0.0f)
+			continue;
+
+		// Coefficient of restitution < 1 → inelastic
+		constexpr float restitution = 0.1f;
+
+		// Each particle gets a share weighted by the *other* particle's mass fraction
+		const float overlap_ratio = overlap / local_diam; // 0..1
+		const float impulse_scalar = -(1.0f + restitution) * rel_vel_n * overlap_ratio;
+
+		const sf::Vector2f impulse = normal * impulse_scalar;
+
+		const sf::Vector2f resolution_a = impulse * (mass_b * inv_total);
+		const sf::Vector2f resolution_b = impulse * (mass_a * inv_total);
+
+		velocity_resolutions[protozoa_cell_index] += resolution_a * 0.5f;
+		velocity_resolutions[id] -= resolution_b * 0.5f;
+	} 
 }
 
 void World::build_color_groups()

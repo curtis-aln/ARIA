@@ -24,13 +24,20 @@ World::World(sf::RenderWindow* window)
     render_data_.reserve(static_cast<int>(max_circles));
     distribution_.reserve(max_circles);
     inner_radii_.resize(max_circles);
+
     collision_resolutions.resize(max_circles);
+    velocity_resolutions.resize(max_circles);
 }
 
 void World::init_circle_renderers()
 {
 	outer_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
 	inner_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
+
+	const int max_entities = CellManagerSettings::max_protozoa + FoodManagerSettings::max_food;
+    entity_positions_.reserve(max_entities);
+	entity_velocities_.reserve(max_entities);
+	entity_radii_.reserve(max_entities);
 }
 
 

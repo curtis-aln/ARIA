@@ -164,4 +164,11 @@ Todo when next logged on:
 
 # Note for next visit
 Ive been working on getting the food to collide with eachover properly, i think an issue is with how eradically they move, 
-Perhaps try to get them to move more fluidly, and perhaps want to stick together if touching 
+Perhaps try to get them to move more fluidly, and perhaps want to stick together if touching
+
+
+
+
+Food defo needs a lot less friction
+Reduce the launch speed when reducing friction
+my physics implementation does have elastic collision

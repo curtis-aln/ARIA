@@ -64,7 +64,7 @@ bool FoodManager::reproduce_food(Food* food)
 	new_food->color = Random::rand_color(food_darkest_color, food_lightest_color);
 
 	// small chance of it spawning with a high velocity
-	float food_launch_strength = 288.f;
+	float food_launch_strength = 88.f;
 	float food_launch_chance = 0.05f;
 
 	if (Random::rand01_float() < food_launch_chance)
