@@ -163,9 +163,10 @@ Todo when next logged on:
 
 
 # Note for next visit
-Ive been working on getting the food to collide with eachover properly, i think an issue is with how eradically they move, 
-Perhaps try to get them to move more fluidly, and perhaps want to stick together if touching
+[Empty] (duh)
 
 
-
-food need to start small and grow into their normal size to stop the explosiveness issue, this is caused when a food spawns inside another food
+The food's radius should be preportional (make a constant) to how much nutrients it has, if its current nutrients drops below its initial nutrients it dies
+When a cell is old enough to die its nutrients start dropping, until it reaches the condition stated above. so it will shrink out of existence
+when a cell is in the death stage, only then can its transparency go from its current value to zero as its nutrients falls from e.g. 60 (make this a varible)
+down to init_nutrients where its alpha value should be zero

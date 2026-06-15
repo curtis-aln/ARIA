@@ -38,8 +38,6 @@ void FoodManager::render(const FoodData& snapshot_food_data)
 
 void FoodManager::update_position_data()
 {
-	// This function fills the food data container so it can be sent off to the rendering thread, to save on memory we resize the containers every frame
-
 	int food_count = food_vector.size();
 	food_data.positions_x.resize(food_count);
 	food_data.positions_y.resize(food_count);
@@ -57,8 +55,24 @@ void FoodManager::update_position_data()
 
 		sf::Color c = food->color;
 
-		float age = static_cast<float>(food->age);
-		c.a = std::min(age / kFoodVisibilityRampFrames, 1.f) * kFoodMaxAlpha;
+		const bool is_dying = food->age >= death_age;
+
+		if (!is_dying)
+		{
+			// Fade in over the first kFoodVisibilityRampFrames frames
+			const float t = std::min(static_cast<float>(food->age) / kFoodVisibilityRampFrames, 1.f);
+			c.a = static_cast<uint8_t>(t * kFoodMaxAlpha);
+		}
+		else
+		{
+			// Fade out as nutrients fall from fade_start_nutrients down to initial_nutrients
+			const float range = fade_start_nutrients - initial_nutrients;
+			const float t = std::clamp(
+				(food->nutrients - initial_nutrients) / range,
+				0.f, 1.f
+			);
+			c.a = static_cast<uint8_t>(t * kFoodMaxAlpha);
+		}
 
 		food_data.colors[idx] = c;
 		idx++;

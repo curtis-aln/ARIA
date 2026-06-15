@@ -30,12 +30,11 @@ void FoodManager::update_food()
 }
 
 
+
 void FoodManager::check_food_death(const Food* food)
 {
-	if (food->age < death_age)
-		return;
-
-	if (Random::rand01_float() < death_age_chance)
+	// Food dies when its nutrients drop below initial_nutrients (shrunk out of existence)
+	if (food->nutrients < initial_nutrients)
 		remove_food(food->id_);
 }
 
@@ -44,7 +43,20 @@ void FoodManager::update_food_nutrients(Food* food)
 {
 	// Nutrients develop from initial_nutrients toward final_nutrients over nutrient_development_time frames.
 	// Once the target is reached, no further change is applied.
+	// When the food is old enough to die, nutrients start dropping back down instead.
 
+	const bool is_dying = food->age >= death_age;
+
+	if (is_dying)
+	{
+		// Drain nutrients at the same rate they developed, until hitting initial_nutrients
+		const float drain_rate = (final_nutrients - initial_nutrients)
+			/ static_cast<float>(nutrient_development_time);
+		food->nutrients -= drain_rate;
+		return;
+	}
+
+	// Normal development toward final_nutrients
 	const float diff = final_nutrients - initial_nutrients;
 	const float increment = diff / static_cast<float>(nutrient_development_time);
 
@@ -65,15 +77,8 @@ void FoodManager::update_food_nutrients(Food* food)
 
 void FoodManager::update_food_size(Food* food, Body* body)
 {
-	// Grow from food_initial_radius to food_radius over food_growth_frames frames
-	if (food->age >= food_growth_frames)
-	{
-		body->radius_ = food_radius;
-		return;
-	}
-
-	const float t = static_cast<float>(food->age) / static_cast<float>(food_growth_frames);
-	body->radius_ = food_initial_radius + t * (food_radius - food_initial_radius);
+	// Radius is directly proportional to current nutrients
+	body->radius_ = food->nutrients * nutrients_to_radius_scale;
 }
 
 void FoodManager::update_hash_grid()
