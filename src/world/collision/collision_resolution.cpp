@@ -5,7 +5,7 @@ void World::init_collision_jobs()
 	build_color_groups();
 	collision_jobs_.clear();
 
-	// Build jobs grouped by colour, threads within each colour run in parallel
+	int thread_id = 0;
 	for (auto& group : collision_color_groups)
 	{
 		const int group_size = static_cast<int>(group.size());
@@ -19,21 +19,24 @@ void World::init_collision_jobs()
 			if (begin >= group_size) break;
 			const int end = std::min(begin + chunk, group_size);
 
-			collision_jobs_.emplace_back([this, &group, begin, end]
+			collision_jobs_.emplace_back([this, &group, begin, end, t]  // capture t as thread id
 				{
 					thread_local FixedSpan<uint32_t> local_nearby_ids = tl_nearby_ids;
 					for (int i = begin; i < end; ++i)
-						update_cells_in_grid_cell(group[i], local_nearby_ids);
+						update_cells_in_grid_cell(group[i], local_nearby_ids, t);
 				});
 		}
 	}
-	colour_job_boundaries_.push_back(static_cast<int>(collision_jobs_.size())); // sentinel
+	colour_job_boundaries_.push_back(static_cast<int>(collision_jobs_.size()));
 }
 
 
-void World::resolve_collisions_threaded()
+void World::calculate_collision_resolutions()
 {
 	if (!toggles.toggle_collisions) return;
+
+	// Zero the thread buffers once at the start
+	const int entity_count = statistics_.entity_count;
 
 	for (int c = 0; c < static_cast<int>(colour_job_boundaries_.size()) - 1; ++c)
 	{
@@ -51,16 +54,11 @@ void World::resolve_collisions()
 	if (!toggles.toggle_collisions)
 		return;
 
-	
-	for (int cell_id = 0; cell_id < spatial_hash_grid_.CellsX * spatial_hash_grid_.CellsY; ++cell_id)
-	{
-		update_cells_in_grid_cell(cell_id, tl_nearby_ids);
-	}
 }
 
-void World::update_cells_in_grid_cell(const int grid_cell_id, FixedSpan<uint32_t>& nearby_ids)
+// collision_resolution.cpp
+void World::update_cells_in_grid_cell(const int grid_cell_id, FixedSpan<uint32_t>& nearby_ids, const int thread_id)
 {
-	// if the grid cell is empty, dont bother
 	if (spatial_hash_grid_.cell_capacities[grid_cell_id] == 0)
 		return;
 
@@ -97,15 +95,11 @@ void World::update_cells_in_grid_cell(const int grid_cell_id, FixedSpan<uint32_t
 	// Top-right
 	update_nearby_container(cell_index_x + 1, cell_index_y - 1, nearby_ids);
 
-
 	const uint8_t cell_size = spatial_hash_grid_.cell_capacities[grid_cell_id];
-
 	const obj_idx* cell_contents = &spatial_hash_grid_.grid[grid_cell_id * spatial_hash_grid_.cell_max_capacity];
 
 	for (uint8_t idx = 0; idx < cell_size; ++idx)
-	{
-		update_protozoa_cell(cell_contents[idx], nearby_ids);
-	}
+		update_protozoa_cell(cell_contents[idx], nearby_ids, thread_id);
 }
 
 
@@ -125,7 +119,7 @@ void World::update_nearby_container(const int32_t neighbour_index_x, const int32
 		nearby_ids.add(contents[idx]);
 }
 
-void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids)
+void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids, const int thread_id)
 {
 	// Fetching information on the Focus particle
 	sf::Vector2f pos_a = entity_positions_[protozoa_cell_index];
@@ -160,19 +154,28 @@ void World::update_protozoa_cell(const int protozoa_cell_index, const FixedSpan<
 		// Positional resolution
 		const float overlap = local_diam - dist;
 		const sf::Vector2f normal = sf::Vector2f(diff_x, diff_y) / dist;
-
 		const float correction_factor = 0.3f;
-		collision_resolutions[protozoa_cell_index] += normal * (overlap * 0.5f * correction_factor);
-		collision_resolutions[id] -= normal * (overlap * 0.5f * correction_factor);
+		const sf::Vector2f collision = normal * (overlap * 0.5f * correction_factor);
+
+		collision_resolutions[protozoa_cell_index] += collision;
+		collision_resolutions[id] -= collision;
 
 		//Velocity resolution (inelastic impulse)
+		// if the velocity is too small we neglect it
+		const sf::Vector2f vel_a = entity_velocities_[protozoa_cell_index];
+		const sf::Vector2f vel_b = entity_velocities_[id];
+
+		const float too_slow = 4.f;
+		if (std::abs(vel_a.x) < too_slow && std::abs(vel_a.y) < too_slow &&
+			std::abs(vel_b.x) < too_slow && std::abs(vel_b.y) < too_slow)
+			continue;
+
 		const float mass_b = rad_b;
 		const float total_mass = mass_a + mass_b;
 		const float inv_total = 1.0f / total_mass;
 
 		// Relative velocity along the collision normal
-		const sf::Vector2f vel_a = entity_velocities_[protozoa_cell_index];
-		const sf::Vector2f vel_b = entity_velocities_[id];
+		
 		const float rel_vel_n = (vel_a - vel_b).x * normal.x + (vel_a - vel_b).y * normal.y;
 
 		// Only resolve if cells are approaching

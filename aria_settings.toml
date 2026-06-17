@@ -1,11 +1,11 @@
 # ── World ─────────────────────────────────────────────────────────────────────
 [world]
-bounds_radius            = 15000
+bounds_radius            = 55000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
-cells_x = 95
-cells_y = 95
-cell_max_capacity = 25
+cells_x = 500
+cells_y = 500
+cell_max_capacity = 4
 
 # ── Protozoa ──────────────────────────────────────────────────────────────────
 [protozoa]
@@ -22,13 +22,13 @@ initial_energy           = 70.0
 
 # ── Cell Manager ──────────────────────────────────────────────────────────────────────
 [cell_manager]
-max_protozoa             = 10000
-initial_protozoa         = 10000
+max_protozoa             = 200_000
+initial_protozoa         = 200_000
 
 # ── Food Manager ──────────────────────────────────────────────────────────────────────
 [food_manager]
-max_food                 = 13000
-initial_food             = 3
+max_food                 = 300_000
+initial_food             = 300_000
 
 
 # ── Food ──────────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ death_age_chance         = 0.01
 [graphical]
 spring_thickness         = 9.0
 spring_outline_thickness = 6.0
-cell_outline_thickness   = 1.0
+cell_outline_thickness   = 1.3
 food_transparency        = 200
 
 # ── Simulation ────────────────────────────────────────────────────────────────

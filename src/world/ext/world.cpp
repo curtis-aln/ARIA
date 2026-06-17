@@ -6,8 +6,8 @@
 #include "../../entities/cell/cell_genome.h"
 #include "simulation/settings/settings.h"
 
-thread_local FixedSpan<uint32_t> World::tl_nearby_ids{100};
-thread_local FixedSpan<obj_idx> World::tl_nearby_food{100};
+thread_local FixedSpan<uint32_t> World::tl_nearby_ids{25};
+thread_local FixedSpan<obj_idx> World::tl_nearby_food{25};
 
 World::World(sf::RenderWindow* window)
     : m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.bounds_radius, world_circular_bounds_.center_))
@@ -25,8 +25,8 @@ World::World(sf::RenderWindow* window)
     distribution_.reserve(max_circles);
     inner_radii_.resize(max_circles);
 
-    collision_resolutions.resize(max_circles);
     velocity_resolutions.resize(max_circles);
+    collision_resolutions.resize(max_circles);
 }
 
 void World::init_circle_renderers()
@@ -55,31 +55,45 @@ void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f m
     m_window_->draw(world_border_renderer_);
 }
 
+
 void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 {
+    int cell_count = snapshot.stats.cell_count;
+
+    // If simple mode is not enabled, the inner circles of the cells are rendered. 
+    // The inner circles are scaled down by a factor defined in the graphical settings to create a visual distinction between the outer and inner parts of the cells.
+    if (!toggles.simple_mode)
+    {
+        inner_radii_.resize(snapshot.render.radii.size());
+
+        for (int i = 0; i < cell_count; ++i)
+            inner_radii_[i] = snapshot.render.radii[i] / GraphicalSettings::cell_outline_thickness;
+
+        inner_circle_renderer_.set_size(cell_count);
+        inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
+        inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
+        inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
+        inner_circle_renderer_.set_radii(inner_radii_);
+
+        inner_circle_renderer_.update();
+        inner_circle_renderer_.render();
+    }
+
+
+	// The rendering of cells happens in two stages: first the outer circles are rendered, then the inner circles. 
+    // The outer circles represent the cell's outer boundary, while the inner circles represent the cell's inner content. 
+    // The rendering is done using a batch renderer for efficiency.
+    outer_circle_renderer_.set_size(cell_count);
     outer_circle_renderer_.set_colors(snapshot.render.outer_colors);
     outer_circle_renderer_.set_positions_x(snapshot.render.positions_x);
     outer_circle_renderer_.set_positions_y(snapshot.render.positions_y);
     outer_circle_renderer_.set_radii(snapshot.render.radii);
 
-    outer_circle_renderer_.set_size(snapshot.stats.protozoa_count);
 	outer_circle_renderer_.update();
     outer_circle_renderer_.render();
 
-    if (!toggles.simple_mode)
-    {
-        for (int i = 0; i < snapshot.stats.protozoa_count; ++i)
-            inner_radii_[i] = snapshot.render.radii[i] / GraphicalSettings::cell_outline_thickness;
 
-        inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
-        inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
-        inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
-        inner_circle_renderer_.set_radii(inner_radii_);
-        inner_circle_renderer_.set_size(snapshot.stats.protozoa_count);
-        inner_circle_renderer_.update();
-        inner_circle_renderer_.render();
-    }
-
+	// If a protozoa is selected and debug mode is enabled, draw additional debug information for the selected protozoa.
     if (snapshot.protozoa_tracker.id != -1 && snapshot.toggles.debug_mode)
     {
         draw_protozoa_debug(snapshot, font);
@@ -89,6 +103,10 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 
 bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
+	// When this function is called it checks every cell in the world to see if the mouse click is within the bounds of any cell. 
+    // If it finds a cell that contains the mouse position, it sets that cell as the selected cell in the cell manager and returns true. 
+    // If no cell is found, it returns false.
+	// TODO: Use spatial grid to optimize this search instead of checking every cell.
 	for (Cell* cell : cell_manager_.all_cells_)
 	{
 		Body* body = bodies_.at(cell->body_id_);
@@ -109,39 +127,39 @@ void World::keyboardEvents(const sf::Keyboard::Key& event_key_code)
 {
     switch (event_key_code)
     {
-    case sf::Keyboard::Key::G:
+	case sf::Keyboard::Key::G: // Toggle the drawing of the cell grid
         toggles.draw_cell_grid = !toggles.draw_cell_grid;
         break;
 
-    case sf::Keyboard::Key::C:
+	case sf::Keyboard::Key::C: // Show collisions if not in debug mode else show connections between cells
         if (toggles.debug_mode)
             toggles.show_connections = !toggles.show_connections;
         else
             toggles.toggle_collisions = !toggles.toggle_collisions;
         break;
 
-    case sf::Keyboard::Key::F:
+	case sf::Keyboard::Key::F: // Toggle the drawing of the food grid
         toggles.draw_food_grid = !toggles.draw_food_grid;
         break;
 
-    case sf::Keyboard::Key::S:
+	case sf::Keyboard::Key::S: // only draw one of the two graphical representations of the cells (outer or inner circles)
         toggles.simple_mode = !toggles.simple_mode;
         break;
 
-    case sf::Keyboard::Key::D:
+	case sf::Keyboard::Key::D: // Toggle debug mode
         toggles.debug_mode = !toggles.debug_mode;
         break;
 
-    case sf::Keyboard::Key::T:
+	case sf::Keyboard::Key::T: // Toggle the tracking of statistics, in some cases can speed up simulation
         toggles.track_statistics = !toggles.track_statistics;
         break;
 
-    case sf::Keyboard::Key::K:
+    case sf::Keyboard::Key::K: // This hides the graphical circles of the selected organism but still shows stats on its body
         if (toggles.debug_mode)
             toggles.skeleton_mode = !toggles.skeleton_mode;
         break;
 
-    case sf::Keyboard::Key::B:
+	case sf::Keyboard::Key::B: // Toggle the drawing of bounding boxes around protozoa, only works in debug mode
         if (toggles.debug_mode)
             toggles.show_bounding_boxes = !toggles.show_bounding_boxes;
         break;
@@ -173,82 +191,59 @@ void World::unload_render_data(SimSnapshot& snapshot)
     
 }
 
-SpatialGridData World::get_grid_data(SimpleSpatialGrid* grid)
-{
-	return SpatialGridData{
-		grid->CellsX,
-		grid->CellsY,
-		grid->cell_max_capacity,
-		grid->world_width,
-		grid->world_height,
-		grid->cell_width,
-		grid->cell_height,
-	};
-}
-
-void World::advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data)
-{
-	data.total = 0;
-	data.max_in = 0;
-	data.full = 0;
-	data.empty = 0;
-	for (size_t i = 0; i < grid->get_total_cells(); ++i)
-	{
-		const uint8_t cell_capacity = grid->cell_capacities[i];
-		data.total += cell_capacity;
-		data.max_in = std::max<int>(cell_capacity, data.max_in);
-		if (cell_capacity == grid->cell_max_capacity)
-			data.full++;
-		if (cell_capacity == 0)
-			data.empty++;
-	}
-	data.inv = data.total > 0 ? 1.f / static_cast<float>(data.total) : 0.f;
-}
-
 void World::fill_snapshot(SimSnapshot& snapshot)
 {
-    const int n = statistics_.protozoa_count;
+    /* Data that goes to both the renderer and the ImGUI panels */
 
-    snapshot.render.positions_x.resize(n);
-    snapshot.render.positions_y.resize(n);
-    snapshot.render.outer_colors.resize(n);
-    snapshot.render.inner_colors.resize(n);
-    snapshot.render.radii.resize(n);
-
-    std::memcpy(snapshot.render.positions_x.data(), render_data_.positions_x.data(), n * sizeof(float));
-    std::memcpy(snapshot.render.positions_y.data(), render_data_.positions_y.data(), n * sizeof(float));
-    std::memcpy(snapshot.render.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
-    std::memcpy(snapshot.render.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
-    std::memcpy(snapshot.render.radii.data(), render_data_.radii.data(), n * sizeof(float));
-    snapshot.stats.protozoa_count = n;
-
-    snapshot.stats = get_statistics();
+    snapshot.stats = get_statistics(); // simulation statistics
     snapshot.toggles = toggles;
-	snapshot.stats.protozoa_count = cell_manager_.get_protozoa_count();
-	snapshot.stats.food_count = food_manager_.get_food_vector().size();
-	snapshot.stats.entity_count = snapshot.stats.protozoa_count + snapshot.stats.food_count;
 
-	snapshot.stats.average_generation = cell_manager_.calculate_average_generation();
-    snapshot.stats.average_lifetime = cell_manager_.average_lifetime_;
-    snapshot.stats.longest_lived_ever = cell_manager_.longest_lived_ever_;
+	copy_render_data_to_snapshot(snapshot); // render data
 
     food_manager_.fill_data(snapshot.food_data);
 
     //protozoa_tracker_.update_statistics(selected_protozoa_, get_food_spatial_grid(), get_spatial_grid(), food_manager_.get_food_vector(), render_data_);
 	snapshot.protozoa_tracker = protozoa_tracker_;
-	if (cell_manager_.selected_cell != nullptr)
-    {
-		snapshot.selected_a_cell = true;
+	snapshot.selected_a_cell = cell_manager_.selected_cell != nullptr;
 
-    }
+    copy_spatial_grids_to_snapshot(snapshot);
+}
 
+
+void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
+{
+    RenderData& render_data = snapshot.render;
+
+    const int n = cell_manager_.get_protozoa_count();
+    snapshot.stats.cell_count = n;
+
+	// resizing the render data arrays to match the number of cells
+    render_data.positions_x.resize(n);
+    render_data.positions_y.resize(n);
+    render_data.outer_colors.resize(n);
+    render_data.inner_colors.resize(n);
+    render_data.radii.resize(n);
+
+	// efficiently copying the data from the internal render_data_ to the snapshot's render_data using memcpy
+    std::memcpy(render_data.positions_x.data(), render_data_.positions_x.data(), n * sizeof(float));
+    std::memcpy(render_data.positions_y.data(), render_data_.positions_y.data(), n * sizeof(float));
+    std::memcpy(render_data.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
+    std::memcpy(render_data.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
+    std::memcpy(render_data.radii.data(), render_data_.radii.data(), n * sizeof(float));
+}
+
+void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)
+{
     // printing if there is a protozoa selected
-    snapshot.food_grid = get_grid_data(get_food_spatial_grid());
-    snapshot.cell_grid = get_grid_data(get_spatial_grid());
+    auto* cell_grid = get_spatial_grid();
+    auto* food_grid = get_food_spatial_grid();
 
-	if (toggles.track_spatial_grids)
-	{
-		advanced_grid_data(get_food_spatial_grid(), snapshot.food_grid);
-        advanced_grid_data(get_spatial_grid(), snapshot.cell_grid);
-	}
+    snapshot.food_grid = get_grid_data(food_grid);
+    snapshot.cell_grid = get_grid_data(cell_grid);
+
+    if (toggles.track_spatial_grids)
+    {
+        calculate_spatial_grid_statistics(food_grid, snapshot.food_grid);
+        calculate_spatial_grid_statistics(cell_grid, snapshot.cell_grid);
+    }
 }

@@ -278,7 +278,7 @@ void Simulation::update_line_graphs(const SimSnapshot& snapshot)
 {
     m_history_.push(
         snapshot.stats.iterations_,
-        snapshot.stats.protozoa_count,
+        snapshot.stats.cell_count,
         snapshot.stats.food_count,
         snapshot.stats.average_generation);
 
@@ -329,7 +329,7 @@ void Simulation::manage_frame_rate()
     std::ostringstream title;
     title << simulation_name
         << " | FPS: " << std::fixed << std::setprecision(1) << fps_
-        << " | protozoa: " << stats.protozoa_count
+        << " | protozoa: " << stats.cell_count
         << " | food: " << m_world_.get_food_count()
         << " | average generation: " << stats.average_generation;
     m_window_.setTitle(title.str());

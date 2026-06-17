@@ -87,6 +87,7 @@ class World : public WorldSettings
 
     // every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
     // this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
+    //alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
     alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
     alignas(64) std::vector<sf::Vector2f> velocity_resolutions{};
 
@@ -107,7 +108,7 @@ public:
     void update_bodies();
     void bound_body_to_world(Body* body);
     void init_collision_jobs();
-    void resolve_collisions_threaded();
+    void calculate_collision_resolutions();
     void resolve_collisions();
 
     // ── Render ───────────────────────────────────────────────────────────────
@@ -122,11 +123,16 @@ public:
     const FoodManager* get_food_manager() const { return &food_manager_; }
     void               update_spatial_renderers();
 
+    // world.h
+    void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids, int thread_id);
+    void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids, int thread_id);
+
     void unload_render_data(SimSnapshot& snapshot);
     static SpatialGridData get_grid_data(SimpleSpatialGrid* grid);
-    void advanced_grid_data(SimpleSpatialGrid* grid, SpatialGridData& data);
+    void calculate_spatial_grid_statistics(SimpleSpatialGrid* grid, SpatialGridData& data);
 
     void fill_snapshot(SimSnapshot& snapshot);
+
 
 	Cell* at(const int idx) { return cell_manager_.all_cells_.at(idx); }
     const Cell* at(const int idx) const { return cell_manager_.all_cells_.at(idx); }
@@ -137,13 +143,12 @@ public:
     const std::vector<sf::Color>& get_outer_colors() const { return render_data_.outer_colors; }
     const std::vector<sf::Color>& get_inner_colors() const { return render_data_.inner_colors; }
     const std::vector<float>& get_radii()        const { return render_data_.radii; }
-    int                              get_entity_count() const { return statistics_.entity_count; }
+    int                       get_entity_count() const { return statistics_.entity_count; }
     const RenderData& get_render_data()  const { return render_data_; }
 
     // ── Statistics getters — read by ImGui from snapshot ─────────────────────
     const WorldStatistics& get_statistics()  const { return statistics_; }
     int   get_food_count()                   const { return food_manager_.get_size(); }
-    float get_average_generation()           const { return statistics_.average_generation; }
 
     // ── Selection ─────────────────────────────────────────────────────────────
     bool handle_mouse_click(sf::Vector2f mouse_position);
@@ -153,22 +158,28 @@ public:
     const std::vector<float>& get_generation_distribution();
 
 private:
+    void copy_render_data_to_snapshot(SimSnapshot& snapshot);
+    void copy_spatial_grids_to_snapshot(SimSnapshot& snapshot);
+
+    // Rendering
     void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
     void draw_cell_outlines(const OrganismTracker& protozoa);
-    void nearby_food_information(const OrganismTracker& protozoa) const;
     void draw_springs(const OrganismTracker& protozoa, bool thick_lines) const;
     void draw_cell_physical_information(const OrganismTracker& protozoa, Font* font) const;
     void draw_spring_information(Font* font) const;
+
+    void nearby_food_information(const OrganismTracker& protozoa) const;
+
     int check_mouse_press(const OrganismTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
     const Cell* get_selected_cell(const OrganismTracker& protozoa, sf::Vector2f mouse_pos);
 
-    void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids);
-    void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids);
     void build_color_groups();
     void update_nearby_container(int32_t neighbour_index_x, int32_t neighbour_index_y, FixedSpan<uint32_t>& nearby_ids);
 
     void update_position_container();
     void update_statistics();
+
+    void calculate_averaging_statistics();
 
     void render_protozoa(const SimSnapshot& snapshot, Font* font);
     void init_food_jobs();

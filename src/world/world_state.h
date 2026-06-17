@@ -41,7 +41,7 @@ struct WorldToggles
 // ─────────────────────────────────────────────────────────────────────────────
 struct WorldStatistics
 {
-    int   protozoa_count = 0;
+    int   cell_count = 0;
     int   food_count = 0;
     int   peak_protozoa_ever = 0;
     int   highest_generation_ever = 0;
@@ -55,7 +55,6 @@ struct WorldStatistics
     float average_mutation_range = 0.f;
     float average_energy = 0.f;
     float average_spring_count = 0.f;
-    float genetic_diversity = 0.f;
     float energy_efficiency = 0.f;
 	float average_lifetime = 0.f; 
 
