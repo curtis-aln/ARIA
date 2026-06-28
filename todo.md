@@ -164,4 +164,5 @@ Position changes:
 
 
 [DONE] Get Simulation To start of 30fps
-- Ability to Select Cells and see information about them
+[DONE] Ability to Select Cells and see information about them
+- camera should track the selected protozoa

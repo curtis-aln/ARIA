@@ -121,6 +121,7 @@ public:
     const SimpleSpatialGrid* get_food_spatial_grid() const { return &food_manager_.spatial_hash_grid; }
     FoodManager* get_food_manager() { return &food_manager_; }
     const FoodManager* get_food_manager() const { return &food_manager_; }
+    const CellManager* get_cell_manager() const { return &cell_manager_; }
     void               update_spatial_renderers();
 
     // world.h
@@ -171,7 +172,7 @@ private:
     void nearby_food_information(const OrganismTracker& protozoa) const;
 
     int check_mouse_press(const OrganismTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
-    const Cell* get_selected_cell(const OrganismTracker& protozoa, sf::Vector2f mouse_pos);
+   
 
     void build_color_groups();
     void update_nearby_container(int32_t neighbour_index_x, int32_t neighbour_index_y, FixedSpan<uint32_t>& nearby_ids);
