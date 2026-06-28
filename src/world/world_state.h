@@ -88,6 +88,7 @@ struct RenderData
     alignas(64) std::vector<sf::Color>    outer_colors;
     alignas(64) std::vector<sf::Color>    inner_colors;
     alignas(64) std::vector<float>        radii;
+    alignas(64) std::vector<std::pair<int, int>> spring_connections;
 
     void reserve(const int max_cells)
     {
@@ -96,6 +97,7 @@ struct RenderData
         outer_colors.resize(max_cells);
         inner_colors.resize(max_cells);
         radii.resize(max_cells);
+        spring_connections.resize(max_cells);
     }
 };
 

@@ -9,6 +9,8 @@
 thread_local FixedSpan<uint32_t> World::tl_nearby_ids{25};
 thread_local FixedSpan<obj_idx> World::tl_nearby_food{25};
 
+
+
 World::World(sf::RenderWindow* window)
     : m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.bounds_radius, world_circular_bounds_.center_))
 {
@@ -60,6 +62,8 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 {
     int cell_count = snapshot.stats.cell_count;
 
+	render_springs(snapshot); // The springs are rendered first, so they appear behind the cells in the rendering order.
+
     // If simple mode is not enabled, the inner circles of the cells are rendered. 
     // The inner circles are scaled down by a factor defined in the graphical settings to create a visual distinction between the outer and inner parts of the cells.
     if (!toggles.simple_mode)
@@ -98,6 +102,31 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
     {
         draw_protozoa_debug(snapshot, font);
     }
+}
+
+
+void World::render_springs(const SimSnapshot& snapshot)
+{
+	auto& positions_x = snapshot.render.positions_x;
+	auto& positions_y = snapshot.render.positions_y;
+
+	for (const std::pair <int, int>& spring_pair : snapshot.render.spring_connections)
+	{
+		const int cell_a_id = spring_pair.first;
+		const int cell_b_id = spring_pair.second;
+
+		const sf::Vector2f& pos1 = { positions_x[cell_a_id], positions_y[cell_a_id] };
+		const sf::Vector2f& pos2 = { positions_x[cell_b_id], positions_y[cell_b_id] };
+
+		if (toggles.debug_mode)
+		{
+			// the outline color should be that of cell a, the inline cololour should be that of cell b
+            const sf::Color outline_color = {200, 50, 220};
+            const sf::Color fill_color = { 200, 80, 220 };
+			draw_thick_line(*m_window_, pos1, pos2, GraphicalSettings::spring_thickness,
+				GraphicalSettings::spring_outline_thickness, fill_color, outline_color);
+		}
+	}
 }
 
 
@@ -236,6 +265,14 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     std::memcpy(render_data.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.radii.data(), render_data_.radii.data(), n * sizeof(float));
+
+    // now we handle springs, we can just store the indexes as then the renderer can read them from the positions container above
+	const int spring_count = static_cast<int>(cell_manager_.all_springs_.size());
+    render_data.spring_connections.resize(spring_count);
+	for (Spring* spring : cell_manager_.all_springs_)
+	{
+		render_data.spring_connections[spring->id_] = { spring->cell_A_id, spring->cell_B_id };
+	}
 }
 
 void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)

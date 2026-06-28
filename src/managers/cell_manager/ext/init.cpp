@@ -15,7 +15,7 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 void CellManager::init_protozoa_container()
 {
 	bool is_object_active = true; // the first few objects will be active, the rest will be inactive
-	for (int i = 0; i < max_protozoa; ++i)
+	for (int i = 0; i < initial_protozoa; ++i)
 	{
 		Cell* cell = all_cells_.emplace(is_object_active);
 
@@ -29,8 +29,6 @@ void CellManager::init_protozoa_container()
 		{
 			is_object_active = false; // the rest of the objects will be inactive
 		}
-		
-		all_springs_.emplace(i);
 	}
 
 	// The cells we currently have act as seeds that allow us to build the protozoa
