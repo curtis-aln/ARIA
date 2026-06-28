@@ -47,9 +47,9 @@ public:
 
 	// reproductive related variables
 	bool reproduce = false; // signals to the protozoa manager that this cell needs an offspring index set
-	int8_t offspring_index = -1; // any value less than 0 means unfined
-	int8_t connection_index = -1; // tells the protozoa manager what to connect offspring index to
-	int8_t spring_to_copy_index = -1; // tells the protozoa manager which spring to copy 
+	int32_t offspring_index = -1; // any value less than 0 means unfined
+	int32_t connection_index = -1; // tells the protozoa manager what to connect offspring index to
+	int32_t spring_to_copy_index = -1; // tells the protozoa manager which spring to copy 
 
 	Cell(const uint32_t _id = 0)
 	{

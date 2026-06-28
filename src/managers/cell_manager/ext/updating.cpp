@@ -46,7 +46,7 @@ void CellManager::update(bool update_physics_only)
 		}
 	}
 
-	//collect_reproduction_requests(all_cells_); todo
+	collect_reproduction_requests();
 	//apply_birth_requests(all_cells_, all_springs_);
 
 	//apply_connection_requests(all_cells_, all_springs_);

@@ -1,5 +1,17 @@
 #include "../cell_manager.h"
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  build_protozoa_from_seed
+//
+//  Recursively builds a chain of cells connected by springs, starting from
+//  a single seed cell. Used at simulation start and after extinction events.
+//
+//  Each call spawns one child cell near the seed, creates a spring between
+//  them, then recurses into the child until max_recursion_depth is reached.
+//  The result is a linear chain: seed → child → grandchild → ...
+//
+//  Returns false if body allocation fails (pool exhausted), true otherwise.
+// ─────────────────────────────────────────────────────────────────────────────
 bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth)
 {
 	// This function takes in a seed cell and builds a protozoa around it, with a random number of cells and springs
@@ -39,95 +51,95 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 }
 
 
-void CellManager::collect_reproduction_requests(std::vector<Cell*>& cells)
+void CellManager::collect_reproduction_requests()
 {
-	const int cell_count = static_cast<int>(cells.size());
 
-	for (int i = 0; i < cell_count; ++i)
-	{
-		Cell* cell = cells[i];
+	for (Cell* cell : all_cells_)
 
 		if (cell->reproduce)
 		{
 			cell->reproduce = false;
-			birth_requests.push_back({ cell->body_id_ });
+			birth_requests.push_back({ cell->id_ });
 
-			if (Random::rand01_float() > 0.01)
+			if (Random::rand01_float() < 0.01)
 				break;
 		}
 		else if (cell->spring_to_copy_index >= 0)
 		{
-			connection_requests.push_back({
-				static_cast<uint8_t>(cell->offspring_index),
-				static_cast<uint8_t>(cell->connection_index),
+			connection_requests.push_back(ConnectionRequest{
+				cell->offspring_index,
+				cell->connection_index,
 				cell->spring_to_copy_index
 				});
 			cell->connection_index = -1;
 			cell->offspring_index = -1;
 			cell->spring_to_copy_index = -1;
 
-			if (Random::rand01_float() > 0.01)
+			if (Random::rand01_float() < 0.01)
 				break;
 		}
 	}
-}
 
-void CellManager::apply_birth_requests(std::vector<Cell>& cells, std::vector<Spring>& springs)
+
+void CellManager::apply_birth_requests()
 {
-	return; // todo
-	cells.reserve(cells.size() + birth_requests.size());
-	springs.reserve(springs.size() + birth_requests.size());
 
 	for (const BirthRequest& req : birth_requests)
 	{
-		cells.emplace_back();
-		Cell* offspring = &cells.back();
-
 		if (bodies_->can_add() == false)
-			return;
+			break;
 
-		Body* body = bodies_->add();
+		Cell* offspring = all_cells_.emplace(true, true);
 
-		cells[req.parent_cell_id].create_offspring(offspring, body);
-		offspring->body_id_ = body->id_;
+		Body* offspring_body = bodies_->add();
+
+		Cell* parent_cell = all_cells_.at(req.parent_cell_id);
+		parent_cell->create_offspring(offspring, offspring_body);
+		offspring->body_id_ = offspring_body->id_;
 
 		// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests
-		cells[req.parent_cell_id].offspring_index = offspring->body_id_;
+		parent_cell->offspring_index = offspring->id_;
 
 		// when we create this offspring we create a spring to it, the spring has a weak connection as it is made to break
 		// This is a temporary spring, it needs hold the new cell close to the parent cell until the real spring is made
 		// this is because if the two new cells are too far apart when the spring is made, the spring will break immediately and the offspring will die before it can reproduce
 
-		const uint8_t spring_id = static_cast<uint8_t>(springs.size());
-		springs.emplace_back(spring_id, req.parent_cell_id, offspring->body_id_);
-		springs.back().spring_const = 0.00001f;
-		springs.back().amplitude = 0.f;
-		springs.back().damping = 0.9f;
+		Spring* spring = all_springs_.emplace(true);
 
-		Body* parent_body = bodies_->at(req.parent_cell_id);
-		const sf::Vector2f diff = parent_body->position_ - body->position_;
-		springs.back().rest_length = diff.length();
+		spring->spring_const = 0.00001f;
+		spring->amplitude = 0.f;
+		spring->damping = 0.9f;
+
+		spring->cell_A_id = parent_cell->id_;
+		spring->cell_B_id = offspring->id_;
+
+		Body* parent_body = bodies_->at(parent_cell->body_id_);
+		const sf::Vector2f diff = parent_body->position_ - offspring_body->position_;
+		spring->rest_length = diff.length();
 	}
+
+	birth_requests.clear(); 
 }
 
-void CellManager::apply_connection_requests(std::vector<Cell>& cells, std::vector<Spring>& springs)
+void CellManager::apply_connection_requests()
 {
-	springs.reserve(springs.size() + connection_requests.size());
-
 	for (const ConnectionRequest& req : connection_requests)
 	{
 		// we need to check if the spring to copy index is valid, if it is we copy the spring data to the new spring
 		const bool valid_spring_to_copy = req.spring_to_copy_index >= 0
-			&& req.spring_to_copy_index < static_cast<int8_t>(springs.size());
+			&& req.spring_to_copy_index < all_springs_.size();
 
-		const uint8_t spring_id = static_cast<uint8_t>(springs.size());
-		springs.emplace_back(spring_id, req.offspring_id, req.connect_to_id);
-		Spring* new_spring = &springs.back();
+		Spring* new_spring = all_springs_.emplace(true, true);
+		new_spring->cell_A_id = req.offspring_id;
+		new_spring->cell_B_id = req.connect_to_id;
 
 		if (valid_spring_to_copy)
 		{
-			springs[req.spring_to_copy_index].create_offspring(*new_spring);
+			Spring* parent_spring = all_springs_.at(req.spring_to_copy_index);
+			parent_spring->create_offspring(*new_spring);
 		}
 
 	}
+
+	connection_requests.clear();
 }

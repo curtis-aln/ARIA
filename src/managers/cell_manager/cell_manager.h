@@ -43,8 +43,8 @@ struct BirthRequest
 
 struct ConnectionRequest
 {
-	uint32_t offspring_id;
-	uint32_t connect_to_id;
+	int32_t offspring_id;
+	int32_t connect_to_id;
 	int32_t  spring_to_copy_index;
 };
 
@@ -113,7 +113,7 @@ public:
 	
 private:
 	bool build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth = 0);
-	void collect_reproduction_requests(std::vector<Cell*>& cells);
-	void apply_birth_requests(std::vector<Cell>& cells, std::vector<Spring>& springs);
-	void apply_connection_requests(std::vector<Cell>& cells, std::vector<Spring>& springs);
+	void collect_reproduction_requests();
+	void apply_birth_requests();
+	void apply_connection_requests();
 };
