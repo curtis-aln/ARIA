@@ -13,7 +13,11 @@
 inline static constexpr int neighbours_max = 100;
 inline static FixedSpan<obj_idx> container{ neighbours_max };
 
+
 // a class dedicated to tracking statistics about a protozoa
+// it does this by using a starting cell which the user would have selected, and then it uses that cell and the 
+// spring container to find all the other cells and springs that are connected to it, and then it uses those to calculate statistics about the protozoa
+
 class OrganismTracker
 {
 
@@ -66,6 +70,16 @@ public:
 
     OrganismTracker() = default;
 
+
+    // The new and improved update function now that we dont have a global protozoa class
+    void update_primitive(const Cell* selected_cell, const o_vector<Body>& bodies)
+    {
+		const Body* selected_body = bodies.at(selected_cell->body_id_);
+        sf::Vector2f pos = selected_body->position_;
+		float rad = selected_cell->radius;
+		sf::Vector2f size = { rad, rad };
+        bounds = sf::FloatRect{ pos - size, size + size};
+    }
 
     void update_statistics(const SimpleSpatialGrid* food_grid, const SimpleSpatialGrid* cell_grid, const o_vector<Food>& food_vector, const RenderData& render_data)
     {

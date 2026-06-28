@@ -9,8 +9,11 @@ bool Simulation::try_select_protozoa(const sf::Vector2f& cam_pos)
 
 void Simulation::handle_mouse_press(const sf::Vector2f& cam_pos)
 {
+	// when a mouse button is pressed down it is either to pan the screen or to interact with an organism
 	if (try_select_protozoa(cam_pos))
+	{
 		mouse_pressed_event = true;
+	}
 	else
 	{
 		//m_world_.deselect_cell();

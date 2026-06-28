@@ -24,6 +24,8 @@ Simulation::Simulation() : m_world_(&m_window_)
 
 void Simulation::run_simulation()
 {
+    // The simulation is designed to run at 30 iterations per second
+    m_world_.toggles.max_frame_rate = SimulationSettings::initial_frame_rate;
 
     m_sim_thread_ = std::thread([this]
     {

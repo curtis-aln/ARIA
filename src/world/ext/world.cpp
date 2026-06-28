@@ -107,6 +107,7 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
     // If it finds a cell that contains the mouse position, it sets that cell as the selected cell in the cell manager and returns true. 
     // If no cell is found, it returns false.
 	// TODO: Use spatial grid to optimize this search instead of checking every cell.
+
 	for (Cell* cell : cell_manager_.all_cells_)
 	{
 		Body* body = bodies_.at(cell->body_id_);
@@ -116,6 +117,8 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 		bool in_bounds = dist_sq < cell->radius * cell->radius;
 		if (in_bounds)
 		{
+			// We tell the cell manager which cell is selected, 
+            // so it can be used in other parts of the program (like rendering debug info for the selected cell).
             cell_manager_.selected_cell = cell;
 			return true;
 		}
@@ -202,8 +205,11 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 
     food_manager_.fill_data(snapshot.food_data);
 
-    //protozoa_tracker_.update_statistics(selected_protozoa_, get_food_spatial_grid(), get_spatial_grid(), food_manager_.get_food_vector(), render_data_);
-	snapshot.protozoa_tracker = protozoa_tracker_;
+    if (cell_manager_.selected_cell != nullptr)
+    {
+        protozoa_tracker_.update_primitive(cell_manager_.selected_cell, bodies_);
+        snapshot.protozoa_tracker = protozoa_tracker_;
+    }
 	snapshot.selected_a_cell = cell_manager_.selected_cell != nullptr;
 
     copy_spatial_grids_to_snapshot(snapshot);

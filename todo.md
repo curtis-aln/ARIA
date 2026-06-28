@@ -160,51 +160,8 @@ Position changes:
 
 
 # Note for next visit
-im trying to figure out how to optimze the program, i ran a performance profile and i found thhe bottleneck is cashe misses with all of our memory reading in the collision resolution
 
 
 
--------------------------------------- Benchmarking
-# ── Cell Manager ──────────────────────────────────────────────────────────────────────
-[cell_manager]
-max_protozoa             = 200_000
-initial_protozoa         = 200_000
-
-# ── Food Manager ──────────────────────────────────────────────────────────────────────
-[food_manager]
-max_food                 = 300_000
-initial_food             = 300_000
-----------------------------------------------------------
-Initial: low of 9fps, high of 20fps
-making grid tighter: low of 13 high of 23fps
-
-// Organising the entities next to eachover both in space and in memory
-
-
-
-
-COLLISION RESOLUTION OPTIMISATION — PRIORITY ORDER
-
-1. Tighten grid cell size to closer to 2 * max_radius
-   → fewer neighbours per entity = fewer pairs generated upstream of everything else
-
-2. Thread-local accumulation buffers (one per thread)
-   → eliminate write contention on collision_resolutions / velocity_resolutions
-   → merge serially after run_and_wait()
-   → expected 30-40% gain on resolution phase
-
-3. Cap max neighbours per entity (e.g. MAX_NEIGHBOURS = 24)
-   → prevents dense clusters causing frame time spikes
-   → brutal but bounds worst-case at 900k+ resolutions/frame
-
-4. SOA layout for resolution vectors
-   → better prefetch on the merge pass
-
-NOTE: Pair-list approach (option 2) NOT worth doing in isolation —
-defers the scatter-write problem rather than solving it, adds 36MB+
-of pair list allocation at 900k scale. Only consider after 1-3 are done.
-
-ROOT CAUSE: at 900k resolutions/frame the bottleneck is scattered writes
-to collision_resolutions[id] where id is spatially arbitrary. Every other
-optimisation is secondary to reducing the number of those writes (step 1)
-and batching them per-thread (step 2).
+[DONE] Get Simulation To start of 30fps
+- Ability to Select Cells and see information about them
