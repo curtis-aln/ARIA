@@ -23,6 +23,11 @@ void CellManager::update(bool update_physics_only)
 		{
 			spring->update_organics(*cell_a, *cell_b);
 		}
+
+		if (spring->broken)
+		{
+			all_springs_.remove(spring);
+		}
 	}
 
 

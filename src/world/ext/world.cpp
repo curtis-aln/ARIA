@@ -270,9 +270,10 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     // now we handle springs, we can just store the indexes as then the renderer can read them from the positions container above
 	const int spring_count = static_cast<int>(cell_manager_.all_springs_.size());
     render_data.spring_connections.resize(spring_count);
+	int i = 0;
 	for (Spring* spring : cell_manager_.all_springs_)
 	{
-		render_data.spring_connections[spring->id_] = { spring->cell_A_id, spring->cell_B_id };
+		render_data.spring_connections[i++] = { spring->cell_A_id, spring->cell_B_id };
 	}
 }
 

@@ -10,12 +10,13 @@ struct SpringResult { float work_done; float force_magnitude; bool broken; };
 
 struct Spring : SpringGenome, SpringSettings
 {
-	// we store the id's of the cells here so whe we call update in the main class we know where to look for the cells, relative to the protozoa
-	uint32_t cell_A_id{};
-	uint32_t cell_B_id{};
 
 	// unique spring ID, used for genome referencing, must not change during the spring's lifetime
 	uint32_t id_{};
+
+	// we store the id's of the cells here so whe we call update in the main class we know where to look for the cells, relative to the protozoa
+	uint32_t cell_A_id{};
+	uint32_t cell_B_id{};
 
 	uint16_t clock_{};
 
@@ -68,7 +69,7 @@ struct Spring : SpringGenome, SpringSettings
 
 		if (current_length < 1e-6f || current_length > breaking_length)
 		{
-			//broken = true;
+			broken = true;
 			return;
 		}
 
@@ -99,7 +100,7 @@ struct Spring : SpringGenome, SpringSettings
 		// Force-based break (complements your existing length-based break)
 		if (force_magnitude > spring_break_force)
 		{
-			//broken = true;
+			broken = true;
 			return;
 		}
 

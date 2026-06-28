@@ -207,7 +207,12 @@ public:
     }
 
 
-    void remove(Obj* obj) { if (obj->active) remove(obj->body_id_); }
+    void remove(Obj* obj) 
+    { 
+        if (active_[obj->id_]) 
+            remove(obj->id_); 
+    }
+
     void remove(const unsigned vector_index)
     {
         if (active_[vector_index])
