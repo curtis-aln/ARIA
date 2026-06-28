@@ -89,7 +89,7 @@ public:
 	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
 	void init_protozoa_container();
 
-	int get_protozoa_count() const;
+	int get_cell_count() const;
 	float calculate_average_generation() const;
 
 	void deselect_cell();

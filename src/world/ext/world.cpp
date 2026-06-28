@@ -250,7 +250,7 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
 {
     RenderData& render_data = snapshot.render;
 
-    const int n = cell_manager_.get_protozoa_count();
+    const int n = cell_manager_.get_cell_count();
     snapshot.stats.cell_count = n;
 
 	// resizing the render data arrays to match the number of cells

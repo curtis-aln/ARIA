@@ -10,7 +10,7 @@ void World::update_statistics()
 	++stats.frames_since_last_gen_change;
 
 	// Basic Fetching Statistics
-	stats.cell_count = cell_manager_.get_protozoa_count();
+	stats.cell_count = cell_manager_.get_cell_count();
 	stats.food_count = food_manager_.get_size();
 	stats.entity_count = stats.cell_count + stats.food_count;
 

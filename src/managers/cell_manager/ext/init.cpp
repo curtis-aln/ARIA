@@ -14,26 +14,17 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 
 void CellManager::init_protozoa_container()
 {
-	bool is_object_active = true; // the first few objects will be active, the rest will be inactive
-	for (int i = 0; i < initial_protozoa; ++i)
+	// The cells we currently have act as seeds that allow us to build the protozoa
+	for (int i = 0; i < initial_protozoa; i++)
 	{
-		Cell* cell = all_cells_.emplace(is_object_active);
+		Cell* cell = all_cells_.emplace(true);
 
-		if (!link_cell_to_body(cell, is_object_active))
+		if (!link_cell_to_body(cell, true))
 		{
 			std::cerr << "[ERROR]: Failed to link cell to body during initialization. Max bodies reached.\n";
 			break;
 		}
 
-		if (i >= initial_protozoa)
-		{
-			is_object_active = false; // the rest of the objects will be inactive
-		}
-	}
-
-	// The cells we currently have act as seeds that allow us to build the protozoa
-	for (Cell* cell : all_cells_)
-	{
 		int max_recursion_depth = Random::rand_range(1, 3); // we want to limit the number of cells in a protozoa to avoid performance issues
 		if (!build_protozoa_from_seed(cell, max_recursion_depth))
 		{

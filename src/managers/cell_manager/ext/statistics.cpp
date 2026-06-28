@@ -1,13 +1,16 @@
 #include "../cell_manager.h"
 
-int CellManager::get_protozoa_count() const
+int CellManager::get_cell_count() const
 {
+	// the amount of cells alive in the simulation
 	return all_cells_.size();
 }
 
 float CellManager::calculate_average_generation() const
 {
-	if (all_cells_.size() == 0)
+	// when a cell reproduces it sets its offspring generation to 1 + its current, this can be used to track 
+	// how many generations have passed in the simulation, and can be used to measure the evolutionary progress of the protozoa
+	if (all_cells_.size() == 0) // extinction
 		return 0.f;
 
 	float sum = 0.f;
@@ -24,11 +27,14 @@ float CellManager::calculate_average_generation() const
 
 void CellManager::register_birth_stat()
 {
+	// This function is called whenever a new cell is born, it increments the births_this_window_ counter
 	births_this_window_++;
 }
 
 void CellManager::register_death_stat(const float lifetime, const bool had_offspring)
 {
+	// This function is called whenever a cell dies, it updates the statistics related to cell deaths, 
+	// including average lifetime and infant mortality rate.
 	recent_lifetimes_.push_back(lifetime);
 	if (recent_lifetimes_.size() > max_lifetime_samples_)
 		recent_lifetimes_.erase(recent_lifetimes_.begin());

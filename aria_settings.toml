@@ -1,11 +1,11 @@
 # ── World ─────────────────────────────────────────────────────────────────────
 [world]
-bounds_radius            = 5000
+bounds_radius            = 25000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
-cells_x = 50
-cells_y = 50
-cell_max_capacity = 4
+cells_x = 150
+cells_y = 150
+cell_max_capacity = 6
 
 # ── Protozoa ──────────────────────────────────────────────────────────────────
 [protozoa]
@@ -22,21 +22,21 @@ initial_energy           = 70.0
 
 # ── Cell Manager ──────────────────────────────────────────────────────────────────────
 [cell_manager]
-max_protozoa             = 200
-initial_protozoa         = 20
+max_protozoa             = 500
+initial_protozoa         = 50 # seeds
 
 # ── Food Manager ──────────────────────────────────────────────────────────────────────
 [food_manager]
-max_food                 = 300
-initial_food             = 50
+max_food                 = 30000
+initial_food             = 500
 
 
 # ── Food ──────────────────────────────────────────────────────────────────────
 [food]
 
 # --- spatial grid ---
-cells_x = 50
-cells_y = 50
+cells_x = 150
+cells_y = 150
 cell_max_capacity        = 15
 update_freq = 4
 

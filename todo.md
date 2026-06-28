@@ -177,3 +177,10 @@ Position changes:
 [DONE] Ability for Protozoa to eat food and gain energy
 - Add all the missing debug information for a protozoa
 - Ability for Protozoa to transfer energy to all of their cells
+
+# Future To-dos
+- some cells dont show up for some reason
+- Cells need the ability to die
+- implement new spatial hash grid
+- implement new collision resolution
+- Get Simulation Running with 400,000 entitities before continuing with the rest of the features'
