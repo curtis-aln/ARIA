@@ -167,4 +167,5 @@ Position changes:
 [DONE] Ability to Select Cells and see information about them
 [DONE] camera should track the selected protozoa
 [DONE] create a world where there are a bunch of two cells connected by a spring
-- todo make the springs visible
+[DONE] todo make the springs visible
+- Let the Organism Tracker Find the spring and other cells and display them in the organism tracker

@@ -236,7 +236,7 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 
     if (cell_manager_.selected_cell != nullptr)
     {
-        protozoa_tracker_.update_primitive(cell_manager_.selected_cell, bodies_);
+        protozoa_tracker_.update_primitive(cell_manager_.selected_cell, cell_manager_.all_cells_, cell_manager_.all_springs_, bodies_);
         snapshot.protozoa_tracker = protozoa_tracker_;
     }
 	snapshot.selected_a_cell = cell_manager_.selected_cell != nullptr;

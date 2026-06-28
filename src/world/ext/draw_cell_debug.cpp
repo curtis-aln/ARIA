@@ -8,9 +8,6 @@ void World::draw_protozoa_debug(const SimSnapshot& snapshot, Font* font)
 {
 	const OrganismTracker& protozoa = snapshot.protozoa_tracker;
 
-    // Springs are drawn first so that they are under the cells
-    draw_springs(protozoa, true);
-
     if (snapshot.toggles.skeleton_mode)
         draw_cell_outlines(protozoa);
 
@@ -93,35 +90,6 @@ void World::draw_cell_physical_information(const OrganismTracker& protozoa, Font
         const auto spacing = font->get_text_size("0").y;
         const sf::Vector2f offset = { 0, spacing };
         font->draw(top_left, "id: " + std::to_string(cell.body_id_), false);
-    }
-}
-
-
-void World::draw_springs(const OrganismTracker& protozoa, const bool thick_lines) const
-{
-    for (const Spring& spring : protozoa.springs)
-    {
-		const Cell& cell_a = protozoa.cells[spring.cell_A_id];
-		const Cell& cell_b = protozoa.cells[spring.cell_B_id];
-		const Body& body_a = *bodies_.at(spring.cell_A_id);
-		const Body& body_b = *bodies_.at(spring.cell_B_id);
-
-        const sf::Vector2f& pos1 = body_a.position_;
-        const sf::Vector2f& pos2 = body_b.position_;
-
-        if (thick_lines)
-        {
-            // the outline color should be that of cell a, the inline cololour should be that of cell b
-            const sf::Color outline_color = protozoa.cells[spring.cell_A_id].get_outer_color();
-            const sf::Color fill_color = protozoa.cells[spring.cell_B_id].get_outer_color();
-
-            draw_thick_line(*m_window_, pos1, pos2, GraphicalSettings::spring_thickness,
-                GraphicalSettings::spring_outline_thickness, fill_color, outline_color);
-        }
-        else
-        {
-            m_window_->draw(make_line(pos1, pos2, sf::Color::Magenta));
-        }
     }
 }
 

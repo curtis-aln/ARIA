@@ -167,7 +167,6 @@ private:
     // Rendering
     void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
     void draw_cell_outlines(const OrganismTracker& protozoa);
-    void draw_springs(const OrganismTracker& protozoa, bool thick_lines) const;
     void draw_cell_physical_information(const OrganismTracker& protozoa, Font* font) const;
     void draw_spring_information(Font* font) const;
 

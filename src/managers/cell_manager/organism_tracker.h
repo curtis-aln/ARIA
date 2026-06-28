@@ -72,14 +72,91 @@ public:
 
 
     // The new and improved update function now that we dont have a global protozoa class
-    void update_primitive(const Cell* selected_cell, const o_vector<Body>& bodies)
+    void update_primitive(const Cell* selected_cell, const o_vector<Cell>& all_cells, const o_vector<Spring>& all_springs, const o_vector<Body>& all_bodies)
     {
-		const Body* selected_body = bodies.at(selected_cell->body_id_);
-        sf::Vector2f pos = selected_body->position_;
-		float rad = selected_cell->radius;
-		sf::Vector2f size = { rad, rad };
-        bounds = sf::FloatRect{ pos - size, size + size};
+		const Body* selected_body = all_bodies.at(selected_cell->body_id_);
+    
+        cells.clear();
+        springs.clear();
+
+		cells.push_back(*selected_cell);
+
+		const Spring* spring = find_if_spring_connects_to_cell(selected_cell, all_springs);
+
+		if (spring != nullptr)
+		{
+			springs.push_back(*spring);
+
+			if (spring->cell_A_id != selected_cell->id_)
+			{
+				const Cell* other_cell = all_cells.at(spring->cell_A_id);
+				if (other_cell != nullptr)
+				{
+					cells.push_back(*other_cell);
+				}
+			}
+			else if (spring->cell_B_id != selected_cell->id_)
+			{
+				const Cell* other_cell = all_cells.at(spring->cell_B_id);
+				if (other_cell != nullptr)
+				{
+					cells.push_back(*other_cell);
+				}
+			}
+		}
+
+        update_bounds(all_bodies);
     }
+
+    const Spring* find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Spring>& all_springs) const
+    {
+        int id = cell->id_;
+        for (const Spring* spring : all_springs)
+        {
+            if (spring->cell_A_id == id || spring->cell_B_id == id)
+            {
+                return spring;
+            }
+        }
+        return nullptr;
+    }
+
+	void update_bounds(const o_vector<Body>& all_bodies)
+	{
+		if (cells.empty())
+		{
+			bounds = {};
+			return;
+		}
+		float min_x = std::numeric_limits<float>::max();
+		float min_y = std::numeric_limits<float>::max();
+		float max_x = std::numeric_limits<float>::lowest();
+		float max_y = std::numeric_limits<float>::lowest();
+
+		for (const Cell& cell : cells)
+		{
+			const Body* body = all_bodies.at(cell.body_id_);
+			if (body != nullptr)
+			{
+				const sf::Vector2f& pos = body->position_;
+				const float rad = body->radius_;
+				min_x = std::min(min_x, pos.x - rad);
+				min_y = std::min(min_y, pos.y - rad);
+				max_x = std::max(max_x, pos.x + rad);
+				max_y = std::max(max_y, pos.y + rad);
+			}
+		}
+
+		bounds.position.x = min_x;
+		bounds.position.y = min_y;
+		bounds.size.x = max_x - min_x;
+		bounds.size.y = max_y - min_y;
+		position_prev = position;
+		position.x = bounds.position.x + bounds.size.x / 2.f;
+		position.y = bounds.position.y + bounds.size.y / 2.f;
+		velocity_prev = velocity;
+		velocity = position - position_prev;
+	}
 
     void update_statistics(const SimpleSpatialGrid* food_grid, const SimpleSpatialGrid* cell_grid, const o_vector<Food>& food_vector, const RenderData& render_data)
     {
