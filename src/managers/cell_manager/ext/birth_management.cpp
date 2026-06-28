@@ -14,7 +14,7 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 	sf::Vector2f child_pos = Random::rand_position_in_circle(seed_body->position_, spawn_dist);
 
 	// we have all the information we need to spawn the next cell
-	Cell* child_cell = all_cells_.emplace(true);
+	Cell* child_cell = all_cells_.emplace(true, false);
 
 	if (!link_cell_to_body(child_cell, true, child_pos))
 	{
@@ -26,6 +26,7 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 
 	// now that the child cell is spawned, we can create a spring between the seed cell and the child cell
 	Spring* spring = all_springs_.emplace(true);
+	spring->reset();
 	spring->cell_A_id = seed_cell->id_;
 	spring->cell_B_id = child_cell->id_;
 
@@ -35,42 +36,6 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 	}
 
 	return true;
-
-	/*
-	// Now we create springs between the cells
-	for (int i = 0; i < spring_count; ++i)
-	{
-		if (cells.size() < 2)
-			return true;
-
-		// choose two different cell ids
-		int cell_A_id = Random::rand_range(size_t(0), cells.size() - 1);
-		int cell_B_id = Random::rand_range(size_t(0), cells.size() - 1);
-
-		if (cell_A_id == cell_B_id)
-			return true;
-
-		// check if a spring already exists between these two cells, if so we don't add another one
-		for (const Spring* spring : springs)
-		{
-			if ((spring->cell_A_id == cell_A_id && spring->cell_B_id == cell_B_id) ||
-				(spring->cell_A_id == cell_B_id && spring->cell_B_id == cell_A_id))
-			{
-				return true; // spring already exists
-			}
-		}
-
-		Spring* spring = all_springs_.add();
-		if (spring == nullptr)
-		{
-			return false;
-		}
-		spring->cell_A_id = cell_A_id;
-		spring->cell_B_id = cell_B_id;
-	}
-
-	std::cout << "built\n";
-	*/
 }
 
 

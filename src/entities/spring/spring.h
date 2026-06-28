@@ -67,7 +67,7 @@ struct Spring : SpringGenome, SpringSettings
 
 		current_length = (pos_b - pos_a).length();
 
-		if (current_length < 1e-6f || current_length > breaking_length)
+		if (current_length > breaking_length)
 		{
 			broken = true;
 			return;
@@ -100,7 +100,7 @@ struct Spring : SpringGenome, SpringSettings
 		// Force-based break (complements your existing length-based break)
 		if (force_magnitude > spring_break_force)
 		{
-			broken = true;
+			//broken = true;
 			return;
 		}
 

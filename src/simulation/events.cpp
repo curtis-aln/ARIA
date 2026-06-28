@@ -111,50 +111,6 @@ void Simulation::dispatch_event(const sf::Event& event, const sf::Vector2f& cam_
 			handle_right_release();
 	}
 
-	// while the right mouse is actively being pressed
-	if (right_mouse_pressed_event)
-	{
-		const WorldToggles& t = m_world_.toggles; // or however you access live toggles
-
-		auto* cell_manager = m_world_.get_cell_manager();
-
-		if (t.mouse_mode == 0) // Add
-		{
-			if (t.mouse_add_cells)
-			{
-				std::cout << "adding cells";
-			}
-			//cell_manager->add_particles_at_point(
-			//	cam_pos,
-			//	static_cast<int>(t.mouse_intensity),
-			//	t.mouse_radius);
-
-			if (t.mouse_add_food)
-			{
-
-			}
-			//m_world_.food_manager.add_food_at_point(
-			//	cam_pos,
-			//	static_cast<int>(t.mouse_intensity),
-			//	t.mouse_radius); // IMGUI_TODO: implement add_food_at_point()
-		}
-		else // Remove
-		{
-			if (t.mouse_rem_cells)
-			{
-				std::cout << "removing cells";
-			}
-			//m_world_.get_cell_manager().remove_particles_in_radius(
-			//	cam_pos, t.mouse_radius); // IMGUI_TODO: implement this
-
-			if (t.mouse_rem_food)
-			{
-
-			}
-			//m_world_.food_manager.remove_food_in_radius(
-			//	cam_pos, t.mouse_radius); // IMGUI_TODO: implement this
-		}
-	}
 }
 
 // ---- Top-level ----------------------------------------------------

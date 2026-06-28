@@ -13,7 +13,7 @@ max_cells                = 0
 spawn_radius             = 100.0
 energy_decay_rate        = 0.002
 wander_threshold         = 600.0   
-breaking_length          = 300.0   
+breaking_length          = 400.0   
 maximum_extension        = 250.0    
 spring_work_const        = 0.00001
 reproductive_cooldown    = 200
@@ -22,7 +22,7 @@ initial_energy           = 70.0
 
 # ── Cell Manager ──────────────────────────────────────────────────────────────────────
 [cell_manager]
-max_protozoa             = 500
+max_protozoa             = 5000
 initial_protozoa         = 50 # seeds
 
 # ── Food Manager ──────────────────────────────────────────────────────────────────────

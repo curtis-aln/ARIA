@@ -25,7 +25,7 @@ void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 			break;
 		}
 
-		int max_recursion_depth = Random::rand_range(1, 3); // we want to limit the number of cells in a protozoa to avoid performance issues
+		int max_recursion_depth = Random::rand_range(1, 4); // we want to limit the number of cells in a protozoa to avoid performance issues
 		if (!build_protozoa_from_seed(cell, max_recursion_depth))
 		{
 			break;

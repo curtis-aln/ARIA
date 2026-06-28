@@ -15,8 +15,8 @@ void CellManager::update(bool update_physics_only)
 	{
 		Cell* cell_a = all_cells_.at(spring->cell_A_id);
 		Cell* cell_b = all_cells_.at(spring->cell_B_id);
-		Body* body_a = bodies_->at(spring->cell_A_id);
-		Body* body_b = bodies_->at(spring->cell_B_id);
+		Body* body_a = bodies_->at(cell_a->body_id_);
+		Body* body_b = bodies_->at(cell_b->body_id_);
 		spring->update_physics(*body_a, *body_b);
 
 		if (!update_physics_only)
@@ -26,7 +26,11 @@ void CellManager::update(bool update_physics_only)
 
 		if (spring->broken)
 		{
-			all_springs_.remove(spring);
+			if (spring->clock_ > 30)
+			{
+				all_springs_.remove(spring);
+			}
+			spring->broken = false;
 		}
 	}
 
