@@ -52,7 +52,8 @@ class Simulation : SimulationSettings, TextSettings
 
     bool  tracking = false;
     
-    bool  mouse_pressed_event = false;
+    bool  left_mouse_pressed_event = false;
+    bool  right_mouse_pressed_event = false;
     float fps_ = 0.f;
 
     ImPlotColormap m_plot_colormap_{};
@@ -96,8 +97,10 @@ private:
     // events
     void handle_events();
     bool try_select_protozoa(const sf::Vector2f& cam_pos);
-    void handle_mouse_press(const sf::Vector2f& cam_pos);
-    void handle_mouse_release();
+    void handle_left_click(const sf::Vector2f& cam_pos);
+    void handle_right_click(const sf::Vector2f& cam_pos);
+    void handle_left_release();
+    void handle_right_release();
     void handle_pause_toggle();
     void handle_keyboard_events(const sf::Keyboard::Key& event_key_code);
     void dispatch_event(const sf::Event& event, const sf::Vector2f& cam_pos);

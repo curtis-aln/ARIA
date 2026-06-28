@@ -92,12 +92,15 @@ class World : public WorldSettings
     alignas(64) std::vector<sf::Vector2f> velocity_resolutions{};
 
 	OrganismTracker protozoa_tracker_{};
+	
 
 public:
     // ── Toggles — written by ImGui (main thread), read by update thread ──────
     // Safe to read/write without locking while the threads are not simultaneously
     // accessing them; copy into SharedState before handing to the update thread.
     WorldToggles toggles;
+
+    bool should_drag_protozoa_ = false;
 
 public:
     explicit World(sf::RenderWindow* window = nullptr);

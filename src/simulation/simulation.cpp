@@ -269,7 +269,7 @@ void Simulation::camera_follow_selected_protozoa()
     // This function moves the camera center to the location of a selected cell
     const Cell* selected_cell = cell_manager->get_selected_cell();
 
-	if (selected_cell == nullptr) // No cell is selected, so we don't need to move the camera
+	if (selected_cell == nullptr || m_world_.should_drag_protozoa_) // No cell is selected, so we don't need to move the camera
         return;
 
 	const Body* body = cell_manager->bodies_->at(selected_cell->body_id_);

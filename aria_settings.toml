@@ -23,12 +23,12 @@ initial_energy           = 70.0
 # ── Cell Manager ──────────────────────────────────────────────────────────────────────
 [cell_manager]
 max_protozoa             = 200
-initial_protozoa         = 5
+initial_protozoa         = 20
 
 # ── Food Manager ──────────────────────────────────────────────────────────────────────
 [food_manager]
-max_food                 = 0
-initial_food             = 0
+max_food                 = 300
+initial_food             = 50
 
 
 # ── Food ──────────────────────────────────────────────────────────────────────

@@ -7,6 +7,14 @@ void World::update()
 	frame_rate_smoothing_.update_frame_rate();
 	toggles.min_speed += toggles.delta_min_speed;
 
+	if (should_drag_protozoa_ && cell_manager_.selected_cell != nullptr)
+	{
+		Body* body = bodies_.at(cell_manager_.selected_cell->body_id_);
+		const sf::Vector2f mouse_pos = m_window_->mapPixelToCoords(sf::Mouse::getPosition(*m_window_));
+		const sf::Vector2f diff = mouse_pos - body->position_;
+		body->position_ += diff * 0.1f; // apply a small force towards the mouse position
+	}
+
 	// filling the containers that go to the renderer and to the spatial grid
 	update_position_container();
 

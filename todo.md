@@ -171,4 +171,8 @@ Position changes:
 [DONE] Let the Organism Tracker Find the spring and other cells and display them in the organism tracker
 [DONE] Get a range of 2-5 Cells with 2-N springs
 [DONE] Ability to select a cell and see all of their cells debug information
-- Ability to deselect cells
+[DONE] Ability to deselect cells
+- ability to drag individual cells around with the mouse
+- springs should break when they are under too much tension
+
+- Ability for Protozoa to eat food and gain energy
