@@ -173,6 +173,7 @@ Position changes:
 [DONE] Ability to select a cell and see all of their cells debug information
 [DONE] Ability to deselect cells
 [DONE] ability to drag individual cells around with the mouse
-- springs should break when they are under too much tension
-
-- Ability for Protozoa to eat food and gain energy
+[DONE] springs should break when they are under too much tension
+[DONE] Ability for Protozoa to eat food and gain energy
+- Add all the missing debug information for a protozoa
+- Ability for Protozoa to transfer energy to all of their cells

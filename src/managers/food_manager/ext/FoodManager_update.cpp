@@ -25,7 +25,6 @@ void FoodManager::update_food()
 		body->velocity_ *= friction;
 
 		update_food_nutrients(food);
-		check_food_death(food);
 	}
 }
 
@@ -34,7 +33,7 @@ void FoodManager::update_food()
 void FoodManager::check_food_death(const Food* food)
 {
 	// Food dies when its nutrients drop below initial_nutrients (shrunk out of existence)
-	if (food->nutrients < initial_nutrients)
+	if (food->nutrients < initial_nutrients && food->age > 10)
 		remove_food(food->id_);
 }
 
@@ -78,6 +77,12 @@ void FoodManager::update_food_nutrients(Food* food)
 void FoodManager::update_food_size(Food* food, Body* body)
 {
 	// Radius is directly proportional to current nutrients
+	if (food->nutrients == 0.f)
+	{
+		body->radius_ = 0.f;
+		return;
+	}
+
 	body->radius_ = food->nutrients * nutrients_to_radius_scale;
 }
 
@@ -90,7 +95,7 @@ void FoodManager::update_hash_grid()
 	for (Food* food : food_vector)
 	{
 		Body* body = bodies_->at(food->body_id_);
-		spatial_hash_grid.add_object(body->position_.x, body->position_.y, food->body_id_);
+		spatial_hash_grid.add_object(body->position_.x, body->position_.y, food->id_);
 	}
 }
 

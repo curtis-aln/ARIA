@@ -11,6 +11,9 @@
 #include "../../entities/spring/spring.h"
 #include "world/world_border.h"
 
+#include "../food_manager/food_manager.h"
+
+
 
 /* How reproduction works, in detail
 when a cell has enough energy its sets reproduce = true
@@ -95,6 +98,8 @@ public:
 	Cell* find_cell_by_id(const int id) { return all_cells_.at(id);}
 
 	void update(bool update_physics_only = false);
+
+	void update_food_interactions(FoodManager& food_manager);
 
 	void check_for_extinction_event();
 

@@ -18,6 +18,11 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 
 void FoodManager::update()
 {
+	for (Food* food : food_vector)
+	{
+		check_food_death(food);
+	}
+
 	update_position_data();
 	let_food_reproduce();
 	update_food();
