@@ -55,6 +55,9 @@ void World::update_bodies()
 		const sf::Vector2f normal = diff.normalized();
 		body->velocity_ += normal * inward_force; // apply a small inward force to keep bodies from escaping the world bounds
 
+		// physically clamp the body to the world bounds so that it doesn't escape
+		body->position_ = world_circular_bounds_.contains(body->position_) ? body->position_ : world_circular_bounds_.center_ + normal * (world_circular_bounds_.bounds_radius - body->radius_);
+
 		body->update_physics();
 		idx++;
 	}

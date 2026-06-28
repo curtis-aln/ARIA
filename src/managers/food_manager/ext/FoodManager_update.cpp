@@ -97,6 +97,18 @@ void FoodManager::add_food_to_hash_grid()
 	for (Food* food : food_vector)
 	{
 		Body* body = bodies_->at(food->body_id_);
+		// clamping the body
+		const float rad = world_bounds_->bounds_radius;
+		sf::Vector2f centre = world_bounds_->center_;
+		
+		if (!world_bounds_->contains(body->position_))
+		{
+			sf::Vector2f diff = body->position_ - centre;
+			float dist = diff.length();
+			sf::Vector2f normal = diff / dist;
+			body->position_ = centre + normal * (rad - body->radius_);
+		}
+
 		spatial_hash_grid.add_object(body->position_.x, body->position_.y, food->id_);
 	}
 }

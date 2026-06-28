@@ -47,9 +47,9 @@ void CellManager::update(bool update_physics_only)
 	}
 
 	collect_reproduction_requests();
-	//apply_birth_requests(all_cells_, all_springs_);
+	apply_birth_requests();
 
-	//apply_connection_requests(all_cells_, all_springs_);
+	apply_connection_requests();
 }
 
 void CellManager::update_food_interactions(FoodManager& food_manager)
