@@ -248,7 +248,7 @@ private:
             {
                 // todo
 				//const Body* body = all_bodies->at(food->body_id_);
-                nearby_food_positions[food_in_neighbourhood++] = body->position_;
+                //nearby_food_positions[food_in_neighbourhood++] = body->position_;
             }
         }
 

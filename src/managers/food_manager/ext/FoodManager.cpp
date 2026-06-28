@@ -18,6 +18,7 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 
 void FoodManager::update()
 {
+	add_food_to_hash_grid();
 	for (Food* food : food_vector)
 	{
 		check_food_death(food);
@@ -26,7 +27,6 @@ void FoodManager::update()
 	update_position_data();
 	let_food_reproduce();
 	update_food();
-	update_hash_grid();
 }
 
 void FoodManager::render(const FoodData& snapshot_food_data)

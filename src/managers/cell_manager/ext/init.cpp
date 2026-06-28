@@ -12,14 +12,14 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	}
 }
 
-void CellManager::init_protozoa_container()
+void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 {
 	// The cells we currently have act as seeds that allow us to build the protozoa
-	for (int i = 0; i < initial_protozoa; i++)
+	for (int i = 0; i < count; i++)
 	{
-		Cell* cell = all_cells_.emplace(true);
+		Cell* cell = all_cells_.emplace(true, true);
 
-		if (!link_cell_to_body(cell, true))
+		if (!link_cell_to_body(cell, true, spawn_area->rand_pos()))
 		{
 			std::cerr << "[ERROR]: Failed to link cell to body during initialization. Max bodies reached.\n";
 			break;
@@ -35,7 +35,7 @@ void CellManager::init_protozoa_container()
 	std::cout << "Finished building protozoa's, total: " << all_cells_.size() << "\n";
 }
 
-bool CellManager::link_cell_to_body(Cell* cell, bool is_active)
+bool CellManager::link_cell_to_body(Cell* cell, bool is_active, sf::Vector2f pos)
 {
 	// This function creates a new body for the cell and links them together
 	// returns true if successful, false if there are no more bodies available
@@ -45,7 +45,7 @@ bool CellManager::link_cell_to_body(Cell* cell, bool is_active)
 		return false;
 	}
 	
-	body->position_ = world_bounds_->rand_pos();
+	body->position_ = pos;
 	body->radius_ = cell->radius;
 
 	cell->body_id_ = body->id_;

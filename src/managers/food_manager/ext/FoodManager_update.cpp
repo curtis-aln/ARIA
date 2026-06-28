@@ -86,8 +86,10 @@ void FoodManager::update_food_size(Food* food, Body* body)
 	body->radius_ = food->nutrients * nutrients_to_radius_scale;
 }
 
-void FoodManager::update_hash_grid()
+void FoodManager::add_food_to_hash_grid()
 {
+	// This function adds all the food objects to a seperate hash grd than the body hash grird, the cells will query
+	// This hash grid to determine where the food are to handle interactions
 	if (frames % update_freq != 0)
 		return;
 

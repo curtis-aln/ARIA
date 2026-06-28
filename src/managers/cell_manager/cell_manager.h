@@ -87,7 +87,10 @@ public:
 
 
 	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
-	void init_protozoa_container();
+	void create_new_protozoa(int count, WorldBorder* spawn_area);
+
+	bool link_cell_to_body(Cell* cell, bool is_active, sf::Vector2f pos);
+
 
 	int get_cell_count() const;
 	float calculate_average_generation() const;
@@ -108,8 +111,6 @@ public:
 	void register_birth_stat();
 
 	
-	bool link_cell_to_body(Cell* cell, bool is_active = true);
-
 private:
 	bool build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth = 0);
 	void collect_reproduction_requests(std::vector<Cell*>& cells);

@@ -32,6 +32,15 @@ struct WorldToggles
     float delta_min_speed = 0.f;
 
 	float max_frame_rate = 0.f; // 0 = unlimited
+
+    // Mouse tool — written by UI, read by handle_left_click()
+    int   mouse_mode = 0;      // 0 = Add, 1 = Remove
+    bool  mouse_add_cells = true;
+    bool  mouse_add_food = false;
+    bool  mouse_rem_cells = true;
+    bool  mouse_rem_food = false;
+    float mouse_intensity = 1.f;
+    float mouse_radius = 100.f;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

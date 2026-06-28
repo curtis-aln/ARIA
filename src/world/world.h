@@ -125,6 +125,7 @@ public:
     FoodManager* get_food_manager() { return &food_manager_; }
     const FoodManager* get_food_manager() const { return &food_manager_; }
     const CellManager* get_cell_manager() const { return &cell_manager_; }
+    CellManager* get_cell_manager() { return &cell_manager_; }
     void               update_spatial_renderers();
 
     void deselect_cell() 

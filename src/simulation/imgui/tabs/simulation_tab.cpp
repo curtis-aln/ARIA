@@ -98,11 +98,105 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::EndChild();
     ImGui::SameLine();
 
-    // ── Fast Forward ──────────────────────────────────────────────────────────
+    // ── Mouse Tools ───────────────────────────────────────────────────────────────
     ImGui::BeginChild("SIM_ff", { cw, ch }, true);
+    ImGui::TextDisabled("Mouse Tools");
+    ImGui::Separator();
+
+    // ── Add / Remove mode toggle ──────────────────────────────────────────────────
+    const float hw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
+
+    if (m_mouse_mode_ == 0) ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.5f, 0.2f, 1.f });
+    if (ImGui::Button("Add##mode", { hw, 0.f }))
+    {
+        m_mouse_mode_ = 0;
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_mode = 0;
+        ctx.push(cmd);
+    }
+    if (m_mouse_mode_ == 0) ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    if (m_mouse_mode_ == 1) ImGui::PushStyleColor(ImGuiCol_Button, { 0.6f, 0.2f, 0.2f, 1.f });
+    if (ImGui::Button("Remove##mode", { -1.f, 0.f }))
+    {
+        m_mouse_mode_ = 1;
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_mode = 1;
+        ctx.push(cmd);
+    }
+    if (m_mouse_mode_ == 1) ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+
+    // ── Checkboxes for active mode ────────────────────────────────────────────────
+    if (m_mouse_mode_ == 0)
+    {
+        ImGui::TextDisabled("Add:");
+        if (ImGui::Checkbox("Cells##add", &m_add_cells_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_add_cells = m_add_cells_;
+            ctx.push(cmd);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Food##add", &m_add_food_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_add_food = m_add_food_;
+            ctx.push(cmd);
+        }
+    }
+    else
+    {
+        ImGui::TextDisabled("Remove:");
+        if (ImGui::Checkbox("Cells##rem", &m_remove_cells_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_rem_cells = m_remove_cells_;
+            ctx.push(cmd);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Food##rem", &m_remove_food_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_rem_food = m_remove_food_;
+            ctx.push(cmd);
+        }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+
+    // ── Intensity and radius sliders ──────────────────────────────────────────────
+    ImGui::SetNextItemWidth(-1.f);
+    if (ImGui::SliderFloat("##intensity", &m_mouse_intensity_, 0.1f, 10.f, "Intensity %.2f"))
+    {
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_intensity = m_mouse_intensity_;
+        ctx.push(cmd);
+    }
+
+    ImGui::SetNextItemWidth(-1.f);
+    if (ImGui::SliderFloat("##radius", &m_mouse_radius_, 10.f, 1000.f, "Radius %.0f"))
+    {
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_radius = m_mouse_radius_;
+        ctx.push(cmd);
+    }
 
     ImGui::EndChild();
     ImGui::SameLine();
+
 
     // ── World Settings ────────────────────────────────────────────────────────
     ImGui::BeginChild("SIM_world", { cw, ch }, true);

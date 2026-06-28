@@ -175,7 +175,9 @@ Position changes:
 [DONE] ability to drag individual cells around with the mouse
 [DONE] springs should break when they are under too much tension
 [DONE] Ability for Protozoa to eat food and gain energy
-- Add all the missing debug information for a protozoa
+[DONE] Add all the missing debug information for a protozoa
+- Ability to spawn Food particles at the mouse position
+- Ability to spawn Cell particles at the mouse position
 - Ability for Protozoa to transfer energy to all of their cells
 
 # Future To-dos

@@ -119,8 +119,15 @@ public:
 
     // used to initilise items inside of raw_object_store_.
 	// returns the item in the array
-    Obj* emplace(bool is_active = true)
+    Obj* emplace(bool is_active = true, bool try_just_add = true)
     {
+		if (try_just_add && is_active && free_count > 0)
+		{
+			Obj* obj = add();
+			if (obj)
+				return obj;
+		}
+
         // Add the actual object to our object store
         raw_object_store_.emplace_back();
 		int id_ = raw_object_store_.size() - 1;

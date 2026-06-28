@@ -16,7 +16,7 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 	// we have all the information we need to spawn the next cell
 	Cell* child_cell = all_cells_.emplace(true);
 
-	if (!link_cell_to_body(child_cell, true))
+	if (!link_cell_to_body(child_cell, true, child_pos))
 	{
 		all_cells_.remove(child_cell); // dont forget to remove the cell if we fail to link it to a body
 		return false;

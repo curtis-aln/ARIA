@@ -57,7 +57,7 @@ private:
     void  vibrate_food(Body* body, float strength);
     
     void  check_food_death(const Food* food);
-    void  update_hash_grid();
+    void  add_food_to_hash_grid();
 
     void  let_food_reproduce();
     bool  reproduce_food(Food* food);
