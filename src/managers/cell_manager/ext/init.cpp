@@ -34,7 +34,8 @@ void CellManager::init_protozoa_container()
 	// The cells we currently have act as seeds that allow us to build the protozoa
 	for (Cell* cell : all_cells_)
 	{
-		if (!build_protozoa_from_seed(cell))
+		int max_recursion_depth = Random::rand_range(1, 3); // we want to limit the number of cells in a protozoa to avoid performance issues
+		if (!build_protozoa_from_seed(cell, max_recursion_depth))
 		{
 			break;
 		}

@@ -1,9 +1,10 @@
 #include "../cell_manager.h"
 
-bool CellManager::build_protozoa_from_seed(Cell* seed_cell)
+bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth)
 {
 	// This function takes in a seed cell and builds a protozoa around it, with a random number of cells and springs
 	// This happens only at the start of the simulation or whenver we want to reset it (e.g. extinction event)
+	// It is a recursive function meaning it calls itself until a certain depth is reached
 
 	// The body of the seed cell needs to be retrieved so we can spawn the new cells around it
 	Body* seed_body = bodies_->at(seed_cell->body_id_);
@@ -27,6 +28,11 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell)
 	Spring* spring = all_springs_.emplace(true);
 	spring->cell_A_id = seed_cell->id_;
 	spring->cell_B_id = child_cell->id_;
+
+	if (recursion_depth < max_recursion_depth)
+	{
+		build_protozoa_from_seed(child_cell, max_recursion_depth, recursion_depth + 1);
+	}
 
 	return true;
 

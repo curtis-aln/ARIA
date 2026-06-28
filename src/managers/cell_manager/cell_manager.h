@@ -106,7 +106,7 @@ public:
 	bool link_cell_to_body(Cell* cell, bool is_active = true);
 
 private:
-	bool build_protozoa_from_seed(Cell* seed_cell);
+	bool build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth = 0);
 	void collect_reproduction_requests(std::vector<Cell*>& cells);
 	void apply_birth_requests(std::vector<Cell>& cells, std::vector<Spring>& springs);
 	void apply_connection_requests(std::vector<Cell>& cells, std::vector<Spring>& springs);

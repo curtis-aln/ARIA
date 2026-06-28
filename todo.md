@@ -168,4 +168,5 @@ Position changes:
 [DONE] camera should track the selected protozoa
 [DONE] create a world where there are a bunch of two cells connected by a spring
 [DONE] todo make the springs visible
-- Let the Organism Tracker Find the spring and other cells and display them in the organism tracker
+[DONE] Let the Organism Tracker Find the spring and other cells and display them in the organism tracker
+- Get a range of 2-5 Cells with 2-N springs
