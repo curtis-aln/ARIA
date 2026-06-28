@@ -98,7 +98,7 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 
 
 	// If a protozoa is selected and debug mode is enabled, draw additional debug information for the selected protozoa.
-    if (snapshot.protozoa_tracker.id != -1 && snapshot.toggles.debug_mode)
+    if (snapshot.protozoa_tracker.is_active && snapshot.toggles.debug_mode)
     {
         draw_protozoa_debug(snapshot, font);
     }
@@ -149,6 +149,7 @@ bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 			// We tell the cell manager which cell is selected, 
             // so it can be used in other parts of the program (like rendering debug info for the selected cell).
             cell_manager_.selected_cell = cell;
+            protozoa_tracker_.is_active = true;
 			return true;
 		}
 	}
@@ -237,8 +238,8 @@ void World::fill_snapshot(SimSnapshot& snapshot)
     if (cell_manager_.selected_cell != nullptr)
     {
         protozoa_tracker_.update_primitive(cell_manager_.selected_cell, cell_manager_.all_cells_, cell_manager_.all_springs_, bodies_);
-        snapshot.protozoa_tracker = protozoa_tracker_;
     }
+    snapshot.protozoa_tracker = protozoa_tracker_;
 	snapshot.selected_a_cell = cell_manager_.selected_cell != nullptr;
 
     copy_spatial_grids_to_snapshot(snapshot);

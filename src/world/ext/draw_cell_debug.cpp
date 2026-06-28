@@ -8,6 +8,9 @@ void World::draw_protozoa_debug(const SimSnapshot& snapshot, Font* font)
 {
 	const OrganismTracker& protozoa = snapshot.protozoa_tracker;
 
+	if (protozoa.is_active == false)
+		return;
+
     if (snapshot.toggles.skeleton_mode)
         draw_cell_outlines(protozoa);
 

@@ -170,5 +170,5 @@ Position changes:
 [DONE] todo make the springs visible
 [DONE] Let the Organism Tracker Find the spring and other cells and display them in the organism tracker
 [DONE] Get a range of 2-5 Cells with 2-N springs
-- Ability to select a cell and see all of their cells debug information
+[DONE] Ability to select a cell and see all of their cells debug information
 - Ability to deselect cells

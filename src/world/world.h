@@ -124,6 +124,12 @@ public:
     const CellManager* get_cell_manager() const { return &cell_manager_; }
     void               update_spatial_renderers();
 
+    void deselect_cell() 
+    { 
+        cell_manager_.deselect_cell();
+        protozoa_tracker_.is_active = false;
+    }
+
     // world.h
     void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids, int thread_id);
     void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids, int thread_id);

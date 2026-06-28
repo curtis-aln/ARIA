@@ -22,7 +22,7 @@ class OrganismTracker
 {
 
 public:
-    int id{};
+    bool is_active = false;
 
     sf::FloatRect bounds{};
 

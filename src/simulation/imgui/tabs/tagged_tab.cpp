@@ -24,8 +24,7 @@ void TaggedTab::draw_tag_input(const SimSnapshot& snapshot)
     if (snapshot.selected_a_cell)
     {
         ImGui::SameLine(0, 16);
-        if (ImGui::Button(is_tagged(sel.id) ? "Untag selected" : "Tag selected"))
-            toggle_tag(sel.id);
+    
     }
 }
 

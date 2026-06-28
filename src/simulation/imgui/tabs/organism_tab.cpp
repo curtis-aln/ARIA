@@ -130,7 +130,6 @@ void OrganismTab::draw_overview(const OrganismTracker& protozoa)
     ImGui::Columns(2, nullptr, false);
 
     ImGui::TextDisabled("Identity");
-    ImGui::Text("ID      %d", protozoa.id);
     ImGui::Text("Age     %u", protozoa.frames_alive);
     ImGui::Text("Cells   %d", protozoa.cell_count);
     ImGui::Text("Springs %d", protozoa.spring_count);
@@ -587,7 +586,6 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     ImGui::Spacing();
     ImGui::TextDisabled("Tag");
     ImGui::Separator();
-    ImGui::TextDisabled("Use the Tagged tab to tag ID %d", p.id);
     ImGui::EndChild();
 }
 
