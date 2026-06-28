@@ -84,20 +84,15 @@ public:
 
 
 	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
-
-	Cell* get_selected_cell() const { return selected_cell; }
+	void init_protozoa_container();
 
 	int get_protozoa_count() const;
-
 	float calculate_average_generation() const;
 
 	void deselect_cell();
 
-
+	Cell* get_selected_cell() const { return selected_cell; }
 	Cell* find_cell_by_id(const int id) { return all_cells_.at(id);}
-
-
-	bool build_protozoa();
 
 	void update(bool update_physics_only = false);
 
@@ -107,11 +102,11 @@ public:
 
 	void register_birth_stat();
 
-	void init_protozoa_container();
-
+	
 	bool link_cell_to_body(Cell* cell, bool is_active = true);
 
 private:
+	bool build_protozoa_from_seed(Cell* seed_cell);
 	void collect_reproduction_requests(std::vector<Cell*>& cells);
 	void apply_birth_requests(std::vector<Cell>& cells, std::vector<Spring>& springs);
 	void apply_connection_requests(std::vector<Cell>& cells, std::vector<Spring>& springs);

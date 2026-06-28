@@ -34,14 +34,14 @@ void CellManager::init_protozoa_container()
 	}
 
 	// The cells we currently have act as seeds that allow us to build the protozoa
-	for (int i = 0; i < initial_protozoa; ++i)
+	for (Cell* cell : all_cells_)
 	{
-		if (!build_protozoa())
+		if (!build_protozoa_from_seed(cell))
 		{
 			break;
 		}
 	}
-
+	
 	std::cout << "Finished building protozoa's, total: " << all_cells_.size() << "\n";
 }
 

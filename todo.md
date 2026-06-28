@@ -165,4 +165,5 @@ Position changes:
 
 [DONE] Get Simulation To start of 30fps
 [DONE] Ability to Select Cells and see information about them
-- camera should track the selected protozoa
+[DONE] camera should track the selected protozoa
+- create a world where there are a bunch of two cells connected by a spring

@@ -1,36 +1,36 @@
 #include "../cell_manager.h"
 
-bool CellManager::build_protozoa()
+bool CellManager::build_protozoa_from_seed(Cell* seed_cell)
 {
-	sf::Vector2f spawn_position = world_bounds_->rand_pos();
-	float spawn_dist = 20.f;
-	sf::FloatRect spawn_rect = { spawn_position - sf::Vector2f(spawn_dist, spawn_dist), sf::Vector2f(spawn_dist * 2, spawn_dist * 2) };
-	const int cell_count = Random::rand_range(2, desired_cell_count);
-	const int spring_count = Random::rand_range(cell_count - 1, cell_count * 2);
+	// This function takes in a seed cell and builds a protozoa around it, with a random number of cells and springs
+	// This happens only at the start of the simulation or whenver we want to reset it (e.g. extinction event)
 
-	std::vector<Cell*> cells; // a temporary cell vector
-	std::vector<Spring*> springs; // a temporary spring vector
+	// The body of the seed cell needs to be retrieved so we can spawn the new cells around it
+	Body* seed_body = bodies_->at(seed_cell->body_id_);
 
-	for (int i = 0; i < cell_count; ++i)
+	// The First child is made next to the seed_cell, within close proximity so that the spring can be made without breaking immediately
+	float spawn_dist = seed_body->radius_ * 3.5f;
+	sf::Vector2f child_pos = Random::rand_position_in_circle(seed_body->position_, spawn_dist);
+
+	// we have all the information we need to spawn the next cell
+	Cell* child_cell = all_cells_.emplace(true);
+
+	if (!link_cell_to_body(child_cell, true))
 	{
-		const sf::Vector2f cell_pos = Random::rand_pos_in_rect(spawn_rect);
-
-		if (all_cells_.can_add() == false || bodies_->can_add() == false)
-		{
-			return false;
-		}
-
-		Cell* cell = all_cells_.add();
-		Body* body = bodies_->add();
-
-		cell->body_id_ = body->id_;
-		cell->reset();
-		body->position_ = cell_pos;
-		cells.push_back(cell);
-
-		return true;
+		all_cells_.remove(child_cell); // dont forget to remove the cell if we fail to link it to a body
+		return false;
 	}
+	Body* child_body = bodies_->at(child_cell->body_id_);
+	child_body->position_ = child_pos;
 
+	// now that the child cell is spawned, we can create a spring between the seed cell and the child cell
+	Spring* spring = all_springs_.emplace(true);
+	spring->cell_A_id = seed_cell->id_;
+	spring->cell_B_id = child_cell->id_;
+
+	return true;
+
+	/*
 	// Now we create springs between the cells
 	for (int i = 0; i < spring_count; ++i)
 	{
@@ -64,6 +64,7 @@ bool CellManager::build_protozoa()
 	}
 
 	std::cout << "built\n";
+	*/
 }
 
 
