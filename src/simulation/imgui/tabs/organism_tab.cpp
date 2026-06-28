@@ -82,6 +82,7 @@ static void colored_progress(const float fraction, const ImVec4 color,
 void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
     const OrganismTracker& protozoa = snap.protozoa_tracker;
+
     if (!snap.selected_a_cell)
     {
 	    draw_no_selection(); 
@@ -96,9 +97,15 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::SameLine();
 
     ImGui::BeginChild("TAB_panel", { -1.f, -1.f }, false);
-    if (!ImGui::BeginTabBar("##org_tabs")) { ImGui::EndChild(); return; }
+    if (!ImGui::BeginTabBar("##org_tabs")) 
+    { 
+        ImGui::EndChild();
+        return; 
+    }
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6.f, 2.f });
+
+    // The different tabs of this
     if (ImGui::BeginTabItem("Cells & Springs")) { draw_cells_springs_tab(ctx, protozoa);        ImGui::EndTabItem(); }
     if (ImGui::BeginTabItem("Energy")) { draw_energy_tab(ctx, snap);           ImGui::EndTabItem(); }
     if (ImGui::BeginTabItem("Tuning & Controls")) { draw_tuning_controls_tab(ctx, snap); ImGui::EndTabItem(); }
@@ -265,7 +272,11 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracke
 void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel)
 {
 
-	const float speed = vel.length();
+    const float speed_sq = vel.lengthSquared();
+    float speed = -1;
+    if (speed_sq != 0)
+	    speed = vel.length();
+
     const int frames_alive = c.frames_alive_;
     const float current_friction = c.calculate_friction();
 

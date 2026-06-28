@@ -22,6 +22,7 @@ class OrganismTracker
 {
 
 public:
+    int selected_id = -1;
     bool is_active = false;
 
     sf::FloatRect bounds{};
@@ -74,20 +75,34 @@ public:
     // The new and improved update function now that we dont have a global protozoa class
     void update_primitive(const Cell* selected_cell, const o_vector<Cell>& all_cells, const o_vector<Spring>& all_springs, const o_vector<Body>& all_bodies)
     {
+        // detecting if the selected protozoa has changed to recalculate some stats
+        bool changed = false;
+        if (selected_id != selected_cell->id_)
+        {
+            selected_id = selected_cell->id_;
+            changed = true;
+        }
+
 		const Body* selected_body = all_bodies.at(selected_cell->body_id_);
     
         cells.clear();
         springs.clear();
+        bodies.clear();
 
 		cells.push_back(*selected_cell);
-        find_next_cell(selected_cell, all_cells, all_springs);
+        bodies.push_back(*selected_body);
+
+        find_next_cell(selected_cell, all_cells, all_springs, all_bodies);
 
         update_bounds(all_bodies);
+
+        update_locomotion_stats(changed);
+        update_energy();
     }
 
     void find_next_cell(const Cell* parent_cell,
         const o_vector<Cell>& all_cells,
-        const o_vector<Spring>& all_springs)
+        const o_vector<Spring>& all_springs, const o_vector<Body>& all_bodies)
     {
         // Iterate ALL springs — a cell can have multiple connections
         for (const Spring* spring : all_springs)
@@ -113,7 +128,8 @@ public:
             if (next_cell != nullptr && !is_cell_already_found(next_cell))
             {
                 cells.push_back(*next_cell);
-                find_next_cell(next_cell, all_cells, all_springs);
+                bodies.push_back(*all_bodies.at(next_cell->body_id_));
+                find_next_cell(next_cell, all_cells, all_springs, all_bodies);
             }
         }
     }
@@ -190,31 +206,18 @@ public:
 
     void update_statistics(const SimpleSpatialGrid* food_grid, const SimpleSpatialGrid* cell_grid, const o_vector<Food>& food_vector, const RenderData& render_data)
     {
-        /*
-        if (protozoa_ptr == nullptr)
-        {
-            return;
-        }
-
-        bool changed = protozoa_ptr->id != id;
-
-        update_locomotion_stats(protozoa_ptr, changed);
-        update_neighbourhood_stats(food_grid, cell_grid, food_vector, render_data);
-        update_energy(protozoa_ptr);
-        update_misc(protozoa_ptr)*/
+        // update_neighbourhood_stats(food_grid, cell_grid, food_vector, render_data);
+        // update_misc(protozoa_ptr)
     }
 
 private:
     void update_locomotion_stats(const bool changed)
     {
-        /*
-        bounds = Protozoa::calc_protozoa_bounds(protozoa_ptr);
         position_prev = position;
         position = bounds.getCenter();
 
         if (changed)
         {
-            id = protozoa_ptr->id;
             position_prev = position;
             velocity_prev = { 0, 0 };
         }
@@ -224,11 +227,11 @@ private:
         acceleration = velocity - velocity_prev;
 
         speed = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
-		 */
+		 
     }
 
 
-    void update_neighbourhood_stats(const SimpleSpatialGrid* food_grid, const SimpleSpatialGrid* cell_grid, const o_vector<Food>& food_vector, const RenderData& render_data)
+    void update_neighbourhood_stats(const SimpleSpatialGrid* food_grid, const SimpleSpatialGrid* cell_grid, const o_vector<Food>& food_vector, const RenderData& render_data, const o_vector<Body>& all_bodies)
     {
         food_in_neighbourhood = 0;
         cells_in_neighbourhood = 0;
@@ -244,8 +247,8 @@ private:
             if (food != nullptr)
             {
                 // todo
-				//Body* body = bodies_->at(food_id);
-                //nearby_food_positions[food_in_neighbourhood++] = body->position_;
+				//const Body* body = all_bodies->at(food->body_id_);
+                nearby_food_positions[food_in_neighbourhood++] = body->position_;
             }
         }
 
@@ -262,8 +265,6 @@ private:
 
     void update_energy()
     {
-        /*
-        cells = protozoa_ptr->get_cells();
         cell_count = static_cast<int>(cells.size());
 
         total_energy = 0;
@@ -287,7 +288,7 @@ private:
         }
 
         average_generation /= cell_count;
-        max_energy = cell_count * ProtozoaSettings::reproduce_energy_thresh;
+        max_energy = cell_count * CellSettings::reproduce_energy_thresh;
         max_nutrients = max_energy;
         average_energy = total_energy / cell_count;
         frames_alive = frames_alive / cell_count;
@@ -295,7 +296,6 @@ private:
 		offspring_count = offspring_count / cell_count;
 		time_since_last_reproduced = time_since_last_reproduced / cell_count;
 
-        springs = protozoa_ptr->get_springs();
         spring_count = static_cast<int>(springs.size());
 
         spring_total_work_done = 0.f;
@@ -303,7 +303,7 @@ private:
         {
             spring_total_work_done += spring.work_done;
         }
-		 */
+		
     }
 
     void update_misc()
