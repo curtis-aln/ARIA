@@ -169,4 +169,6 @@ Position changes:
 [DONE] create a world where there are a bunch of two cells connected by a spring
 [DONE] todo make the springs visible
 [DONE] Let the Organism Tracker Find the spring and other cells and display them in the organism tracker
-- Get a range of 2-5 Cells with 2-N springs
+[DONE] Get a range of 2-5 Cells with 2-N springs
+- Ability to select a cell and see all of their cells debug information
+- Ability to deselect cells

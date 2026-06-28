@@ -80,33 +80,63 @@ public:
         springs.clear();
 
 		cells.push_back(*selected_cell);
-
-		const Spring* spring = find_if_spring_connects_to_cell(selected_cell, all_springs);
-
-		if (spring != nullptr)
-		{
-			springs.push_back(*spring);
-
-			if (spring->cell_A_id != selected_cell->id_)
-			{
-				const Cell* other_cell = all_cells.at(spring->cell_A_id);
-				if (other_cell != nullptr)
-				{
-					cells.push_back(*other_cell);
-				}
-			}
-			else if (spring->cell_B_id != selected_cell->id_)
-			{
-				const Cell* other_cell = all_cells.at(spring->cell_B_id);
-				if (other_cell != nullptr)
-				{
-					cells.push_back(*other_cell);
-				}
-			}
-		}
+        find_next_cell(selected_cell, all_cells, all_springs);
 
         update_bounds(all_bodies);
     }
+
+    void find_next_cell(const Cell* parent_cell,
+        const o_vector<Cell>& all_cells,
+        const o_vector<Spring>& all_springs)
+    {
+        // Iterate ALL springs — a cell can have multiple connections
+        for (const Spring* spring : all_springs)
+        {
+            // Skip springs that don't touch this cell
+            if (spring->cell_A_id != parent_cell->id_ &&
+                spring->cell_B_id != parent_cell->id_)
+                continue;
+
+            // Skip springs already traversed — prevents duplicate entries
+            // and avoids re-walking already-visited branches
+            if (is_spring_already_found(spring))
+                continue;
+
+            springs.push_back(*spring);
+
+            // The neighbour is whichever end of the spring isn't the parent
+            const uint32_t neighbour_id = (spring->cell_A_id == parent_cell->id_)
+                ? spring->cell_B_id
+                : spring->cell_A_id;
+
+            const Cell* next_cell = all_cells.at(neighbour_id);
+            if (next_cell != nullptr && !is_cell_already_found(next_cell))
+            {
+                cells.push_back(*next_cell);
+                find_next_cell(next_cell, all_cells, all_springs);
+            }
+        }
+    }
+
+    bool is_spring_already_found(const Spring* spring) const
+    {
+        for (const Spring& s : springs)
+        {
+            if (s.id_ == spring->id_)
+                return true;
+        }
+        return false;
+    }
+
+	bool is_cell_already_found(const Cell* cell) const
+	{
+		for (const Cell& c : cells)
+		{
+			if (c.id_ == cell->id_)
+				return true;
+		}
+		return false;
+	}
 
     const Spring* find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Spring>& all_springs) const
     {
