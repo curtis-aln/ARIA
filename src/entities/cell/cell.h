@@ -69,7 +69,7 @@ public:
 
 	void accelerate(const sf::Vector2f acceleration);
 
-	void create_offspring(Cell* child, Body* body, bool mutate = true);
+	void create_offspring(Cell* child, Body* parent_body, Body* child_body, const bool mutate);
 
 	[[nodiscard]] bool can_die() const;
 

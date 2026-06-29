@@ -10,7 +10,7 @@ void Cell::reset()
 	total_food_eaten_ = 0;
 	stomach_ = 0;
 	frames_alive_ = 0;
-	integrity = integrity;
+	integrity = 100;
 	offspring_count = 0;
 
 	reproduce = false;
@@ -38,14 +38,17 @@ bool  Cell::consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f&
 }
 
 
-void  Cell::create_offspring(Cell* child, Body* body, const bool mutate)
+void Cell::create_offspring(Cell* child, Body* parent_body, Body* child_body, const bool mutate)
 {
 	// dormant means the child cell will not tug or pull on the protozoa
 	// if dormant is false the child will take on the mutations of the parent
 	// if mutate is true then the child will go through mutation 
 
 	// When creating an offspring, this is ran for every cell in the protozoa
-	body->position_ = get_pos_nearby(body, 2.f);
+	child_body->mass_ = parent_body->mass_;
+	child_body->radius_ = parent_body->radius_;
+
+	child_body->position_ = get_pos_nearby(parent_body, 2.f);
 
 	time_since_last_reproduced_ = 0;
 	offspring_count++;

@@ -51,51 +51,83 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 }
 
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  collect_reproduction_requests
+//
+//  Scans cells for two kinds of pending reproductive events and queues them
+//  for deferred processing (applied at end of update, not mid-iteration).
+//
+//  BIRTH REQUEST (cell.reproduce == true):
+//    Cell has enough energy and wants an offspring. We clear the flag and
+//    queue a BirthRequest. apply_birth_requests() handles it next.
+//
+//  CONNECTION REQUEST (cell.spring_to_copy_index >= 0):
+//    Both this cell and its spring-partner now have valid offspring indexes,
+//    meaning two new cells exist and need wiring together with a spring.
+//    We queue a ConnectionRequest and reset all three reproductive fields.
+//
+// ─────────────────────────────────────────────────────────────────────────────
 void CellManager::collect_reproduction_requests()
 {
-
+	// for all the cells that want to reproduce
 	for (Cell* cell : all_cells_)
-
+	{
 		if (cell->reproduce)
 		{
+			// add this request to the list of birth requests, we will handle it later in apply_birth_requests()
 			cell->reproduce = false;
 			birth_requests.push_back({ cell->id_ });
-
-			if (Random::rand01_float() < 0.01)
-				break;
 		}
-		else if (cell->spring_to_copy_index >= 0)
+
+		// if both the offspring index and the spring to copy index are set, we can create a connection request
+		if (cell->spring_to_copy_index >= 0)
 		{
+			// requesting a connection between the offspring and the other cell, we will handle it later in apply_connection_requests()
 			connection_requests.push_back(ConnectionRequest{
 				cell->offspring_index,
 				cell->connection_index,
 				cell->spring_to_copy_index
 				});
+
+			// reset the reproductive fields so we don't create multiple connection requests for the same cells
 			cell->connection_index = -1;
 			cell->offspring_index = -1;
 			cell->spring_to_copy_index = -1;
-
-			if (Random::rand01_float() < 0.01)
-				break;
 		}
 	}
+}
 
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  apply_birth_requests
+//
+//  Processes all queued BirthRequests: spawns an offspring cell for each
+//  parent and links them with a weak temporary spring to keep them close
+//  while waiting for the permanent spring from apply_connection_requests().
+//
+//  The temporary spring is nearly slack (tiny spring_const, no oscillation,
+//  heavy damping) — it just prevents the offspring from drifting out of
+//  range before the real spring is created.
+// ─────────────────────────────────────────────────────────────────────────────
 void CellManager::apply_birth_requests()
 {
-
 	for (const BirthRequest& req : birth_requests)
 	{
-		if (bodies_->can_add() == false)
-			break;
-
+		// create a new cell and body for the offspring
+		Body* offspring_body = bodies_->emplace(true, true);
+		if (offspring_body == nullptr)
+			return;
+		
 		Cell* offspring = all_cells_.emplace(true, true);
-
-		Body* offspring_body = bodies_->add();
-
-		Cell* parent_cell = all_cells_.at(req.parent_cell_id);
-		parent_cell->create_offspring(offspring, offspring_body);
 		offspring->body_id_ = offspring_body->id_;
+
+		// retrieve the parent cell
+		Cell* parent_cell = all_cells_.at(req.parent_cell_id);
+		Body* parent_body = bodies_->at(parent_cell->body_id_);
+
+		// create the offspring by filling in its genetics and other properties based on the parent cell
+		parent_cell->create_offspring(offspring, parent_body, offspring_body, true);
+		parent_cell->reproduce = false;
 
 		// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests
 		parent_cell->offspring_index = offspring->id_;
@@ -104,6 +136,7 @@ void CellManager::apply_birth_requests()
 		// This is a temporary spring, it needs hold the new cell close to the parent cell until the real spring is made
 		// this is because if the two new cells are too far apart when the spring is made, the spring will break immediately and the offspring will die before it can reproduce
 
+		
 		Spring* spring = all_springs_.emplace(true);
 
 		spring->spring_const = 0.00001f;
@@ -113,7 +146,6 @@ void CellManager::apply_birth_requests()
 		spring->cell_A_id = parent_cell->id_;
 		spring->cell_B_id = offspring->id_;
 
-		Body* parent_body = bodies_->at(parent_cell->body_id_);
 		const sf::Vector2f diff = parent_body->position_ - offspring_body->position_;
 		spring->rest_length = diff.length();
 	}
@@ -121,6 +153,24 @@ void CellManager::apply_birth_requests()
 	birth_requests.clear(); 
 }
 
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  apply_connection_requests
+//
+//  Creates the permanent spring between two offspring cells, completing the
+//  reproductive cycle. Spring genetics are inherited (and optionally mutated)
+//  from the spring that originally connected their parent cells.
+//
+//  Full reproductive cycle recap:
+//    1. parent pair has enough energy → cell.reproduce = true
+//    2. collect_reproduction_requests() queues BirthRequests
+//    3. apply_birth_requests() spawns offspring + temporary spring
+//    4. handle_reproduction() (in Spring) detects both offspring_indexes are set
+//    5. collect_reproduction_requests() queues ConnectionRequest
+//    6. apply_connection_requests() creates permanent spring → cycle complete
+//
+// ─────────────────────────────────────────────────────────────────────────────
 void CellManager::apply_connection_requests()
 {
 	for (const ConnectionRequest& req : connection_requests)

@@ -19,7 +19,6 @@ World::World(sf::RenderWindow* window)
     init_circle_renderers();
     init_food_jobs();
     init_collision_jobs();
-    cell_manager_.create_new_protozoa(CellManagerSettings::initial_protozoa, &world_circular_bounds_);
     food_manager_.init();
 
 

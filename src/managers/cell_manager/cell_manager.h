@@ -112,7 +112,7 @@ public:
 
 	
 private:
-	bool build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth = 0);
+	bool build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth = 1);
 	void collect_reproduction_requests();
 	void apply_birth_requests();
 	void apply_connection_requests();

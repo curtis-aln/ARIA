@@ -2,6 +2,10 @@
 
 CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies) : m_window_(window), world_bounds_(world_bounds), bodies_(bodies), all_cells_(max_protozoa), all_springs_(max_protozoa)
 {
+	// Initialize the cell manager with the given window, world bounds, and body vector
+	create_new_protozoa(CellManagerSettings::initial_protozoa, world_bounds);
+
+	// Reserve space for birth and connection requests to avoid frequent reallocations
 	birth_requests.reserve(10);
 	connection_requests.reserve(10);
 
@@ -26,7 +30,7 @@ void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 		}
 
 		int max_recursion_depth = Random::rand_range(1, 4); // we want to limit the number of cells in a protozoa to avoid performance issues
-		if (!build_protozoa_from_seed(cell, max_recursion_depth))
+		if (!build_protozoa_from_seed(cell, 1))
 		{
 			break;
 		}
