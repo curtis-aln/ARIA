@@ -186,3 +186,13 @@ Position changes:
 - implement new spatial hash grid
 - implement new collision resolution
 - Get Simulation Running with 400,000 entitities before continuing with the rest of the features'
+
+
+- cell energy can drop below zero
+- Massive Lag spikes occour in the simulation
+- less than 25% of the CPU is being used
+- Massive Lines are drawn accross the simulation
+- There is no hard limit to how many cells there can be
+- A massive amount of memory is used at the start of the simulation
+- o_vector needs an imgui Visuliser attached to it
+- Birth and Death Requests need an imgui visuliser attached to it

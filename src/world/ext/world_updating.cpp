@@ -7,13 +7,8 @@ void World::update()
 	frame_rate_smoothing_.update_frame_rate();
 	toggles.min_speed += toggles.delta_min_speed;
 
-	if (should_drag_protozoa_ && cell_manager_.selected_cell != nullptr)
-	{
-		Body* body = bodies_.at(cell_manager_.selected_cell->body_id_);
-		const sf::Vector2f mouse_pos = m_window_->mapPixelToCoords(sf::Mouse::getPosition(*m_window_));
-		const sf::Vector2f diff = mouse_pos - body->position_;
-		body->position_ += diff * 0.1f; // apply a small force towards the mouse position
-	}
+	if (should_drag_protozoa_)
+		cell_manager_.drag_selected_cell_to_point(m_window_->mapPixelToCoords(sf::Mouse::getPosition(*m_window_)), 0.1f);
 
 	// filling the containers that go to the renderer and to the spatial grid
 	update_position_container();
@@ -96,7 +91,7 @@ void World::update_position_container()
 	spatial_hash_grid_.clear();
 
 	// Single pass: count cells and food
-	statistics_.cell_count = static_cast<int>(cell_manager_.all_cells_.size());
+	statistics_.cell_count = static_cast<int>(cell_manager_.get_cell_count());
 	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
 	statistics_.entity_count = statistics_.cell_count + statistics_.food_count;
 
@@ -150,7 +145,7 @@ void World::update_position_container()
 
 	// updating render data
 	int i = 0;
-	for (Cell* cell : cell_manager_.all_cells_)
+	for (const Cell* cell : cell_manager_.get_all_cells())
 	{
 		const Body* body = bodies_.at(cell->body_id_);
 

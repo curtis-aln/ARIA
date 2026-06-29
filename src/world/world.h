@@ -62,7 +62,6 @@ class World : public WorldSettings
 
     BarrierThreadPool collision_thread_pool_{ updating_threads };
 	BarrierThreadPool food_thread_pool_{ updating_threads };
-    std::vector<float> distribution_{};
 
     uint8_t max_capacity_area = cell_max_capacity * 9;
     static thread_local FixedSpan<uint32_t> tl_nearby_ids;
@@ -90,8 +89,6 @@ class World : public WorldSettings
     //alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
     alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
     alignas(64) std::vector<sf::Vector2f> velocity_resolutions{};
-
-	OrganismTracker protozoa_tracker_{};
 	
 
 public:
@@ -128,12 +125,6 @@ public:
     CellManager* get_cell_manager() { return &cell_manager_; }
     void               update_spatial_renderers();
 
-    void deselect_cell() 
-    { 
-        cell_manager_.deselect_cell();
-        protozoa_tracker_.is_active = false;
-    }
-
     // world.h
     void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids, int thread_id);
     void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids, int thread_id);
@@ -145,8 +136,8 @@ public:
     void fill_snapshot(SimSnapshot& snapshot);
 
 
-	Cell* at(const int idx) { return cell_manager_.all_cells_.at(idx); }
-    const Cell* at(const int idx) const { return cell_manager_.all_cells_.at(idx); }
+	//Cell* at(const int idx) { return cell_manager_.all_cells_.at(idx); }
+    //const Cell* at(const int idx) const { return cell_manager_.all_cells_.at(idx); }
 
     // ── Render data getters — read by renderer from snapshot ─────────────────
     const std::vector<float>& get_positions_x()    const { return render_data_.positions_x; }
@@ -166,9 +157,6 @@ public:
     // ── Selection ─────────────────────────────────────────────────────────────
     bool handle_mouse_click(sf::Vector2f mouse_position);
     void keyboardEvents(const sf::Keyboard::Key& event_key_code);
-
-    // ── Generation distribution (for histogram) ───────────────────────────────
-    const std::vector<float>& get_generation_distribution();
 
 private:
     void copy_render_data_to_snapshot(SimSnapshot& snapshot);
@@ -190,8 +178,6 @@ private:
 
     void update_position_container();
     void update_statistics();
-
-    void calculate_averaging_statistics();
 
     void render_protozoa(const SimSnapshot& snapshot, Font* font);
     void init_food_jobs();

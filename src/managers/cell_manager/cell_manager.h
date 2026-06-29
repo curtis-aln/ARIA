@@ -12,6 +12,8 @@
 #include "world/world_border.h"
 
 #include "../food_manager/food_manager.h"
+#include "organism_tracker.h"
+#include "../../simulation/context/sim_snapshot.h"
 
 
 
@@ -48,72 +50,101 @@ struct ConnectionRequest
 	int32_t  spring_to_copy_index;
 };
 
+inline static constexpr size_t max_lifetime_samples_ = 500;
+inline static constexpr int survival_rate_window_size_ = 100;
+
 
 // A Class which handles all protozoa related stuff in the world. updating, collisions, reproduction, etc.
 class CellManager: protected CellManagerSettings
 {
-public:
 	sf::RenderWindow* m_window_ = nullptr;
-
-	uint16_t   longest_lived_ever_ = 0;
-	uint8_t   most_offspring_ever_ = 0;
-	float infant_mortality_rate_ = 0.f;
-	int   total_deaths_ = 0;
-	int   infant_deaths_ = 0;
-
 	WorldBorder* world_bounds_ = nullptr;
 
-public:
 	// The user can click on a protozoa to select it for debugging purposes. we store a pointer to it here.
 	Cell* selected_cell = nullptr;
-	
-
-	float average_lifetime_ = 0.f; // the average lifetime of the 500 most recent protozoa deaths
 
 	std::vector<float> recent_lifetimes_ = {}; // a vector storing the lifetimes of the 500 most recent protozoa deaths, used to calculate average_lifetime_
+	std::vector<float> distribution_{}; // a vector storing the generation of all protozoa in the world, used to calculate average generation
 
-	static constexpr size_t max_lifetime_samples_ = 500;
-
-	int deaths_this_window_ = 0;
-	int births_this_window_ = 0;
-	static constexpr int survival_rate_window_size_ = 100;
-
+	// used to store requests for new protozoa to be created, and for new connections to be made between cells
 	std::vector<BirthRequest> birth_requests;
 	std::vector<ConnectionRequest> connection_requests;
 
+	// main body class is kept in the world class, we keep a pointer to it here so we can access it
 	o_vector<Body>* bodies_;
+
+	// the main data structure for storing all protozoa in the world, this is a custom vector class that allows for fast iteration over active objects
 	o_vector<Cell> all_cells_;
 	o_vector<Spring> all_springs_;
 
+	// This builds a model around a protozoa that doesnt globally exist, so it can be monitored and learned about
+	OrganismTracker protozoa_tracker_{};
 
+public:
+	// statistics tracking
+	uint16_t   longest_lived_ever_ = 0;
+	uint8_t   most_offspring_ever_ = 0;
+	float infant_mortality_rate_ = 0.f;
+	float average_lifetime_ = 0.f; // the average lifetime of the 500 most recent protozoa deaths
+	int   total_deaths_ = 0;
+	int   infant_deaths_ = 0;
+	int deaths_this_window_ = 0;
+	int births_this_window_ = 0;
+
+	// Functions
+public:
+	// Constructor and initialization
 	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
+	
 	void create_new_protozoa(int count, WorldBorder* spawn_area);
+	void check_for_extinction_event();
+	void fill_snapshot(SimSnapshot& snapshot);
+	void drag_selected_cell_to_point(const sf::Vector2f& target_position, const float move_fraction);
 
-	bool link_cell_to_body(Cell* cell, bool is_active, sf::Vector2f pos);
-
-
+	// data fetching
 	int get_cell_count() const;
 	float calculate_average_generation() const;
+	Cell* find_cell_by_id(const int id) { return all_cells_.at(id); }
+	Cell* find_cell_at_point(const sf::Vector2f mouse_position, bool make_selected_cell);
+	const sf::Vector2f* get_selected_protozoa_pos() const;
 
+	const o_vector<Cell>& get_all_cells() const { return all_cells_; }
+	const o_vector<Spring>& get_all_springs() const { return all_springs_; }
+
+	// selected cell management
 	void deselect_cell();
-
 	Cell* get_selected_cell() const { return selected_cell; }
-	Cell* find_cell_by_id(const int id) { return all_cells_.at(id);}
-
-	void update(bool update_physics_only = false);
-
+	
+	// updating, public
+	void update();
 	void update_food_interactions(FoodManager& food_manager);
 
-	void check_for_extinction_event();
+	// public statistics
+	const std::vector<float>& get_generation_distribution();
 
-	void register_death_stat(const float lifetime, const bool had_offspring);
+	void fill_statistics(WorldStatistics& stats);
 
-	void register_birth_stat();
+protected: // only functions the world can access todo
 
-	
-private:
+
+private: // only functions this class can access
+	// protozoa building, and reproducing
 	bool build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth = 1);
 	void collect_reproduction_requests();
 	void apply_birth_requests();
 	void apply_connection_requests();
+
+	// statistics 
+	void register_death_stat(const float lifetime, const bool had_offspring);
+	void register_birth_stat();
+
+	// updating
+	void update_springs();
+	void update_cells();
+
+	// misc
+	bool link_cell_to_body(Cell* cell, bool is_active, sf::Vector2f pos);
+
+
+	void fill_render_data(RenderData& render_data);
 };

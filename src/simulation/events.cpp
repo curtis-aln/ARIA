@@ -16,7 +16,7 @@ void Simulation::handle_left_click(const sf::Vector2f& cam_pos)
 	}
 	else
 	{
-		m_world_.deselect_cell();
+		m_world_.get_cell_manager()->deselect_cell();
 		camera_.begin_pan();  // start pan only if we didn't click an organism
 	}
 }

@@ -23,7 +23,6 @@ World::World(sf::RenderWindow* window)
 
 
     render_data_.reserve(static_cast<int>(max_circles));
-    distribution_.reserve(max_circles);
     inner_radii_.resize(max_circles);
 
     velocity_resolutions.resize(max_circles);
@@ -131,28 +130,7 @@ void World::render_springs(const SimSnapshot& snapshot)
 
 bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {
-	// When this function is called it checks every cell in the world to see if the mouse click is within the bounds of any cell. 
-    // If it finds a cell that contains the mouse position, it sets that cell as the selected cell in the cell manager and returns true. 
-    // If no cell is found, it returns false.
-	// TODO: Use spatial grid to optimize this search instead of checking every cell.
-
-	for (Cell* cell : cell_manager_.all_cells_)
-	{
-		Body* body = bodies_.at(cell->body_id_);
-
-        float dist_sq = (mouse_position - body->position_).lengthSquared();
-
-		bool in_bounds = dist_sq < cell->radius * cell->radius;
-		if (in_bounds)
-		{
-			// We tell the cell manager which cell is selected, 
-            // so it can be used in other parts of the program (like rendering debug info for the selected cell).
-            cell_manager_.selected_cell = cell;
-            protozoa_tracker_.is_active = true;
-			return true;
-		}
-	}
-    return false;
+    return cell_manager_.find_cell_at_point(mouse_position, true) != nullptr;
 }
 
 void World::keyboardEvents(const sf::Keyboard::Key& event_key_code)
@@ -201,15 +179,6 @@ void World::keyboardEvents(const sf::Keyboard::Key& event_key_code)
     }
 }
 
-const std::vector<float>& World::get_generation_distribution()
-{
-    distribution_.clear();
-
-	for (const Cell* cell : cell_manager_.all_cells_)
-		distribution_.push_back(static_cast<float>(cell->generation));
-
-    return distribution_;
-}
 
 void World::update_spatial_renderers()
 {
@@ -233,13 +202,7 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	copy_render_data_to_snapshot(snapshot); // render data
 
     food_manager_.fill_data(snapshot.food_data);
-
-    if (cell_manager_.selected_cell != nullptr)
-    {
-        protozoa_tracker_.update_primitive(cell_manager_.selected_cell, cell_manager_.all_cells_, cell_manager_.all_springs_, bodies_);
-    }
-    snapshot.protozoa_tracker = protozoa_tracker_;
-	snapshot.selected_a_cell = cell_manager_.selected_cell != nullptr;
+	cell_manager_.fill_snapshot(snapshot); // protozoa data
 
     copy_spatial_grids_to_snapshot(snapshot);
 }
@@ -265,15 +228,6 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     std::memcpy(render_data.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.radii.data(), render_data_.radii.data(), n * sizeof(float));
-
-    // now we handle springs, we can just store the indexes as then the renderer can read them from the positions container above
-	const int spring_count = static_cast<int>(cell_manager_.all_springs_.size());
-    render_data.spring_connections.resize(spring_count);
-	int i = 0;
-	for (Spring* spring : cell_manager_.all_springs_)
-	{
-		render_data.spring_connections[i++] = { spring->cell_A_id, spring->cell_B_id };
-	}
 }
 
 void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)

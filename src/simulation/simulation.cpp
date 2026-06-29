@@ -306,19 +306,12 @@ void Simulation::resolve_modifications()
 
 void Simulation::camera_follow_selected_protozoa()
 {
-	const CellManager* cell_manager = m_world_.get_cell_manager();
+	const sf::Vector2f* pos = m_world_.get_cell_manager()->get_selected_protozoa_pos();
+	if (pos == nullptr || m_world_.should_drag_protozoa_) // No protozoa is selected, so we don't need to move the camera
+		return;
 
-    // This function moves the camera center to the location of a selected cell
-    const Cell* selected_cell = cell_manager->get_selected_cell();
-
-	if (selected_cell == nullptr || m_world_.should_drag_protozoa_) // No cell is selected, so we don't need to move the camera
-        return;
-
-	const Body* body = cell_manager->bodies_->at(selected_cell->body_id_);
-    const sf::Vector2f target = body->position_;
-    const sf::Vector2f    current = camera_.m_view_.getCenter();
-
-    camera_.m_view_.setCenter(current + (target - current) * camera_lerp_factor);
+	const sf::Vector2f cam_pos = camera_.m_view_.getCenter();
+    camera_.m_view_.setCenter(cam_pos + (*pos - cam_pos) * camera_lerp_factor);
     camera_.update_window_view();
 }
 
