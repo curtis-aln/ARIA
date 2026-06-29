@@ -4,6 +4,9 @@
 
 inline sf::Texture generateCircleTexture(float radius)
 {
+    if (radius == 0)
+        return sf::Texture();
+
     const auto r = static_cast<unsigned>(radius * 2.f);
     sf::RenderTexture renderTexture({ r, r });
     sf::CircleShape circle(radius);
@@ -38,9 +41,15 @@ class CircleBatchRenderer
 	std::vector<float> radii_{};
 
 public:
-    explicit CircleBatchRenderer(sf::RenderWindow* window, float circle_texture_radius, size_t max_circles)
-	: window_(window), max_circles_(max_circles)
+    explicit CircleBatchRenderer(sf::RenderWindow* window = nullptr, float circle_texture_radius = 0.f, size_t max_circles = 0)
     {
+		init(window, circle_texture_radius, max_circles);
+    }
+
+    void init(sf::RenderWindow* window, float circle_texture_radius, size_t max_circles)
+    {
+        window_ = window;
+        max_circles_ = max_circles;
         texture = generateCircleTexture(circle_texture_radius);
         texture.setSmooth(true);
     }

@@ -1,22 +1,23 @@
 #pragma once
-#include "../settings.h"
+#include "settings/settings.h"
 #include "../world/world.h"
 #include "imgui/population_history.h"
 #include "imgui/control_panel.h"
 
 #include "../Utils/time.h"
 #include "../Utils/fps_manager.h"
+#include "../Utils/fps_limiter.h"
 #include "../Utils/UI/Camera.hpp"
 
 #include <imgui-SFML.h>
 #include <implot.h>
 
-#include "sim_snapshot.h"
-#include "triple_buffer.h"
-#include "sim_command.h"
+#include "context/sim_snapshot.h"
+#include "context/sim_command.h"
+#include "context/triple_buffer.h"
 #include <mutex>
 #include <queue>
-#include "../world/protozoa_tracker.h"
+#include "../managers/cell_manager/organism_tracker.h"
 
 
 
@@ -38,6 +39,8 @@ class Simulation : SimulationSettings, TextSettings
     sf::RenderWindow m_window_{ videoMode, "Project ARIA", windowStyle };
 
     FrameRateSmoothing<frame_smoothing> m_clock_{};
+	frame_rater m_frame_rater_{ 60 }; // used to cap the frame rate in the update thread
+
     Camera camera_{ &m_window_, 1.f };
 
     StopWatch m_delta_time_{};
@@ -49,13 +52,14 @@ class Simulation : SimulationSettings, TextSettings
 
     bool  tracking = false;
     
-    bool  mouse_pressed_event = false;
+    bool  left_mouse_pressed_event = false;
+    bool  right_mouse_pressed_event = false;
     float fps_ = 0.f;
 
     ImPlotColormap m_plot_colormap_{};
 
     // Multithreading
-    int max = static_cast<int>(WorldSettings::max_protozoa * ProtozoaSettings::max_cells);
+    int max = static_cast<int>(CellManagerSettings::max_protozoa);
 	TripleBuffer<SimSnapshot> m_sim_buffer_{ max }; // sim -> render (lock-free)
 
     // render → sim  (low frequency, mutex protected)
@@ -63,7 +67,7 @@ class Simulation : SimulationSettings, TextSettings
     std::queue<SimCommand> m_commands{};
 
     std::thread m_sim_thread_;
-    std::atomic<bool> running{ true }; // replace your existing bool if you have one
+    std::atomic<bool> running{ true };
 
 
 public:
@@ -88,12 +92,15 @@ private:
     void manage_frame_rate();
     void fill_snapshot(SimSnapshot& snapshot);
     void update_world();
+    void resolve_modifications();
 
     // events
     void handle_events();
     bool try_select_protozoa(const sf::Vector2f& cam_pos);
-    void handle_mouse_press(const sf::Vector2f& cam_pos);
-    void handle_mouse_release();
+    void handle_left_click(const sf::Vector2f& cam_pos);
+    void handle_right_click(const sf::Vector2f& cam_pos);
+    void handle_left_release();
+    void handle_right_release();
     void handle_pause_toggle();
     void handle_keyboard_events(const sf::Keyboard::Key& event_key_code);
     void dispatch_event(const sf::Event& event, const sf::Vector2f& cam_pos);

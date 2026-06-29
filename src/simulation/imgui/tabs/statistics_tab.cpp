@@ -26,7 +26,7 @@ void StatisticsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::BeginChild("ST_pop", { cw, ch }, true);
     ImGui::TextDisabled("Population");
     ImGui::Separator();
-	const int  p = snap.stats.protozoa_count;
+	const int  p = snap.stats.cell_count;
     const int  f = snap.stats.food_count;
     const bool risk = p <= 10;
     StatRow::draw("Protozoa", "%d", p);
@@ -59,7 +59,6 @@ void StatisticsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     StatRow::draw("Frames / gen", "%.0f", snap.stats.frames_per_generation);
     StatRow::draw("Avg mut rate", "%.4f", snap.stats.average_mutation_rate);
     StatRow::draw("Avg mut range", "%.4f", snap.stats.average_mutation_range);
-    StatRow::draw("Diversity", "%.4f", snap.stats.genetic_diversity);
     ImGui::EndChild();
     ImGui::SameLine();
 

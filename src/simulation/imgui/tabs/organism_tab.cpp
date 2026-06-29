@@ -4,6 +4,16 @@
 #include <imgui.h>
 #include <algorithm>
 
+// Visual dimensions for the per-cell mini bars in the Energy tab.
+static constexpr float k_mini_cell_box_width = 130.f;
+static constexpr float k_mini_bar_height = 8.f;
+
+// Placeholder upper bound for cell nutrients until a hard cap is added to
+// ProtozoaSettings. Used for progress-bar scaling only — not enforced here.
+static constexpr float k_max_nutrients = 500.f;
+static constexpr float k_summary_bar_height = 18.f;
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Internal helpers
 // ─────────────────────────────────────────────────────────────────────────────
@@ -15,6 +25,25 @@ static constexpr int k_max_wave_buf = 2048;
 inline static constexpr ImVec4 nutrients_bar_col = { 0.35f, 0.75f, 0.35f, 1.f };
 inline static constexpr ImVec4 selector_color = { 0.2, 0.2, 0.8, 1.0 };
 inline static constexpr ImVec2 spring_cell_box_size = { 275.f, -1.f };
+
+
+// Horizontal progress bar with a colour override and an overlay string.
+static void colored_bar(const float fraction, const ImVec4& color,
+    const char* overlay, const ImVec2 size = { -1.f, 10.f })
+{
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, color);
+    ImGui::ProgressBar(fraction, size, overlay);
+    ImGui::PopStyleColor();
+}
+
+
+static void labeled_bar(const char* prefix, const float fraction,
+    const ImVec4& color, const char* overlay)
+{
+    ImGui::TextDisabled("%s", prefix);
+    ImGui::SameLine();
+    colored_bar(fraction, color, overlay, { -1.f, k_summary_bar_height });
+}
 
 // Safe period in frames for a given frequency.
 static int safe_time_period(const float frequency)
@@ -52,8 +81,9 @@ static void colored_progress(const float fraction, const ImVec4 color,
 // ─────────────────────────────────────────────────────────────────────────────
 void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
-    const ProtozoaTracker& protozoa = snap.protozoa_tracker;
-    if (!snap.selected_a_protozoa)
+    const OrganismTracker& protozoa = snap.protozoa_tracker;
+
+    if (!snap.selected_a_cell)
     {
 	    draw_no_selection(); 
     	return;
@@ -67,10 +97,17 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::SameLine();
 
     ImGui::BeginChild("TAB_panel", { -1.f, -1.f }, false);
-    if (!ImGui::BeginTabBar("##org_tabs")) { ImGui::EndChild(); return; }
+    if (!ImGui::BeginTabBar("##org_tabs")) 
+    { 
+        ImGui::EndChild();
+        return; 
+    }
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6.f, 2.f });
+
+    // The different tabs of this
     if (ImGui::BeginTabItem("Cells & Springs")) { draw_cells_springs_tab(ctx, protozoa);        ImGui::EndTabItem(); }
+    if (ImGui::BeginTabItem("Energy")) { draw_energy_tab(ctx, snap);           ImGui::EndTabItem(); }
     if (ImGui::BeginTabItem("Tuning & Controls")) { draw_tuning_controls_tab(ctx, snap); ImGui::EndTabItem(); }
     ImGui::PopStyleVar();
 
@@ -92,7 +129,7 @@ void OrganismTab::draw_no_selection()
 // ─────────────────────────────────────────────────────────────────────────────
 //  Overview panel
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_overview(const ProtozoaTracker& protozoa)
+void OrganismTab::draw_overview(const OrganismTracker& protozoa)
 {
 
 
@@ -100,7 +137,6 @@ void OrganismTab::draw_overview(const ProtozoaTracker& protozoa)
     ImGui::Columns(2, nullptr, false);
 
     ImGui::TextDisabled("Identity");
-    ImGui::Text("ID      %d", protozoa.id);
     ImGui::Text("Age     %u", protozoa.frames_alive);
     ImGui::Text("Cells   %d", protozoa.cell_count);
     ImGui::Text("Springs %d", protozoa.spring_count);
@@ -154,7 +190,7 @@ void OrganismTab::draw_overview(const ProtozoaTracker& protozoa)
 // ─────────────────────────────────────────────────────────────────────────────
 //  Cells & Springs tab
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const ProtozoaTracker& protozoa)
+void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracker& protozoa)
 {
     // fetching cell and spring container information
     const int cell_count = protozoa.cell_count;
@@ -220,7 +256,11 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const ProtozoaTracke
     ImGui::SameLine();
 
     if (!m_sel_is_spring_ && !cell_count == 0)
-        draw_cell_detail(ctx, protozoa.cells[m_sel_cell_idx_]);
+    {
+		const Cell& cell = protozoa.cells[m_sel_cell_idx_];
+		const Body& body = protozoa.bodies[m_sel_cell_idx_];
+        draw_cell_detail(ctx, cell, body.position_, body.velocity_);
+    }
 
     else if (m_sel_is_spring_ && !spring_count == 0)
         draw_spring_detail(ctx, protozoa, protozoa.springs[m_sel_spring_idx_]);
@@ -229,11 +269,14 @@ void OrganismTab::draw_cells_springs_tab(ImGuiContext& ctx, const ProtozoaTracke
 // ─────────────────────────────────────────────────────────────────────────────
 //  Cell detail (stats + sinwave)
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
+void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel)
 {
-	const sf::Vector2f& pos = c.get_pos();
-	const sf::Vector2f& vel = c.get_vel();
-	const float speed = vel.length();
+
+    const float speed_sq = vel.lengthSquared();
+    float speed = -1;
+    if (speed_sq != 0)
+	    speed = vel.length();
+
     const int frames_alive = c.frames_alive_;
     const float current_friction = c.calculate_friction();
 
@@ -246,7 +289,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
                 SimCommand cmd;
                 cmd.type = type;
                 cmd.float_val = val;
-				cmd.cell_spring_idx = c.id;
+				cmd.cell_spring_idx = c.body_id_;
                 ctx.push(cmd);
             }
         };
@@ -260,7 +303,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
     // ── Stats ─────────────────────────────────────────────────────────────
     ImGui::BeginChild("CL_stat", spring_cell_box_size, true);
 
-    ImGui::TextDisabled("Cell %d  Gen %d", c.id, c.generation);
+    ImGui::TextDisabled("Cell %d  Gen %d", c.body_id_, c.generation);
     ImGui::Text("Pos      (%.0f, %.0f)", pos.x, pos.y);
     ImGui::Text("Speed    %.3f", speed);
     ImGui::Text("Radius   %.1f", c.radius);
@@ -269,11 +312,16 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
     ImGui::Text("Mut R    %.4f  Rng %.4f", c.mutation_rate, c.mutation_range);
     ImGui::Text("Ate      %d  (%zu fr ago)", c.total_food_eaten_, c.time_since_last_ate_);
 
+    ImGui::Text("reproduce: %d", c.reproduce);
+	ImGui::Text("offspring idx: %d", c.offspring_index);
+	ImGui::Text("connection idx: %d", c.connection_index);
+	ImGui::Text("spring copy idx: %d", c.spring_to_copy_index);
+
     // Digest cooldown bar
     const float digest_remaining = std::max(0.f,
-        ProtozoaSettings::digestive_time -
+        CellSettings::digestive_time -
         static_cast<float>(c.time_since_last_ate_));
-    const float digest_f = digest_remaining / ProtozoaSettings::digestive_time;
+    const float digest_f = digest_remaining / CellSettings::digestive_time;
     char digest_lbl[32];
     snprintf(digest_lbl, sizeof(digest_lbl), "%.0f fr left", digest_remaining);
     ImGui::TextDisabled("Digest cooldown");
@@ -344,7 +392,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c)
 // ─────────────────────────────────────────────────────────────────────────────
 //  Spring detail (stats + sin wave)
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p, const Spring& s)
+void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s)
 {
     auto slider_float_cmd = [&](const char* label, float current, float min, float max,
         const char* fmt, CommandType type)
@@ -355,7 +403,7 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p
                 SimCommand cmd;
                 cmd.type = type;
                 cmd.float_val = val;
-                cmd.cell_spring_idx = s.id;
+                cmd.cell_spring_idx = s.id_;
                 ctx.push(cmd);
             }
         };
@@ -463,7 +511,7 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const ProtozoaTracker& p
 // ─────────────────────────────────────────────────────────────────────────────
 void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot& snap)
 {
-    const ProtozoaTracker& p = snap.protozoa_tracker;
+    const OrganismTracker& p = snap.protozoa_tracker;
     const float sp = ImGui::GetStyle().ItemSpacing.x;
     const float total = ImGui::GetContentRegionAvail().x;
     const float cw = (total - sp * 2.f) / 3.f;
@@ -516,7 +564,8 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     ImGui::TextDisabled("Lifecycle");
     ImGui::Separator();
 
-    bool immortal = p.immortal;
+    //bool immortal = p.immortal; // todo
+    bool immortal = false;
     if (ImGui::Checkbox("Immortal##org", &immortal))
     {
         SimCommand cmd{.type = CommandType::MakeImmortal };
@@ -548,6 +597,185 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     ImGui::Spacing();
     ImGui::TextDisabled("Tag");
     ImGui::Separator();
-    ImGui::TextDisabled("Use the Tagged tab to tag ID %d", p.id);
     ImGui::EndChild();
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Energy tab
+// ─────────────────────────────────────────────────────────────────────────────
+void OrganismTab::draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap)
+{
+    const OrganismTracker& tracker = snap.protozoa_tracker;
+    const auto& cells = tracker.cells;
+    const int              n = tracker.cell_count;
+
+    if (n == 0) { ImGui::TextDisabled("No cells."); return; }
+
+    // ── Aggregate totals not pre-computed by tracker ───────────────────────
+    float total_integrity = 0.f;
+    for (const Cell& c : cells)
+        total_integrity += c.integrity;
+
+    const float org_integrity_max = CellSettings::integrity * static_cast<float>(n);
+    const float org_nutrients_max = k_max_nutrients * static_cast<float>(n);
+
+    // ── Set up 3 columns with explicit widths ─────────────────────────────
+    const float total_w = ImGui::GetContentRegionAvail().x;
+    ImGui::Columns(3, "energy_cols", false);
+    ImGui::SetColumnWidth(0, total_w * 0.45f);
+    ImGui::SetColumnWidth(1, total_w * 0.25f);
+    // column 2 takes the rest
+
+    // ═════════════════════════════════════════════════════════════════════
+    //  COLUMN 0 — Organism summary bars + per-cell grid
+    // ═════════════════════════════════════════════════════════════════════
+    ImGui::TextDisabled("Organism Summary  (%d cells)", n);
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Energy — green = at reproduce threshold, red = depleted
+    {
+        const float f = std::clamp(tracker.total_energy / tracker.max_energy, 0.f, 1.f);
+        char lbl[48]; snprintf(lbl, sizeof(lbl), "%.1f / %.0f", tracker.total_energy, tracker.max_energy);
+        labeled_bar("NRG", f, fraction_color(f), lbl);
+    }
+    // Nutrients — blue
+    {
+        const float f = std::clamp(tracker.total_nutrients / org_nutrients_max, 0.f, 1.f);
+        char lbl[48]; snprintf(lbl, sizeof(lbl), "%.1f / %.0f", tracker.total_nutrients, org_nutrients_max);
+        labeled_bar("NUT", f, { 0.2f, 0.6f, 1.0f, 1.f }, lbl);
+    }
+    // Integrity — yellow
+    {
+        const float f = std::clamp(total_integrity / org_integrity_max, 0.f, 1.f);
+        char lbl[48]; snprintf(lbl, sizeof(lbl), "%.1f / %.0f", total_integrity, org_integrity_max);
+        labeled_bar("INT", f, { 0.85f, 0.8f, 0.25f, 1.f }, lbl);
+    }
+
+    ImGui::Spacing();
+    ImGui::Text("Spring drain this frame:  %.5f", tracker.spring_total_work_done);
+    ImGui::Spacing();
+    ImGui::Spacing();
+
+    // ── Per-cell mini bar grid ─────────────────────────────────────────────
+    ImGui::TextDisabled("Per-Cell  [ E = energy   N = nutrients   I = integrity ]");
+    ImGui::Spacing();
+
+    const float sp = ImGui::GetStyle().ItemSpacing.x;
+    const float avail_w = ImGui::GetContentRegionAvail().x;
+    const int   cells_per_row = std::max(1,
+        static_cast<int>((avail_w + sp) / (k_mini_cell_box_width + sp)));
+
+    for (int i = 0; i < n; ++i)
+    {
+        const Cell& c = cells[i];
+
+        if (i > 0 && i % cells_per_row != 0)
+            ImGui::SameLine();
+
+        ImGui::PushID(i);
+        ImGui::BeginGroup();
+
+        ImGui::TextDisabled("C%d", i);
+        ImGui::SameLine();
+        ImGui::TextDisabled("(x%u)", c.total_food_eaten_);
+
+        // Energy bar
+        {
+            const float f = std::clamp(c.energy / CellSettings::reproduce_energy_thresh, 0.f, 1.f);
+            ImGui::TextDisabled("E"); ImGui::SameLine(0.f, 3.f);
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, fraction_color(f));
+            ImGui::ProgressBar(f, { k_mini_cell_box_width, k_mini_bar_height }, "");
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Energy: %.2f  /  %.0f (repro thresh)",
+                    c.energy, CellSettings::reproduce_energy_thresh);
+        }
+        // Nutrients bar
+        {
+            const float f = std::clamp(c.nutrients_ / k_max_nutrients, 0.f, 1.f);
+            ImGui::TextDisabled("N"); ImGui::SameLine(0.f, 3.f);
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4{ 0.2f, 0.6f, 1.0f, 1.f });
+            ImGui::ProgressBar(f, { k_mini_cell_box_width, k_mini_bar_height }, "");
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Nutrients: %.2f  /  %.0f (cap)", c.nutrients_, k_max_nutrients);
+        }
+        // Integrity bar
+        {
+            const float f = std::clamp(c.integrity / CellSettings::integrity, 0.f, 1.f);
+            ImGui::TextDisabled("I"); ImGui::SameLine(0.f, 3.f);
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4{ 0.85f, 0.8f, 0.25f, 1.f });
+            ImGui::ProgressBar(f, { k_mini_cell_box_width, k_mini_bar_height }, "");
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Integrity: %.2f  /  %.0f", c.integrity, CellSettings::integrity);
+        }
+
+        ImGui::EndGroup();
+        ImGui::PopID();
+    }
+
+    // ═════════════════════════════════════════════════════════════════════
+    //  COLUMN 1 — Feed controls
+    // ═════════════════════════════════════════════════════════════════════
+    ImGui::NextColumn();
+
+    ImGui::BeginChild("EN_feed", { -1.f, -1.f }, true);
+    ImGui::TextDisabled("Feed");
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    ImGui::RadioButton("Energy##fmode", &m_feed_mode_, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("Nutrients##fmode", &m_feed_mode_, 1);
+
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(-1.f);
+    ImGui::SliderFloat("##feed_amount", &m_feed_amount_, 1.f, 500.f, "Amount = %.0f");
+
+    ImGui::Spacing();
+    if (ImGui::Button("Inject##en_inject", { -1.f, 0.f }))
+    {
+        // Distributed evenly across all cells via the command handler.
+        //const CommandType type = (m_feed_mode_ == 0)
+        //    ? CommandType::InjectProtozoa
+        //    : CommandType::InjectNutrients;
+
+        //SimCommand cmd{ type };
+        //cmd.float_val = m_feed_amount_;
+        //ctx.push(cmd);
+    }
+    ImGui::EndChild();
+
+    // ═════════════════════════════════════════════════════════════════════
+    //  COLUMN 2 — Conversion constants
+    // ═════════════════════════════════════════════════════════════════════
+    ImGui::NextColumn();
+
+    ImGui::BeginChild("EN_const", { -1.f, -1.f }, true);
+    ImGui::TextDisabled("Conversion rates  (per frame, per cell)");
+    ImGui::Separator();
+    ImGui::Text("Energy decay             %.5f", CellSettings::energy_decay_rate);
+    ImGui::Text("Nutrients  ->  Energy    %.5f", CellSettings::conversion_rate);
+    ImGui::Text("Energy     ->  Integrity %.5f", CellSettings::integrity_conversion_rate);
+    ImGui::Text("Energy share (springs)   %.5f", SpringSettings::energy_share_rate);
+    ImGui::Text("Spring work cost         %.5f", SpringSettings::spring_work_const);
+
+    ImGui::Spacing();
+    ImGui::TextDisabled("Thresholds  &  costs");
+    ImGui::Separator();
+    ImGui::Text("Initial energy           %.1f", CellSettings::initial_energy);
+    ImGui::Text("Reproduce threshold      %.1f", CellSettings::reproduce_energy_thresh);
+    ImGui::Text("Offspring energy cost    %.1f", CellSettings::offspring_energy_cost);
+    ImGui::Text("Integrity max            %.1f", CellSettings::integrity);
+    ImGui::Text("Nutrients cap (*)        %.1f", k_max_nutrients);
+
+    ImGui::Spacing();
+    ImGui::TextDisabled("(*) placeholder — replace once ProtozoaSettings::max_nutrients exists");
+    ImGui::EndChild();
+
+    // ── Reset columns ──────────────────────────────────────────────────────
+    ImGui::Columns(1);
 }

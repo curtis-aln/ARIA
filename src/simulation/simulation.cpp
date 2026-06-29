@@ -19,14 +19,16 @@ Simulation::Simulation() : m_world_(&m_window_)
     cell_statistic_font.set_font_size(cell_statistic_font_size);
 
     init_imGUI();
+    std::cout << "Program Finished initialising. running. . .\n";
 }
 
 void Simulation::run_simulation()
 {
+    // The simulation is designed to run at 30 iterations per second
+    m_world_.toggles.max_frame_rate = SimulationSettings::initial_frame_rate;
 
     m_sim_thread_ = std::thread([this]
     {
-            Random::set_seed(0);
             while (running)
                 update_one_frame();
         });
@@ -45,16 +47,35 @@ void Simulation::run_simulation()
 
 void Simulation::update_one_frame()
 {
+    if (m_world_.toggles.max_frame_rate != 0)
+    {
+        m_frame_rater_.sleep();
+    }
+
+    resolve_modifications();
+
     if (m_world_.toggles.m_tick_frame_time)
     {
-        update_world();
+        m_world_.update();
         m_world_.toggles.m_tick_frame_time = false;
     }
+
     else if (!m_world_.toggles.paused)
     {
-        update_world();
+        m_world_.update();
                     
     }
+
+    // Package results into the triple buffer
+    SimSnapshot& snap = m_sim_buffer_.get_write_buffer();
+
+    // Filling the snapshot with information
+    m_world_.fill_snapshot(snap);
+    snap.stats.fps = fps_;
+    snap.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
+    snap.history = m_history_;
+
+    m_sim_buffer_.publish();
 
     if (m_total_time_elapsed_ >= 30)
     {
@@ -70,11 +91,16 @@ void Simulation::update_one_frame()
 
 void Simulation::update_world()
 {
+
+}
+
+void Simulation::resolve_modifications()
+{
     // Apply any commands ImGui pushed since last tick
     {
-		// lock the command queue while we process it, but release it before ticking the simulation
+        // lock the command queue while we process it, but release it before ticking the simulation
         std::lock_guard lock(m_cmd_mutex);
-		Protozoa* selected_protozoa = m_world_.get_selected_protozoa();
+        //Protozoa* selected_protozoa = m_world_.get_selected_protozoa();
 
         while (!m_commands.empty())
         {
@@ -85,170 +111,211 @@ void Simulation::update_world()
                 m_world_.toggles = cmd.toggles;
                 break;
 
-            case CommandType::SetRadius:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;
-                break;
-
-			case CommandType::SetAmplitude:
-				if (selected_protozoa)
-					selected_protozoa->get_cells()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+			case CommandType::SetFrameRate:
+                m_world_.toggles.max_frame_rate = cmd.float_val;
+				m_frame_rater_.set_fps(cmd.float_val);
 				break;
+
+            //case CommandType::SetRadius:
+            //    if (selected_protozoa)
+            //        selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;
+            //    break;
+
+            //case CommandType::SetAmplitude:
+            //    if (selected_protozoa)
+            //        selected_protozoa->get_cells()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+            //    break;
 
             case CommandType::SetFrequency:
-				if (selected_protozoa)
-					selected_protozoa->get_cells()[cmd.cell_spring_idx].frequency = cmd.float_val;
-				break;
+                //if (selected_protozoa)
+                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].frequency = cmd.float_val;
+                break;
 
             case CommandType::SetVerticalShift:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
+                //if (selected_protozoa)
+                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
                 break;
 
             case CommandType::SetOffset:
-                if (selected_protozoa)
-                    selected_protozoa->get_cells()[cmd.cell_spring_idx].offset = cmd.float_val;
+                //if (selected_protozoa)
+                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].offset = cmd.float_val;
                 break;
 
             case CommandType::SetCellGridResolution:
-				//m_world_.get_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
+                //m_world_.get_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
                 //m_world_.update_spatial_renderers();
-				break;
+                break;
 
             case CommandType::SetFoodGridResolution:
-				//m_world_.get_food_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
+                //m_world_.get_food_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
                 //m_world_.update_spatial_renderers();
-				break;
+                break;
 
             case CommandType::MutateProtozoa:
-				if (selected_protozoa)
-					selected_protozoa->mutate(cmd.mutate.mut_rate, cmd.mutate.mut_range);
+                //if (selected_protozoa)
+               //     selected_protozoa->mutate(cmd.mutate.mut_rate, cmd.mutate.mut_range);
                 break;
 
             case CommandType::AddCell:
-				if (selected_protozoa)
-					selected_protozoa->add_cell();
-				break;  
+                //if (selected_protozoa)
+                //    selected_protozoa->add_cell();
+                break;
 
             case CommandType::RemoveCell:
-                if (selected_protozoa)
-                    selected_protozoa->remove_cell();
+                //if (selected_protozoa)
+                //    selected_protozoa->remove_cell();
                 break;
 
             case CommandType::AddSpring:
-                if (selected_protozoa)
-                    selected_protozoa->add_spring();
+                //if (selected_protozoa)
+                //    selected_protozoa->add_spring(); todo
                 break;
 
             case CommandType::RemoveSpring:
-                if (selected_protozoa)
-                    selected_protozoa->remove_spring();
+                //if (selected_protozoa)
+                //    selected_protozoa->remove_spring(); todo
                 break;
 
             case CommandType::InjectProtozoa:
-                if (selected_protozoa)
-                    selected_protozoa->inject(cmd.float_val);
+                //if (selected_protozoa)
+                //    m_world_.inject_protozoa(selected_protozoa, cmd.float_val);
                 break;
 
             case CommandType::KillProtozoa:
-                if (selected_protozoa)
-                    selected_protozoa->kill();
+                //if (selected_protozoa)
+                //    selected_protozoa->kill(); // todo
                 break;
 
             case CommandType::ForceReproduce:
-                if (selected_protozoa)
-                    selected_protozoa->force_reproduce();
+                //if (selected_protozoa) // todo
+                //    selected_protozoa->force_reproduce();
                 break;
 
             case CommandType::MakeImmortal:
-				if (selected_protozoa)
-					selected_protozoa->immortal = cmd.bool_val;
-				break;
+                //if (selected_protozoa) // todo
+                //    selected_protozoa->immortal = cmd.bool_val;
+                break;
 
             case CommandType::CloneProtozoa:
-                if (selected_protozoa)
-                {
-					m_world_.create_offspring(selected_protozoa, false);
-                }
+                //if (selected_protozoa)
+                //{
+                //    m_world_.create_offspring(selected_protozoa, false);
+                //}
                 break;
 
             case CommandType::ResetSimulation:
                 break; // todo
 
             case CommandType::NavToProtozoa:
-                m_world_.selected_protozoa_ = m_world_.all_protozoa_.at(cmd.int_val);
+                //m_world_.selected_protozoa_ = m_world_.all_protozoa_.at(cmd.int_val);
+                break;
 
             case CommandType::SetSpringAmplitude:
-                if (selected_protozoa)
-                {
-					m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
-                }
-				break;
-                
+                //if (selected_protozoa)
+                //{
+                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+                //}
+                break;
+
             case CommandType::SetSpringFrequency:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetSpringOffset:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
+                //}
+                //break;
+                    //m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetSpringVerticalShift:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                    //m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetDampingConst:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].damping = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].damping = cmd.float_val;
+                //}
                 break;
 
             case CommandType::SetSpringConst:
-                if (selected_protozoa)
-                {
-                    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
-                }
+                //if (selected_protozoa)
+                //{
+                   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
+                //}
                 break;
             }
             m_commands.pop();
         }
-    } // mutex released here
 
-    // Tick the simulation
-    m_world_.update();
+        const WorldToggles& t = m_world_.toggles; // or however you access live toggles
+
+        auto* cell_manager = m_world_.get_cell_manager();
+        WorldBorder bounds{ camera_.get_world_mouse_pos(), t.mouse_radius };
+
+        if (right_mouse_pressed_event)
+        {
+            if (t.mouse_mode == 0) // Add
+            {
+                // adding cells
+                if (t.mouse_add_cells)
+                {
+                    cell_manager->create_new_protozoa(1, &bounds);
+                }
+
+                if (t.mouse_add_food)
+                {
+
+                }
+                //m_world_.food_manager.add_food_at_point(
+                //	cam_pos,
+                //	static_cast<int>(t.mouse_intensity),
+                //	t.mouse_radius); // IMGUI_TODO: implement add_food_at_point()
+            }
+            else // Remove
+            {
+                if (t.mouse_rem_cells)
+                {
+                    std::cout << "removing cells";
+                }
+                //m_world_.get_cell_manager().remove_particles_in_radius(
+                //	cam_pos, t.mouse_radius); // IMGUI_TODO: implement this
+
+                if (t.mouse_rem_food)
+                {
+
+                }
+                //m_world_.food_manager.remove_food_in_radius(
+                //	cam_pos, t.mouse_radius); // IMGUI_TODO: implement this
+            }
+        }
     
-    // Package results into the triple buffer
-    SimSnapshot& snap = m_sim_buffer_.get_write_buffer();
-
-    // Filling the snapshot with information
-    m_world_.fill_snapshot(snap);
-	snap.stats.fps = fps_;
-	snap.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
-    snap.history = m_history_;
-
-    m_sim_buffer_.publish();
-
-
+    } // mutex released here
 }
+
 
 void Simulation::camera_follow_selected_protozoa()
 {
-    Protozoa* selected = m_world_.get_selected_protozoa();
-    if (selected == nullptr)
+	const CellManager* cell_manager = m_world_.get_cell_manager();
+
+    // This function moves the camera center to the location of a selected cell
+    const Cell* selected_cell = cell_manager->get_selected_cell();
+
+	if (selected_cell == nullptr || m_world_.should_drag_protozoa_) // No cell is selected, so we don't need to move the camera
         return;
 
-    const sf::Rect<float> bounds = Protozoa::calc_protozoa_bounds(selected);
-    const sf::Vector2f    target = bounds.position + bounds.size / 2.f;
+	const Body* body = cell_manager->bodies_->at(selected_cell->body_id_);
+    const sf::Vector2f target = body->position_;
     const sf::Vector2f    current = camera_.m_view_.getCenter();
 
     camera_.m_view_.setCenter(current + (target - current) * camera_lerp_factor);
@@ -259,7 +326,7 @@ void Simulation::update_line_graphs(const SimSnapshot& snapshot)
 {
     m_history_.push(
         snapshot.stats.iterations_,
-        snapshot.stats.protozoa_count,
+        snapshot.stats.cell_count,
         snapshot.stats.food_count,
         snapshot.stats.average_generation);
 
@@ -310,7 +377,7 @@ void Simulation::manage_frame_rate()
     std::ostringstream title;
     title << simulation_name
         << " | FPS: " << std::fixed << std::setprecision(1) << fps_
-        << " | protozoa: " << stats.protozoa_count
+        << " | protozoa: " << stats.cell_count
         << " | food: " << m_world_.get_food_count()
         << " | average generation: " << stats.average_generation;
     m_window_.setTitle(title.str());

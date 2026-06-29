@@ -25,8 +25,22 @@ struct WorldToggles
 	bool track_spatial_grids = false;  // gather spatial grid statistics each frame
 	bool  open_extinction_window = false; // whether to open the extinction confirmation popup
 
+    bool run_physics_only = true;
+
+
     float min_speed = 0.f;
     float delta_min_speed = 0.f;
+
+	float max_frame_rate = 0.f; // 0 = unlimited
+
+    // Mouse tool — written by UI, read by handle_left_click()
+    int   mouse_mode = 0;      // 0 = Add, 1 = Remove
+    bool  mouse_add_cells = true;
+    bool  mouse_add_food = false;
+    bool  mouse_rem_cells = true;
+    bool  mouse_rem_food = false;
+    float mouse_intensity = 1.f;
+    float mouse_radius = 100.f;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,7 +50,7 @@ struct WorldToggles
 // ─────────────────────────────────────────────────────────────────────────────
 struct WorldStatistics
 {
-    int   protozoa_count = 0;
+    int   cell_count = 0;
     int   food_count = 0;
     int   peak_protozoa_ever = 0;
     int   highest_generation_ever = 0;
@@ -50,7 +64,6 @@ struct WorldStatistics
     float average_mutation_range = 0.f;
     float average_energy = 0.f;
     float average_spring_count = 0.f;
-    float genetic_diversity = 0.f;
     float energy_efficiency = 0.f;
 	float average_lifetime = 0.f; 
 
@@ -84,7 +97,7 @@ struct RenderData
     alignas(64) std::vector<sf::Color>    outer_colors;
     alignas(64) std::vector<sf::Color>    inner_colors;
     alignas(64) std::vector<float>        radii;
-    int                       entity_count = 0;
+    alignas(64) std::vector<std::pair<int, int>> spring_connections;
 
     void reserve(const int max_cells)
     {
@@ -93,6 +106,7 @@ struct RenderData
         outer_colors.resize(max_cells);
         inner_colors.resize(max_cells);
         radii.resize(max_cells);
+        spring_connections.resize(max_cells);
     }
 };
 

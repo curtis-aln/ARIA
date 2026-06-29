@@ -1,0 +1,79 @@
+# ── World ─────────────────────────────────────────────────────────────────────
+[world]
+bounds_radius            = 30000
+border_repulsion_magnitude = 0.001
+max_speed                = 30.0
+cells_x = 210
+cells_y = 210
+cell_max_capacity = 6
+
+# ── Protozoa ──────────────────────────────────────────────────────────────────
+[protozoa]
+max_cells                = 0
+spawn_radius             = 100.0
+energy_decay_rate        = 0.08
+wander_threshold         = 600.0   
+breaking_length          = 400.0   
+maximum_extension        = 250.0    
+spring_work_const        = 0.00001
+reproductive_cooldown    = 200
+digestive_time           = 100
+initial_energy           = 70.0
+
+# ── Cell Manager ──────────────────────────────────────────────────────────────────────
+[cell_manager]
+max_protozoa             = 25000
+initial_protozoa         = 400 # seeds
+
+# ── Food Manager ──────────────────────────────────────────────────────────────────────
+[food_manager]
+max_food                 = 60000
+initial_food             = 15000
+
+
+# ── Food ──────────────────────────────────────────────────────────────────────
+[food]
+
+# --- spatial grid ---
+cells_x = 210
+cells_y = 210
+cell_max_capacity        = 15
+update_freq = 4
+
+# --- physics ---
+food_radius              = 60.0
+friction                 = 0.98
+vibration_strength       = 3.0
+
+# --- Color ---
+food_visibility_ramp_frames = 90.0
+food_max_alpha           = 200.0
+
+# --- Birth ---
+spawn_proportionality_constant = 0.125
+food_spawn_distance      = 200.0 
+reproductive_cooldown    = 320
+reproductive_threshold   = 400
+
+# --- Nutrients ---
+initial_nutrients        = 10.0
+final_nutrients          = 100.0
+nutrient_development_time = 300
+
+# --- Death ---
+death_age                = 2300.0
+death_age_chance         = 0.01
+
+# ── Graphics ──────────────────────────────────────────────────────────────────
+[graphical]
+spring_thickness         = 9.0
+spring_outline_thickness = 6.0
+cell_outline_thickness   = 1.3
+food_transparency        = 200
+
+# ── Simulation ────────────────────────────────────────────────────────────────
+[simulation]
+vsync                    = false
+full_screen              = false
+ui_scale_percent         = 100.0
+max_fps                  = 0

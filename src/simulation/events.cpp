@@ -7,22 +7,45 @@ bool Simulation::try_select_protozoa(const sf::Vector2f& cam_pos)
 	return m_world_.handle_mouse_click(cam_pos);
 }
 
-void Simulation::handle_mouse_press(const sf::Vector2f& cam_pos)
+void Simulation::handle_left_click(const sf::Vector2f& cam_pos)
 {
+	// when a mouse button is pressed down it is either to pan the screen or to interact with an organism
 	if (try_select_protozoa(cam_pos))
-		mouse_pressed_event = true;
+	{
+		left_mouse_pressed_event = true;
+	}
 	else
 	{
-		m_world_.deselect_protozoa();
+		m_world_.deselect_cell();
 		camera_.begin_pan();  // start pan only if we didn't click an organism
 	}
 }
 
-void Simulation::handle_mouse_release()
+void Simulation::handle_right_click(const sf::Vector2f& cam_pos)
+{
+	// right click allows you to drag protozoa around the screen
+	right_mouse_pressed_event = true;
+
+	// we should only drag a protozoa if our mouse is within the radius of one
+	//if (try_select_protozoa(cam_pos))
+	//{
+	//	m_world_.should_drag_protozoa_ = true;
+	//}
+}
+
+
+
+void Simulation::handle_left_release()
 {
 	//m_world_.deselect_protozoa();
-	mouse_pressed_event = false;
+	left_mouse_pressed_event = false;
 	camera_.end_pan();
+}
+
+void Simulation::handle_right_release()
+{
+	right_mouse_pressed_event = false;
+	m_world_.should_drag_protozoa_ = false; // release the protozoa if we were dragging one
 }
 
 // ---- Keyboard helpers ---------------------------------------------
@@ -70,13 +93,24 @@ void Simulation::dispatch_event(const sf::Event& event, const sf::Vector2f& cam_
 		if (!ImGui::GetIO().WantCaptureMouse)  // don't zoom sim if imgui is using scroll
 			camera_.zoom(scroll->delta);
 	}
-	else if (event.is<sf::Event::MouseButtonPressed>())
+	else if (const auto* mouse = event.getIf<sf::Event::MouseButtonPressed>())
 	{
-		if (!ImGui::GetIO().WantCaptureMouse)  // don't interact with sim if imgui is focused
-			handle_mouse_press(cam_pos);
+		if (!ImGui::GetIO().WantCaptureMouse)
+		{
+			if (mouse->button == sf::Mouse::Button::Left)
+				handle_left_click(cam_pos);
+			else if (mouse->button == sf::Mouse::Button::Right)
+				handle_right_click(cam_pos);
+		}
 	}
-	else if (event.is<sf::Event::MouseButtonReleased>())
-		handle_mouse_release();
+	else if (const auto* mouse = event.getIf<sf::Event::MouseButtonReleased>())
+	{
+		if (mouse->button == sf::Mouse::Button::Left)
+			handle_left_release();
+		else if (mouse->button == sf::Mouse::Button::Right)
+			handle_right_release();
+	}
+
 }
 
 // ---- Top-level ----------------------------------------------------

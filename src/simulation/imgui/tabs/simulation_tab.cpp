@@ -2,8 +2,23 @@
 #include "../helpers/plot_utils.h"
 #include <imgui.h>
 
+#include "world/world_settings.h"
+
 void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
+    auto slider_float_cmd = [&](const char* label, float current, float min, float max,
+        const char* fmt, CommandType type)
+        {
+            float val = current;
+            if (ImGui::SliderFloat(label, &val, min, max, fmt))
+            {
+                SimCommand cmd;
+                cmd.type = type;
+                cmd.float_val = val;
+                ctx.push(cmd);
+            }
+        };
+
     // ── 4 panels: Playback | Fast Forward | World Settings | Save/Load + Keybinds
     const float total = ImGui::GetContentRegionAvail().x;
     const float sp = ImGui::GetStyle().ItemSpacing.x;
@@ -37,7 +52,23 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     ImGui::Spacing();
     ImGui::SetNextItemWidth(-1.f);
-    ImGui::SliderFloat("##speed", &m_speed_, 0.1f, 10.f, "Speed %.1fx");
+
+    {
+        constexpr float kSliderMax = 210.f; // top 10 units = "Max" zone
+        constexpr float kMaxThreshold = 200.f;
+
+        const bool is_unlimited = snap.toggles.max_frame_rate <= 0.f;
+        float fps_val = is_unlimited ? kSliderMax : snap.toggles.max_frame_rate;
+
+        const char* fmt = is_unlimited ? "sim max fps: MAX" : "sim max fps %.1f";
+
+        if (ImGui::SliderFloat("##fps", &fps_val, 30.f, kSliderMax, fmt))
+        {
+            SimCommand cmd{ CommandType::SetFrameRate };
+            cmd.float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val;
+            ctx.push(cmd);
+        }
+    }
 
     ImGui::Spacing();
     if (ImGui::Button("Reset Simulation", { -1.f, 0.f }))
@@ -67,11 +98,105 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::EndChild();
     ImGui::SameLine();
 
-    // ── Fast Forward ──────────────────────────────────────────────────────────
+    // ── Mouse Tools ───────────────────────────────────────────────────────────────
     ImGui::BeginChild("SIM_ff", { cw, ch }, true);
+    ImGui::TextDisabled("Mouse Tools");
+    ImGui::Separator();
+
+    // ── Add / Remove mode toggle ──────────────────────────────────────────────────
+    const float hw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
+
+    if (m_mouse_mode_ == 0) ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.5f, 0.2f, 1.f });
+    if (ImGui::Button("Add##mode", { hw, 0.f }))
+    {
+        m_mouse_mode_ = 0;
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_mode = 0;
+        ctx.push(cmd);
+    }
+    if (m_mouse_mode_ == 0) ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    if (m_mouse_mode_ == 1) ImGui::PushStyleColor(ImGuiCol_Button, { 0.6f, 0.2f, 0.2f, 1.f });
+    if (ImGui::Button("Remove##mode", { -1.f, 0.f }))
+    {
+        m_mouse_mode_ = 1;
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_mode = 1;
+        ctx.push(cmd);
+    }
+    if (m_mouse_mode_ == 1) ImGui::PopStyleColor();
+
+    ImGui::Spacing();
+
+    // ── Checkboxes for active mode ────────────────────────────────────────────────
+    if (m_mouse_mode_ == 0)
+    {
+        ImGui::TextDisabled("Add:");
+        if (ImGui::Checkbox("Cells##add", &m_add_cells_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_add_cells = m_add_cells_;
+            ctx.push(cmd);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Food##add", &m_add_food_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_add_food = m_add_food_;
+            ctx.push(cmd);
+        }
+    }
+    else
+    {
+        ImGui::TextDisabled("Remove:");
+        if (ImGui::Checkbox("Cells##rem", &m_remove_cells_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_rem_cells = m_remove_cells_;
+            ctx.push(cmd);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Food##rem", &m_remove_food_))
+        {
+            SimCommand cmd{ CommandType::SetToggles };
+            cmd.toggles = snap.toggles;
+            cmd.toggles.mouse_rem_food = m_remove_food_;
+            ctx.push(cmd);
+        }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+
+    // ── Intensity and radius sliders ──────────────────────────────────────────────
+    ImGui::SetNextItemWidth(-1.f);
+    if (ImGui::SliderFloat("##intensity", &m_mouse_intensity_, 0.1f, 10.f, "Intensity %.2f"))
+    {
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_intensity = m_mouse_intensity_;
+        ctx.push(cmd);
+    }
+
+    ImGui::SetNextItemWidth(-1.f);
+    if (ImGui::SliderFloat("##radius", &m_mouse_radius_, 10.f, 1000.f, "Radius %.0f"))
+    {
+        SimCommand cmd{ CommandType::SetToggles };
+        cmd.toggles = snap.toggles;
+        cmd.toggles.mouse_radius = m_mouse_radius_;
+        ctx.push(cmd);
+    }
 
     ImGui::EndChild();
     ImGui::SameLine();
+
 
     // ── World Settings ────────────────────────────────────────────────────────
     ImGui::BeginChild("SIM_world", { cw, ch }, true);
@@ -79,23 +204,13 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::Separator();
 
     ImGui::SetNextItemWidth(-1.f);
-    auto slider_float_cmd = [&](const char* label, float current, float min, float max,
-        const char* fmt, CommandType type)
-        {
-            float val = current;
-            if (ImGui::SliderFloat(label, &val, min, max, fmt))
-            {
-                SimCommand cmd;
-                cmd.type = type;
-                ctx.push(cmd);
-            }
-        };
-    slider_float_cmd("##minsp", snap.toggles.min_speed, 0.f, 135.f, "Min Speed %.1f", CommandType::SetToggles);
+    
+    //slider_float_cmd("##minsp", snap.toggles.min_speed, 0.f, 135.f, "Min Speed %.1f", CommandType::SetToggles);
 	
     float ds = snap.toggles.delta_min_speed * 1000.f;
     ImGui::SetNextItemWidth(-1.f);
 
-	slider_float_cmd("##dsp", ds, 0.2f, 2.f, "Delta Spd %.3f", CommandType::SetToggles);
+	//slider_float_cmd("##dsp", ds, 0.2f, 2.f, "Delta Spd %.3f", CommandType::SetToggles);
 
     static float world_radius = WorldSettings::bounds_radius;
     ImGui::SetNextItemWidth(-1.f);

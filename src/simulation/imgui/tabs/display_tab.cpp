@@ -1,6 +1,8 @@
 #include "display_tab.h"
 #include <imgui.h>
-#include "../../sim_command.h"
+#include "../../context/sim_command.h"
+#include "../imgui_settings.h"
+
 
 void DisplayTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {

@@ -1,6 +1,9 @@
+
 #include "simulation/simulation.h"
 #include "Utils/UI/CrashLogger.h"
-#include "settings.h"
+#include "simulation/settings/settings.h"
+
+
 
 extern "C"
 {
@@ -10,17 +13,23 @@ extern "C"
 
 int main()
 {
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF);
+
+
+	std::cout << "ARIA - Artificial Realistic Intelligent Agents\n";
+
     Random::set_seed(0);
+
     // Globally available settings loaded from toml file
 	load_settings(ARIA_SETTINGS_PATH);
 
     // Custom Debugger
-    CrashLogger::set_exception_translator(); 
+    //CrashLogger::set_exception_translator(); todo
 
-    try
-    {
+    //try
+    //{
         Simulation().run_simulation();
-    }
-    catch (const std::exception& e) { CrashLogger::handle(e); }
-    catch (...) { CrashLogger::handle(); }
+    //}
+    //catch (const std::exception& e) { CrashLogger::handle(e); }
+    //catch (...) { CrashLogger::handle(); }
 }

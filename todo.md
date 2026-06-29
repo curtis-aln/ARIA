@@ -48,6 +48,7 @@
 - Add wind Currents Using a grid of vectors which can be queried by the cells and food.
 - Add Obsticals which are a collection of circles and a grid to allow cells and food to query it.
 - Track velocity, and previous position outside of the protozoa class
+- Create a forcefield around the world border which pushes protozoa and food back into the world instead of just clamping them
 
 -----------------------------------------------------------------------
 
@@ -138,3 +139,50 @@ pass SpringResult by reference
 # - make a food tab to change all of the food settings
 # - make the protozoa container dynamic
 
+
+- add spring rendering for all protozoa
+- create a move force for the mouse to move the protozoa
+
+- organise the imgui tab files a bit better, brak up the organism tab into its sub-tabs
+- Add better rendering for the world border
+
+
+
+Order of operations for cell updating
+
+Velocity changes:
+- Collision resolution
+- Spring forces
+- Friction
+
+Position changes:
+- Clamping into world
+
+
+# Note for next visit
+
+
+
+[DONE] Get Simulation To start of 30fps
+[DONE] Ability to Select Cells and see information about them
+[DONE] camera should track the selected protozoa
+[DONE] create a world where there are a bunch of two cells connected by a spring
+[DONE] todo make the springs visible
+[DONE] Let the Organism Tracker Find the spring and other cells and display them in the organism tracker
+[DONE] Get a range of 2-5 Cells with 2-N springs
+[DONE] Ability to select a cell and see all of their cells debug information
+[DONE] Ability to deselect cells
+[DONE] ability to drag individual cells around with the mouse
+[DONE] springs should break when they are under too much tension
+[DONE] Ability for Protozoa to eat food and gain energy
+[DONE] Add all the missing debug information for a protozoa
+- Ability to spawn Food particles at the mouse position
+- Ability to spawn Cell particles at the mouse position
+- Ability for Protozoa to transfer energy to all of their cells
+
+# Future To-dos
+- some cells dont show up for some reason
+- Cells need the ability to die
+- implement new spatial hash grid
+- implement new collision resolution
+- Get Simulation Running with 400,000 entitities before continuing with the rest of the features'
