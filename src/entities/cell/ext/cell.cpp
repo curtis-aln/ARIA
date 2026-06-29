@@ -122,14 +122,20 @@ void Cell::update_organics(const Body* body)
 
 	if (energy > reproduce_energy_thresh)
 		reproduce = true;
+
+	if (energy <= 0)
+	{
+		integrity -= integrity_conversion_rate;
+	}
 }
 
 
 void  Cell::convert_nutrients_to_integrity()
 {
-	if (energy < integrity_conversion_rate)
+	if (energy < integrity_conversion_rate || integrity >= 100)
 		return;
 
+	
 	integrity += integrity_conversion_rate;
 	energy -= integrity_conversion_rate;
 }
@@ -137,7 +143,7 @@ void  Cell::convert_nutrients_to_integrity()
 
 void  Cell::convert_nutrients_to_energy()
 {
-	if (nutrients_ < conversion_rate)
+	if (nutrients_ < conversion_rate || energy >= reproduce_energy_thresh)
 		return;
 
 	energy += conversion_rate;
