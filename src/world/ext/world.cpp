@@ -230,6 +230,11 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     std::memcpy(render_data.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.radii.data(), render_data_.radii.data(), n * sizeof(float));
+
+    render_data.body_debug_snapshot = FillSnapshot<Body>(dbg_bodies_, "Body", sf::Color::White);
+    render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);
+    render_data.spring_debug_snapshot = FillSnapshot<Spring>(dbg_springs_, "Spring", sf::Color::White);
+	render_data.cell_debug_snapshot = FillSnapshot<Cell>(dbg_cells_, "Cell", sf::Color::White);
 }
 
 void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)

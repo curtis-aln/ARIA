@@ -22,7 +22,7 @@
 #include "Utils/fps_manager.h"
 #include "Utils/Graphics/font_renderer.hpp"
 
-#include "../Utils/o_vec_debug.h"
+#include "../Utils/o_vec/o_vec_debug.h"
 
 
 class World : public WorldSettings

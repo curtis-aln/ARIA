@@ -5,7 +5,7 @@
 #include "../../entities/food/food.h"
 
 #include "../../Utils/Graphics/CircleBatchRenderer.h"
-#include "../../Utils/o_vector.hpp"
+#include "../../Utils/o_vec/o_vector.hpp"
 #include "food_manager_settings.h"
 #include "../../Utils/spatial_grid/simple_spatial_grid.h"
 #include "../../Utils/spatial_grid/spatial_grid_renderer.h"

@@ -101,6 +101,7 @@ add_executable(ProjectARIA
     src/simulation/imgui/tabs/statistics_tab.cpp
     src/simulation/imgui/tabs/tagged_tab.cpp
     src/simulation/imgui/tabs/tools_tab.cpp
+    src/simulation/imgui/tabs/o_vector_tab.cpp
 
     # ── Utilities
     src/Utils/spatial_grid/spatial_grid_renderer.cpp
@@ -116,7 +117,24 @@ add_executable(ProjectARIA
     # ── ImPlot (header-only library — sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/entities/cell/cell_settings.h" "src/managers/food_manager/food_manager_settings.h" "src/entities/spring/spring_settings.h" "src/managers/cell_manager/ext/birth_management.cpp" "src/managers/cell_manager/ext/death_management.cpp" "src/managers/cell_manager/ext/updating.cpp" "src/managers/cell_manager/cell_manager_settings.h" "src/managers/cell_manager/ext/init.cpp" "src/managers/cell_manager/ext/statistics.cpp" "src/world/world_border.h" "src/entities/cell/ext/cell.cpp" "src/world/world_settings.h" "src/entities/body.h" "src/Utils/fps_limiter.h" "src/world/ext/statistics_snapshot.cpp" "src/simulation/imgui/imgui_settings.h" "src/Utils/o_vec_debug.h" "src/simulation/imgui/tabs/o_vector_tab.cpp" "src/simulation/imgui/tabs/o_vector_tab.h")
+ "src/entities/cell/cell_settings.h" 
+ "src/managers/food_manager/food_manager_settings.h" 
+ "src/entities/spring/spring_settings.h" 
+ "src/managers/cell_manager/ext/birth_management.cpp" 
+ "src/managers/cell_manager/ext/death_management.cpp" 
+ "src/managers/cell_manager/ext/updating.cpp" 
+ "src/managers/cell_manager/cell_manager_settings.h" 
+ "src/managers/cell_manager/ext/init.cpp" 
+ "src/managers/cell_manager/ext/statistics.cpp" 
+ "src/world/world_border.h" "src/entities/cell/ext/cell.cpp" 
+ "src/world/world_settings.h" 
+ "src/entities/body.h" 
+ "src/Utils/fps_limiter.h" 
+ "src/world/ext/statistics_snapshot.cpp" 
+ "src/simulation/imgui/imgui_settings.h" 
+ "src/Utils/o_vec/o_vec_debug.h" 
+ "src/simulation/imgui/tabs/o_vector_tab.cpp" 
+ "src/simulation/imgui/tabs/o_vector_tab.h" "src/Utils/o_vec/o_vec_snapshot.h")
 
  target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

@@ -9,7 +9,7 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	birth_requests.reserve(10);
 	connection_requests.reserve(10);
 
-	std::cout << "[INFO]: CellManager initialized with max protozoa: " << max_protozoa << "\n";
+	std::cout << "[INFO]: CellManager initialized with protozoa: " << all_cells_.size() << "\n";
 	if (window == nullptr)
 	{
 		std::cerr << "[ERROR]: CellManager initialized with null window pointer.\n";

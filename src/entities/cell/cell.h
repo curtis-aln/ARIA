@@ -24,8 +24,6 @@ protected:
 	bool immortal = false;
 
 public:
-	bool active = false;
-
 	uint32_t id_ = 0; // The unique identifier for this cell
 	uint32_t body_id_ = 0; // Reference to the body 
 
@@ -37,7 +35,7 @@ public:
 	float nutrients_ = 0.f;
 	uint8_t total_food_eaten_ = 0;
 	uint8_t stomach_ = 0;
-	float integrity = integrity;
+	float integrity = 100.f;
 
 	float sinwave_current_friction_ = 0.f;
 

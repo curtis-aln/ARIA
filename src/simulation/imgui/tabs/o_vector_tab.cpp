@@ -76,92 +76,6 @@ static void section(const char* title)
 
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Lightweight type-erased view of one OVecDebug — avoids templated call-sites
-//  in every sub-tab.  Populated once per draw call.
-// ─────────────────────────────────────────────────────────────────────────────
-struct VecSnapshot
-{
-    const char* name;
-    ImVec4      color;
-
-    // Capacity
-    int   active;
-    int   free;
-    int   array_size;
-    float fill_ratio;
-
-    // Memory
-    size_t heap_bytes;
-    size_t wasted_bytes;
-
-    // Fragmentation
-    float frag_score;
-    int   hole_count;
-    int   longest_hole;
-    int   longest_run;
-
-    // Operations (lifetime)
-    uint64_t total_emplaces;
-    uint64_t total_adds;
-    uint64_t total_removes;
-    uint64_t failed_adds;
-    uint64_t resize_grows;
-    uint64_t resize_shrinks;
-    uint64_t integrity_failures;
-
-    // Peaks
-    int peak_active;
-    int peak_array_size;
-
-    // Churn
-    uint64_t total_churn;
-    float    avg_churn;
-
-    // Ops/s
-    double ops_per_sec;
-    double uptime_ms;
-
-    // Snapshot count
-    int snapshot_count;
-};
-
-// Fills a VecSnapshot from a typed OVecDebug.
-template <class Obj>
-static VecSnapshot make_snap(OVecDebug<Obj>& d, const char* name, ImVec4 color)
-{
-    const auto fr = d.analyze_fragmentation();
-    VecSnapshot s{};
-    s.name = name;
-    s.color = color;
-    s.active = d.vec_->active_objs;           // friend access via OVecDebug
-    s.free = d.vec_->free_count;
-    s.array_size = s.active + s.free;
-    s.fill_ratio = d.fill_ratio();
-    s.heap_bytes = d.estimated_heap_bytes();
-    s.wasted_bytes = d.wasted_bytes();
-    s.frag_score = fr.fragmentation_score;
-    s.hole_count = fr.hole_count;
-    s.longest_hole = fr.longest_hole;
-    s.longest_run = fr.longest_active_run;
-    s.total_emplaces = d.total_emplaces;
-    s.total_adds = d.total_adds;
-    s.total_removes = d.total_removes;
-    s.failed_adds = d.failed_adds;
-    s.resize_grows = d.resize_grow_events;
-    s.resize_shrinks = d.resize_shrink_events;
-    s.integrity_failures = d.integrity_failures;
-    s.peak_active = d.peak_active;
-    s.peak_array_size = d.peak_array_size;
-    s.total_churn = d.total_churn();
-    s.avg_churn = d.average_churn_per_slot();
-    s.ops_per_sec = d.ops_per_second();
-    s.uptime_ms = d.uptime_ms();
-    s.snapshot_count = d.snapshot_count();
-    return s;
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  Construction
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -198,23 +112,22 @@ void OVecDebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 void OVecDebugTab::draw_overview_tab(const SimSnapshot& snap, ImGuiContext& ctx)
 {
-    // Gather live snapshots for all four vectors once per draw.
-    const VecSnapshot snaps[4] = {
-        make_snap(m_dbg_cells_,   k_vec_names[0], k_vec_colours[0]),
-        make_snap(m_dbg_food_,    k_vec_names[1], k_vec_colours[1]),
-        make_snap(m_dbg_bodies_,  k_vec_names[2], k_vec_colours[2]),
-        make_snap(m_dbg_springs_, k_vec_names[3], k_vec_colours[3]),
-    };
-
     // ── Per-vector summary cards ──────────────────────────────────────────────
     section("Live Status");
+
+	std::vector<OVecDebugImGuiSnapshot> o_vector_snapshots = {
+		snap.render.cell_debug_snapshot,
+		snap.render.food_debug_snapshot,
+		snap.render.body_debug_snapshot,
+		snap.render.spring_debug_snapshot
+	};
 
     const float card_w = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x * 3.f) / 4.f;
     const float card_h = 130.f;
 
     for (int i = 0; i < 4; ++i)
     {
-        const VecSnapshot& s = snaps[i];
+        const OVecDebugImGuiSnapshot& s = o_vector_snapshots[i];
         if (i > 0) ImGui::SameLine();
 
         ImGui::PushID(i);
@@ -228,7 +141,7 @@ void OVecDebugTab::draw_overview_tab(const SimSnapshot& snap, ImGuiContext& ctx)
 
         // Key numbers
         ImGui::Text("Active  %d", s.active);
-        ImGui::Text("Free    %d", s.free);
+        ImGui::Text("Free    %d", s.free_slots);
         ImGui::Text("Size    %d", s.array_size);
 
         // Fill bar — colour encodes pressure (green=ok, red=full)
@@ -254,7 +167,7 @@ void OVecDebugTab::draw_overview_tab(const SimSnapshot& snap, ImGuiContext& ctx)
     float total_wasted_kb = 0.f;
     uint64_t total_ops = 0;
 
-    for (const auto& s : snaps)
+    for (const auto& s : o_vector_snapshots)
     {
         total_active += s.active;
         total_size += s.array_size;
@@ -283,7 +196,7 @@ void OVecDebugTab::draw_overview_tab(const SimSnapshot& snap, ImGuiContext& ctx)
         ImGui::TableSetupColumn("Ops/s", ImGuiTableColumnFlags_WidthFixed, 80.f);
         ImGui::TableHeadersRow();
 
-        for (const auto& s : snaps)
+        for (const auto& s : o_vector_snapshots)
         {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
@@ -313,7 +226,7 @@ void OVecDebugTab::draw_overview_tab(const SimSnapshot& snap, ImGuiContext& ctx)
     }
 
     // ── Alert banner: any vector at >90% fill or >50% fragmentation ──────────
-    for (const auto& s : snaps)
+    for (const auto& s : o_vector_snapshots)
     {
         if (s.fill_ratio > 0.90f)
         {
@@ -340,16 +253,16 @@ void OVecDebugTab::draw_overview_tab(const SimSnapshot& snap, ImGuiContext& ctx)
 
 void OVecDebugTab::draw_capacity_tab(const SimSnapshot& snap, ImGuiContext& ctx)
 {
-    const VecSnapshot snaps[4] = {
-        make_snap(m_dbg_cells_,   k_vec_names[0], k_vec_colours[0]),
-        make_snap(m_dbg_food_,    k_vec_names[1], k_vec_colours[1]),
-        make_snap(m_dbg_bodies_,  k_vec_names[2], k_vec_colours[2]),
-        make_snap(m_dbg_springs_, k_vec_names[3], k_vec_colours[3]),
+    std::vector<OVecDebugImGuiSnapshot> o_vector_snapshots = {
+        snap.render.cell_debug_snapshot,
+        snap.render.food_debug_snapshot,
+        snap.render.body_debug_snapshot,
+        snap.render.spring_debug_snapshot
     };
 
     for (int i = 0; i < 4; ++i)
     {
-        const VecSnapshot& s = snaps[i];
+        const OVecDebugImGuiSnapshot& s = o_vector_snapshots[i];
 
         ImGui::PushID(i);
         ImGui::PushStyleColor(ImGuiCol_Text, s.color);
@@ -369,7 +282,7 @@ void OVecDebugTab::draw_capacity_tab(const SimSnapshot& snap, ImGuiContext& ctx)
 
         ImGui::TextDisabled("Slots");
         ImGui::Text("Active       %d", s.active);
-        ImGui::Text("Free         %d", s.free);
+        ImGui::Text("Free         %d", s.free_slots);
         ImGui::Text("Array size   %d", s.array_size);
 
         ImGui::NextColumn();
@@ -419,7 +332,7 @@ void OVecDebugTab::draw_capacity_tab(const SimSnapshot& snap, ImGuiContext& ctx)
 
         ImGui::Text("Total heap   %s", heap_buf);
         ImGui::Text("Wasted       %s  (%d inactive slots × sizeof(Obj))",
-            waste_buf, s.free);
+            waste_buf, s.free_slots);
 
         // Waste bar: fraction of heap that is unused
         const float waste_frac = (s.heap_bytes > 0)
@@ -493,13 +406,13 @@ void OVecDebugTab::draw_churn_tab(const SimSnapshot& snap, ImGuiContext& ctx)
     //  }
 
     // ── Aggregate churn stats ─────────────────────────────────────────────────
-    VecSnapshot s;
+    OVecDebugImGuiSnapshot s;
     switch (m_churn_vec_sel_)
     {
-        case 0:  s = make_snap(m_dbg_cells_, k_vec_names[0], k_vec_colours[0]); break;
-        case 1:  s = make_snap(m_dbg_food_, k_vec_names[1], k_vec_colours[1]); break;
-        case 2:  s = make_snap(m_dbg_bodies_, k_vec_names[2], k_vec_colours[2]); break;
-        default: s = make_snap(m_dbg_springs_, k_vec_names[3], k_vec_colours[3]); break;
+        case 0:  s = snap.render.cell_debug_snapshot; break;
+        case 1:  s = snap.render.food_debug_snapshot; break;
+        case 2:  s = snap.render.body_debug_snapshot; break;
+        default: s = snap.render.spring_debug_snapshot; break;
     }
 
     ImGui::Columns(3, "##churn_agg", false);

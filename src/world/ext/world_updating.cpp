@@ -13,7 +13,6 @@ void World::update()
 	// filling the containers that go to the renderer and to the spatial grid
 	update_position_container();
 
-
 	// resolving collisions between all entities
 	//if (statistics_.iterations_ % 3 == 0) // only recalculate the collision resolutions every 3 frames to save time
 	calculate_collision_resolutions();
@@ -27,8 +26,6 @@ void World::update()
 	cell_manager_.update();
 
 	cell_manager_.update_food_interactions(food_manager_);
-
-	
 
 	// once the iteration has been completed, we update the statistics for the next frame
 	if (toggles.track_statistics)

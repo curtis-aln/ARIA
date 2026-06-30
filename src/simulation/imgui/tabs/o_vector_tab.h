@@ -1,6 +1,6 @@
 #pragma once
 #include "i_tab.h"
-#include "../../../Utils/o_vec_debug.h"
+#include "../../../Utils/o_vec/o_vec_debug.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  OVecDebugTab  —  ImGui control-panel tab that visualises all four
@@ -14,7 +14,7 @@
 //  │ Snapshots  │ Take / diff named snapshots; delta table                  │
 //  │ Integrity  │ Run integrity checks on-demand, show pass/fail log        │
 //  └────────────┴───────────────────────────────────────────────────────────┘
-//
+//o_vec
 //  Usage:
 //      OVecDebugTab tab(dbg_cells, dbg_food, dbg_bodies, dbg_springs);
 //      // In your draw loop:

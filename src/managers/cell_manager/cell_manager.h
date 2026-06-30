@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "../../Utils/o_vector.hpp"
+#include "../../Utils/o_vec/o_vector.hpp"
 #include <SFML/Graphics.hpp>
 
 #include "cell_manager_settings.h"

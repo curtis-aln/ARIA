@@ -8,7 +8,7 @@
 #include "../../entities/food/food.h"
 #include "../../entities/cell/cell.h"
 #include "../../entities/spring/spring.h"
-#include "Utils/o_vector.hpp"
+#include "Utils/o_vec/o_vector.hpp"
 
 inline static constexpr int neighbours_max = 100;
 inline static FixedSpan<obj_idx> container{ neighbours_max };

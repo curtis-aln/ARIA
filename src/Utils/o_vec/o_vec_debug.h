@@ -361,7 +361,7 @@ public:
 public:
 
     // Default constructor — call init() before using any other method.
-    OVecDebug();
+    OVecDebug() = default;
 
     // Initialising constructor — equivalent to default-construct then init().
     explicit OVecDebug(o_vector<Obj>& vec)
@@ -404,6 +404,14 @@ public:
 
     OVecDebug(const OVecDebug&) = delete;
     OVecDebug& operator=(const OVecDebug&) = delete;
+
+    uint32_t churn_at(uint32_t slot) const
+    {
+        return slot < slot_churn_.size() ? slot_churn_[slot] : 0u;
+    }
+
+    int active_count() const { return vec_->active_objs; }   // friend access
+    int free_count()   const { return vec_->free_count; }   // friend access
 
     // ========================================================================
     //  PROXY OPERATIONS
@@ -665,6 +673,8 @@ public:
     }
 
     double uptime_ms()    const { return ms_from_creation(); }
+
+public:
     double ops_per_second() const
     {
         const double sec = uptime_ms() / 1000.0;
@@ -687,7 +697,7 @@ public:
     {
         return static_cast<size_t>(vec_->free_count) * sizeof(Obj); // friend
     }
-
+    
     // ========================================================================
     //  REPORTING
     // ========================================================================
