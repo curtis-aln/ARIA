@@ -12,6 +12,18 @@
 #include "food_data.h"
 #include "world/world_border.h"
 
+struct FoodBodyPair
+{
+    Food* food_ptr;
+    Body* body_ptr;
+
+    bool is_valid()
+    {
+        return (food_ptr != nullptr) && (body_ptr != nullptr);
+    }
+};
+
+
 struct SimSnapshot;
 
 class FoodManager : public FoodManagerSettings
@@ -36,8 +48,6 @@ public:
     FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
     void  init();
 
-    bool link_food_to_body(Food* food, bool is_active);
-
     int    get_size()               const;
     void update_food_grid_renderer();
     void fill_data(FoodData& other_food_data);
@@ -51,6 +61,8 @@ public:
     const Food* at(int idx) const;
     void   draw_food_grid(sf::Vector2f mouse_pos) const;
 
+    FoodBodyPair create_food(const sf::Vector2f& position, bool random_genetics);
+
 private:
     void  update_food();
     static void  update_food_nutrients(Food* food);
@@ -62,6 +74,7 @@ private:
 
     void  let_food_reproduce();
     bool  reproduce_food(Food* food);
+    
     float calculate_spawn_chance() const;
     static bool can_food_reproduce(const Food* food) { return food->time_since_last_reproduced >= reproductive_cooldown && food->age >= reproductive_threshold;}
 

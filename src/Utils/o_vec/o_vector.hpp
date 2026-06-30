@@ -120,6 +120,11 @@ public:
     [[nodiscard]] unsigned size()  const { return active_objs; }
 	[[nodiscard]] bool can_add() const { return free_count > 0; }
 
+    bool is_obj_active(int index)
+    {
+        return active_[index];
+    }
+
 
     // used to initilise items inside of raw_object_store_.
 	// returns the item in the array

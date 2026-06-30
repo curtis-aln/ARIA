@@ -114,58 +114,62 @@ void  Cell::update_statistics()
 
 void Cell::update_organics(const Body* body)
 {
-	// making sure energy does not become negative
-	if (energy < 0)
+	if (dead)
 	{
-		dead = true;
-		integrity -= abs(energy);
-		energy = 0;
-		integrity -= integrity_conversion_rate;
+		integrity -= integrity_drain_rate;
+		return;
 	}
 
-	if (dead)
-		return;
-
-	// Update friction based on current sinusoidal wave conditions
 	sinwave_current_friction_ = calculate_friction();
 
-	// Attempt self-repair first, then digest nutrients, then apply passive decay
-	update_energy();
-	process_nutrients();
+	// 1. Passive decay — base cost of being alive
 	energy -= energy_decay_rate;
 
-	// Flag this cell for reproduction if it has accumulated enough energy
-	if (energy > reproduce_energy_thresh)
-		reproduce = true;
+	// 2. Digest nutrients → energy, BEFORE the death check
+	//    so a fed cell can survive a decay tick it otherwise couldn't
+	process_nutrients();
 
-
-	if (integrity <= 0)
+	// 3. Death check — no energy left
+	if (energy <= 0.f)
 	{
+		energy = 0.f;
 		dead = true;
+		integrity = std::max(0.f, integrity - integrity_drain_rate);
+		return;  // dead cells don't repair or reproduce
 	}
+
+	// 4. Spend energy to repair integrity
+	repair_integrity();
+
+	// 5. Flag for reproduction — use assignment so it clears itself
+	//    when energy drops back below threshold
+	reproduce = (energy >= reproduce_energy_thresh);
 }
 
 
 void Cell::process_nutrients()
 {
-	// Skip digestion if nutrients are too low, or if we're already at
-	// reproduction threshold (no point converting more than we need)
-	if (nutrients_ < conversion_rate || energy >= reproduce_energy_thresh)
+	if (nutrients_ <= 0.f)
 		return;
 
-	// Convert a fixed batch of nutrients into energy each tick
-	energy += conversion_rate;
-	nutrients_ -= conversion_rate;
+	// Convert a capped batch per tick — don't convert more than we have
+	const float converted = std::min(nutrients_, conversion_rate);
+	energy += converted;
+	nutrients_ -= converted;
 }
 
 
-void Cell::update_energy()
+// Renamed from update_energy — the old name was actively confusing
+void Cell::repair_integrity()
 {
-	// If integrity is already full, nothing to repair
-	if (integrity >= 100)
+	if (integrity >= 100.f)
 		return;
 
-	// Spend energy to repair integrity, up to the cap
-	integrity += integrity_conversion_rate;
+	// Don't spend energy we don't have — avoids draining below 0
+	// and triggering the death check on the next frame for free
+	if (energy < integrity_conversion_rate)
+		return;
+
 	energy -= integrity_conversion_rate;
+	integrity = std::min(100.f, integrity + integrity_conversion_rate);
 }

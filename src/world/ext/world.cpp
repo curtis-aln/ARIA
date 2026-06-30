@@ -14,19 +14,12 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{25};
 World::World(sf::RenderWindow* window)
     : m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.bounds_radius, world_circular_bounds_.center_))
 {
-    claim_buffer.reserve(FoodManagerSettings::max_food);
-
     init_circle_renderers();
-    init_food_jobs();
-    init_collision_jobs();
     food_manager_.init();
 
 
-    render_data_.reserve(static_cast<int>(max_circles));
-    inner_radii_.resize(max_circles);
-
-    velocity_resolutions.resize(max_circles);
-    collision_resolutions.resize(max_circles);
+    render_data_.reserve(static_cast<int>(max_entities));
+    inner_radii_.resize(max_entities);
 }
 
 void World::init_circle_renderers()
@@ -35,9 +28,6 @@ void World::init_circle_renderers()
 	inner_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
 
 	const int max_entities = CellManagerSettings::max_protozoa + FoodManagerSettings::max_food;
-    entity_positions_.reserve(max_entities);
-	entity_velocities_.reserve(max_entities);
-	entity_radii_.reserve(max_entities);
 }
 
 
@@ -105,23 +95,15 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 
 void World::render_springs(const SimSnapshot& snapshot)
 {
-	auto& positions_x = snapshot.render.positions_x;
-	auto& positions_y = snapshot.render.positions_y;
-
-	for (const std::pair <int, int>& spring_pair : snapshot.render.spring_connections)
+	for (const std::pair <sf::Vector2f, sf::Vector2f>& spring_pair : snapshot.render.spring_connections)
 	{
-		const int cell_a_id = spring_pair.first;
-		const int cell_b_id = spring_pair.second;
-
-		const sf::Vector2f& pos1 = { positions_x[cell_a_id], positions_y[cell_a_id] };
-		const sf::Vector2f& pos2 = { positions_x[cell_b_id], positions_y[cell_b_id] };
 
 		if (toggles.debug_mode)
 		{
 			// the outline color should be that of cell a, the inline cololour should be that of cell b
             const sf::Color outline_color = {200, 50, 220};
             const sf::Color fill_color = { 200, 80, 220 };
-			draw_thick_line(*m_window_, pos1, pos2, GraphicalSettings::spring_thickness,
+			draw_thick_line(*m_window_, spring_pair.first, spring_pair.second, GraphicalSettings::spring_thickness,
 				GraphicalSettings::spring_outline_thickness, fill_color, outline_color);
 		}
 	}

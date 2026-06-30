@@ -117,41 +117,19 @@ void FoodManager::init()
 {
 	std::cout << "Initializing food with " << initial_food << " food...\n";
 
-	bool is_object_active = true; // the first few objects will be active, the rest will be inactive
-
-	for (int i = 0; i < max_food; ++i)
+	for (int i = 0; i < initial_food; ++i)
 	{
-		Food* food = food_vector.emplace(is_object_active);
-		food->color = Random::rand_color(food_darkest_color, food_lightest_color);
+		sf::Vector2f pos = world_bounds_->rand_pos();
+		FoodBodyPair food_body_pair = create_food(pos, true);
+		if (!food_body_pair.is_valid())
+		{
+			std::cerr << "Failed to create food at index " << i << ".\n";
+			continue;
+		}
 
-		if (!link_food_to_body(food, is_object_active))
-		{
-			std::cerr << "[ERROR]: Failed to link food to body during initialization. Max bodies reached.\n";
-			break;
-		}
-		if (i >= initial_food)
-		{
-			is_object_active = false; // the rest of the objects will be inactive
-		}
+		Food* food = food_body_pair.food_ptr;
+		food->color = Random::rand_color(food_darkest_color, food_lightest_color);
 	}
 
 	std::cout << "Initialized " << initial_food << " food.\n";
-}
-
-bool FoodManager::link_food_to_body(Food* food, bool is_active)
-{
-	// This function creates a new body for the food and links them together
-	// returns true if successful, false if there are no more bodies available
-	Body* body = bodies_->emplace(is_active);
-	if (body == nullptr)
-	{
-		return false;
-	}
-	food->body_id_ = body->id_;
-
-	// Set the initial position of the food to a random location within the world bounds
-	body->position_ = world_bounds_->rand_pos();
-	body->radius_ = food_initial_radius;
-
-	return true;
 }

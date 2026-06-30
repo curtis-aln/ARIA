@@ -104,13 +104,12 @@ struct RenderData
     alignas(64) std::vector<sf::Color>    outer_colors;
     alignas(64) std::vector<sf::Color>    inner_colors;
     alignas(64) std::vector<float>        radii;
-    alignas(64) std::vector<std::pair<int, int>> spring_connections;
+    alignas(64) std::vector<std::pair<sf::Vector2f, sf::Vector2f>> spring_connections;
 
     OVecDebugImGuiSnapshot cell_debug_snapshot;
     OVecDebugImGuiSnapshot food_debug_snapshot;
     OVecDebugImGuiSnapshot body_debug_snapshot;
     OVecDebugImGuiSnapshot spring_debug_snapshot;
-
 
     void reserve(const int max_cells)
     {

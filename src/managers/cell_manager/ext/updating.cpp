@@ -10,7 +10,7 @@ void CellManager::deselect_cell()
 void CellManager::update()
 {
 	// if we have a selected cell and it has died, we need to deselect it to avoid null errors
-	if (selected_cell != nullptr && !selected_cell->is_alive())
+	if (selected_cell == nullptr || selected_cell->should_remove())
 	{
 		deselect_cell();
 	}
@@ -48,18 +48,18 @@ void CellManager::update_springs()
 		Body* body_a = bodies_->at(cell_a->body_id_);
 		Body* body_b = bodies_->at(cell_b->body_id_);
 
-		spring->update_physics(*body_a, *body_b);
-		spring->update_organics(*cell_a, *cell_b);
-		
-
-		if (spring->broken)
+		if (spring->broken || !bodies_->is_obj_active(body_a->id_) || !bodies_->is_obj_active(body_b->id_))
 		{
 			if (spring->clock_ > 30)
 			{
 				all_springs_.remove(spring);
 			}
 			spring->broken = false;
+			continue;
 		}
+
+		spring->update_physics(*body_a, *body_b);
+		spring->update_organics(*cell_a, *cell_b);
 	}
 }
 
@@ -170,9 +170,10 @@ void CellManager::fill_render_data(RenderData& render_data)
 	const int spring_count = static_cast<int>(all_springs_.size());
 	render_data.spring_connections.resize(spring_count);
 	int i = 0;
+
 	for (Spring* spring : all_springs_)
 	{
-		render_data.spring_connections[i++] = { spring->cell_A_id, spring->cell_B_id };
+		render_data.spring_connections[i++] = { get_cell_pos(spring->cell_A_id), get_cell_pos(spring->cell_B_id) };
 	}
 }
 
@@ -186,6 +187,11 @@ const sf::Vector2f* CellManager::get_selected_protozoa_pos() const
 		return &body->position_;
 	}
 	return nullptr;
+}
+
+sf::Vector2f& CellManager::get_cell_pos(int cell_id)
+{
+	return bodies_->at(all_cells_.at(cell_id)->body_id_)->position_;
 }
 
 void CellManager::drag_selected_cell_to_point(const sf::Vector2f& target_position, const float move_fraction)
@@ -232,9 +238,10 @@ CellBodyPair CellManager::create_cell(const sf::Vector2f& position, bool random_
 	if (random_genetics)
 	{
 		cell->randomize();
-		body->radius_ = cell->radius;
-		body->mass_ = body->radius_;
 	}
+
+	body->radius_ = cell->radius;
+	body->mass_ = body->radius_;
 
 	return { cell, body };
 }

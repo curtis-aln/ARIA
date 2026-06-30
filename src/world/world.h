@@ -10,6 +10,7 @@
 #include "../managers/cell_manager/cell_manager_settings.h"
 
 #include "collision/food_claim_buffer.h"
+#include "collision_resolver/collision_resolver.h"
 
 #include "../Utils/thread_pool.h"
 
@@ -27,6 +28,8 @@
 
 class World : public WorldSettings
 {
+    unsigned max_entities = CellManagerSettings::max_protozoa + FoodManagerSettings::max_food;
+
     sf::RenderWindow* m_window_ = nullptr;
 
     WorldBorder        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
@@ -36,17 +39,12 @@ class World : public WorldSettings
     // Render data — written each update tick, read by the renderer.
     RenderData render_data_;
 
-    // these vectors are used for collision resolution
-    alignas(64) std::vector<sf::Vector2f> entity_positions_;
-    alignas(64) std::vector<sf::Vector2f> entity_velocities_;
-    alignas(64) std::vector<float> entity_radii_;
-
     // Statistics accumulated each tick by the update thread.
     WorldStatistics statistics_{};
 
     // for the physics updating 
     // both food and cells query id's from this vector
-	o_vector<Body> bodies_{ max_circles + FoodManagerSettings::max_food };
+	o_vector<Body> bodies_{ max_entities };
 
     float tex_rad = 120;
     CircleBatchRenderer outer_circle_renderer_{};
@@ -56,18 +54,16 @@ class World : public WorldSettings
     FoodManager        food_manager_{ m_window_, &world_circular_bounds_, &bodies_ };
 	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_, &bodies_ };
 
-    SimpleSpatialGrid  spatial_hash_grid_{ cells_x, cells_y, cell_max_capacity,
-                                           bounds_radius * 2.f, bounds_radius * 2.f };
-    SpatialGridRenderer cell_grid_renderer_{ &spatial_hash_grid_ };
+    sf::FloatRect bounds = { {0, 0}, {bounds_radius * 2, bounds_radius * 2} };
+    
+    CollisionResolver collision_resolver_{ &bounds, &bodies_, updating_threads, max_entities, max_entities };
+    SpatialGridRenderer cell_grid_renderer_{ collision_resolver_.get_grid()};
 
-    BarrierThreadPool collision_thread_pool_{ updating_threads };
-	BarrierThreadPool food_thread_pool_{ updating_threads };
+	BarrierThreadPool food_thread_pool_{ (int)updating_threads };
 
     uint8_t max_capacity_area = cell_max_capacity * 9;
     static thread_local FixedSpan<uint32_t> tl_nearby_ids;
     static thread_local FixedSpan<obj_idx> tl_nearby_food;
-
-    int max_circles = CellManagerSettings::max_protozoa;
 
     std::vector<int> colour_job_boundaries_;
 
@@ -77,18 +73,7 @@ class World : public WorldSettings
 
     FrameRateSmoothing<30> frame_rate_smoothing_{};
 
-    // for multithreadded collision resolution
-    std::array<std::vector<int>, 6> collision_color_groups;
-    FoodClaimBuffer claim_buffer;
-
-    std::vector<std::function<void()>> collision_jobs_;
     std::vector<std::function<void()>> food_jobs_;
-
-    // every frame this is filled with the collision resolutions calculated in the collision detection phase, and then applied to the cells in the update phase. 
-    // this is done to avoid modifying cell velocities during the collision detection phase which can cause errors in subsequent collision checks within the same frame.
-    //alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
-    alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
-    alignas(64) std::vector<sf::Vector2f> velocity_resolutions{};
 
     // debugging o_vectors
     OVecDebug<Cell> dbg_cells_{ cell_manager_.get_all_cells()};
@@ -110,29 +95,23 @@ public:
 
     // ── Update ───────────────────────────────────────────────────────────────
     void update();
-    void update_bodies();
-    void bound_body_to_world(Body* body);
-    void init_collision_jobs();
-    void calculate_collision_resolutions();
-    void resolve_collisions();
 
     // ── Render ───────────────────────────────────────────────────────────────
     void render(const SimSnapshot& snapshot, Font* font, sf::Vector2f mouse_pos);
 
     // ── Accessors — spatial grids / food ─────────────────────────────────────
-    SimpleSpatialGrid* get_spatial_grid() { return &spatial_hash_grid_; }
+    SimpleSpatialGrid* get_spatial_grid() { return collision_resolver_.get_grid(); }
     SimpleSpatialGrid* get_food_spatial_grid() { return &food_manager_.spatial_hash_grid; }
-    const SimpleSpatialGrid* get_spatial_grid() const { return &spatial_hash_grid_; }
+
     const SimpleSpatialGrid* get_food_spatial_grid() const { return &food_manager_.spatial_hash_grid; }
     FoodManager* get_food_manager() { return &food_manager_; }
     const FoodManager* get_food_manager() const { return &food_manager_; }
     const CellManager* get_cell_manager() const { return &cell_manager_; }
     CellManager* get_cell_manager() { return &cell_manager_; }
     void               update_spatial_renderers();
+	int get_entity_count() const { return cell_manager_.get_cell_count() + food_manager_.get_size(); }
 
     // world.h
-    void update_cells_in_grid_cell(int grid_cell_id, FixedSpan<uint32_t>& nearby_ids, int thread_id);
-    void update_protozoa_cell(int protozoa_cell_index, const FixedSpan<uint32_t>& nearby_ids, int thread_id);
 
     void unload_render_data(SimSnapshot& snapshot);
     static SpatialGridData get_grid_data(SimpleSpatialGrid* grid);
@@ -150,7 +129,6 @@ public:
     const std::vector<sf::Color>& get_outer_colors() const { return render_data_.outer_colors; }
     const std::vector<sf::Color>& get_inner_colors() const { return render_data_.inner_colors; }
     const std::vector<float>& get_radii()        const { return render_data_.radii; }
-    int                       get_entity_count() const { return statistics_.entity_count; }
     const RenderData& get_render_data()  const { return render_data_; }
 
     // ── Statistics getters — read by ImGui from snapshot ─────────────────────
@@ -164,6 +142,10 @@ public:
     void keyboardEvents(const sf::Keyboard::Key& event_key_code);
 
 private:
+    void update_entities();
+    void bound_bodies();
+    void bound_body_to_world(Body* body);
+
     void copy_render_data_to_snapshot(SimSnapshot& snapshot);
     void copy_spatial_grids_to_snapshot(SimSnapshot& snapshot);
 
@@ -177,16 +159,9 @@ private:
 
     int check_mouse_press(const OrganismTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
    
-
-    void build_color_groups();
-    void update_nearby_container(int32_t neighbour_index_x, int32_t neighbour_index_y, FixedSpan<uint32_t>& nearby_ids);
-
     void update_position_container();
     void update_statistics();
 
     void render_protozoa(const SimSnapshot& snapshot, Font* font);
-    void init_food_jobs();
     void resolve_food_interactions();
-    void resolve_food_interactions_threadded();
-    void resolve_food_grid_cell(int cell_id, FixedSpan<obj_idx>& nearby_food);
 };

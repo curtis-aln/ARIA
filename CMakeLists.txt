@@ -102,14 +102,17 @@ add_executable(ProjectARIA
     src/simulation/imgui/tabs/tagged_tab.cpp
     src/simulation/imgui/tabs/tools_tab.cpp
     src/simulation/imgui/tabs/o_vector_tab.cpp
+    
+    src/world/collision_resolver/detection.cpp
+    src/world/collision_resolver/init.cpp
+    src/world/collision_resolver/resolution.cpp
+    src/world/collision_resolver/updating_grid.cpp
 
     # ── Utilities
     src/Utils/spatial_grid/spatial_grid_renderer.cpp
     src/simulation/settings/settings.cpp
 
     # ── World / simulation update loop
-    src/world/collision/collision_resolution.cpp
-    src/world/collision/food_resolution.cpp
     src/world/ext/world.cpp
     src/world/ext/world_updating.cpp
     src/world/ext/draw_cell_debug.cpp

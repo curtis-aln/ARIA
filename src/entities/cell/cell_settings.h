@@ -13,6 +13,7 @@ struct CellSettings
 	inline static float spawn_radius;
 
 	inline static float energy_decay_rate; // how quickly energy decays per frame
+	inline static float integrity_drain_rate = 0.2f;
 
 	inline static float wander_threshold; // if a cell wanders too far away from the protozoa it kills the whole thing
 

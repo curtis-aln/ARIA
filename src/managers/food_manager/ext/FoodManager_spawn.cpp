@@ -66,3 +66,31 @@ bool FoodManager::reproduce_food(Food* parent_food)
 	parent_food->time_since_last_reproduced = 0;
 	return false;
 }
+
+FoodBodyPair FoodManager::create_food(const sf::Vector2f& position, bool random_genetics)
+{
+	// This is the safest way to create a food with a body, all creation events Must go through this function to ensure that the food and body are linked correctly.
+	// if there are not any already avalable foods in the o_vector we create a new one
+
+	// Finding a body
+	Body* body = bodies_->emplace(true, true);
+	if (body == nullptr)
+		return { nullptr, nullptr };
+
+	// Finding a cell
+	Food* food = food_vector.emplace(true, true);
+	if (food == nullptr)
+	{
+		// raise an error as there shouldnt be a situation where we have a body but no cell, this should never happen
+		std::cerr << "[ERROR]: Failed to create food during initialization. Max food reached.\n";
+		bodies_->remove(body);
+		return { nullptr, nullptr };
+	}
+
+	// connecting the two
+	food->body_id_ = body->id_;
+	body->position_ = position;
+	body->radius_ = food_initial_radius;
+
+	return { food, body };
+}

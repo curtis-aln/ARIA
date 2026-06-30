@@ -6,8 +6,8 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	create_new_protozoa(CellManagerSettings::initial_protozoa, world_bounds);
 
 	// Reserve space for birth and connection requests to avoid frequent reallocations
-	birth_requests.reserve(10);
-	connection_requests.reserve(10);
+	birth_requests.reserve(100);
+	connection_requests.reserve(100);
 
 	std::cout << "[INFO]: CellManager initialized with protozoa: " << all_cells_.size() << "\n";
 	if (window == nullptr)

@@ -10,5 +10,5 @@ struct WorldSettings
 	inline static uint32_t cell_max_capacity;
 
 	inline static float border_repulsion_magnitude; // how strong it is repelled from the border
-	inline static int updating_threads = 16;
+	inline static unsigned int updating_threads = 16;
 };

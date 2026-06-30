@@ -41,15 +41,15 @@ class CircleBatchRenderer
 	std::vector<float> radii_{};
 
 public:
-    explicit CircleBatchRenderer(sf::RenderWindow* window = nullptr, float circle_texture_radius = 0.f, size_t max_circles = 0)
+    explicit CircleBatchRenderer(sf::RenderWindow* window = nullptr, float circle_texture_radius = 0.f, size_t max_entities = 0)
     {
-		init(window, circle_texture_radius, max_circles);
+		init(window, circle_texture_radius, max_entities);
     }
 
-    void init(sf::RenderWindow* window, float circle_texture_radius, size_t max_circles)
+    void init(sf::RenderWindow* window, float circle_texture_radius, size_t max_entities)
     {
         window_ = window;
-        max_circles_ = max_circles;
+        max_circles_ = max_entities;
         texture = generateCircleTexture(circle_texture_radius);
         texture.setSmooth(true);
     }
