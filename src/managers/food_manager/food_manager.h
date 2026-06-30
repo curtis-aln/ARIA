@@ -42,6 +42,7 @@ public:
     void update_food_grid_renderer();
     void fill_data(FoodData& other_food_data);
     const o_vector<Food>& get_food_vector() const;
+    o_vector<Food>& get_food_vector();
     void   update();
     void   render(const FoodData& snapshot_food_data);
     void update_position_data();

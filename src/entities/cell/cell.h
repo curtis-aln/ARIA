@@ -84,8 +84,8 @@ public:
 
 	void update_organics(const Body* body);
 
-	void convert_nutrients_to_integrity();
+	void process_nutrients();
 
 
-	void convert_nutrients_to_energy();
+	void update_energy();
 };

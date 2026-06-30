@@ -137,3 +137,7 @@ const o_vector<Food>& FoodManager::get_food_vector() const
 {
 	return food_vector;
 }
+o_vector<Food>& FoodManager::get_food_vector()
+{
+	return food_vector;
+}

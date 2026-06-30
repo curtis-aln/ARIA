@@ -1,6 +1,13 @@
 #pragma once
 #include <SFML/Graphics/Color.hpp>
 #include <vector>
+#include "../Utils/o_vector.hpp"
+#include "../Utils/o_vec_debug.h"
+#include "../entities/cell/cell.h"
+#include "../entities/food/food.h"
+#include "../entities/body.h"
+#include "../entities/spring/spring.h"
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  WorldToggles
@@ -98,6 +105,16 @@ struct RenderData
     alignas(64) std::vector<sf::Color>    inner_colors;
     alignas(64) std::vector<float>        radii;
     alignas(64) std::vector<std::pair<int, int>> spring_connections;
+
+	o_vector<Cell> defualt_ovec_cell{100};
+    o_vector<Food> defualt_ovec_food{ 100 };
+	o_vector<Body> defualt_ovec_body{ 100 };
+	o_vector<Spring> defualt_ovec_spring{ 100 };
+
+    OVecDebug<Cell> dbg_cells{ defualt_ovec_cell };
+    OVecDebug<Food> dbg_food{ defualt_ovec_food };
+    OVecDebug<Body> dbg_bodies{ defualt_ovec_body };
+    OVecDebug<Spring> dbg_spring{ defualt_ovec_spring };
 
     void reserve(const int max_cells)
     {

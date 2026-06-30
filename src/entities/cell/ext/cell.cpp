@@ -114,38 +114,58 @@ void  Cell::update_statistics()
 
 void Cell::update_organics(const Body* body)
 {
+	// making sure energy does not become negative
+	if (energy < 0)
+	{
+		dead = true;
+		integrity -= abs(energy);
+		energy = 0;
+		integrity -= integrity_conversion_rate;
+	}
+
+	if (dead)
+		return;
+
+	// Update friction based on current sinusoidal wave conditions
 	sinwave_current_friction_ = calculate_friction();
 
-	convert_nutrients_to_energy();
-	convert_nutrients_to_integrity();
+	// Attempt self-repair first, then digest nutrients, then apply passive decay
+	update_energy();
+	process_nutrients();
 	energy -= energy_decay_rate;
 
+	// Flag this cell for reproduction if it has accumulated enough energy
 	if (energy > reproduce_energy_thresh)
 		reproduce = true;
 
-	if (energy <= 0)
+
+	if (integrity <= 0)
 	{
-		integrity -= integrity_conversion_rate;
+		dead = true;
 	}
 }
 
 
-void  Cell::convert_nutrients_to_integrity()
+void Cell::process_nutrients()
 {
-	if (energy < integrity_conversion_rate || integrity >= 100)
-		return;
-
-	
-	integrity += integrity_conversion_rate;
-	energy -= integrity_conversion_rate;
-}
-
-
-void  Cell::convert_nutrients_to_energy()
-{
+	// Skip digestion if nutrients are too low, or if we're already at
+	// reproduction threshold (no point converting more than we need)
 	if (nutrients_ < conversion_rate || energy >= reproduce_energy_thresh)
 		return;
 
+	// Convert a fixed batch of nutrients into energy each tick
 	energy += conversion_rate;
 	nutrients_ -= conversion_rate;
+}
+
+
+void Cell::update_energy()
+{
+	// If integrity is already full, nothing to repair
+	if (integrity >= 100)
+		return;
+
+	// Spend energy to repair integrity, up to the cap
+	integrity += integrity_conversion_rate;
+	energy -= integrity_conversion_rate;
 }

@@ -1,10 +1,10 @@
 # ── World ─────────────────────────────────────────────────────────────────────
 [world]
-bounds_radius            = 30000
+bounds_radius            = 60000
 border_repulsion_magnitude = 0.001
 max_speed                = 30.0
-cells_x = 210
-cells_y = 210
+cells_x = 410
+cells_y = 410
 cell_max_capacity = 6
 
 # ── Protozoa ──────────────────────────────────────────────────────────────────
@@ -35,8 +35,8 @@ initial_food             = 15000
 [food]
 
 # --- spatial grid ---
-cells_x = 210
-cells_y = 210
+cells_x = 410
+cells_y = 410
 cell_max_capacity        = 15
 update_freq = 4
 

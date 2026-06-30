@@ -109,7 +109,9 @@ public:
 	const sf::Vector2f* get_selected_protozoa_pos() const;
 
 	const o_vector<Cell>& get_all_cells() const { return all_cells_; }
+	o_vector<Cell>& get_all_cells() { return all_cells_; }
 	const o_vector<Spring>& get_all_springs() const { return all_springs_; }
+	o_vector<Spring>& get_all_springs() { return all_springs_; }
 
 	// selected cell management
 	void deselect_cell();
@@ -147,4 +149,5 @@ private: // only functions this class can access
 
 
 	void fill_render_data(RenderData& render_data);
+	void handle_death();
 };

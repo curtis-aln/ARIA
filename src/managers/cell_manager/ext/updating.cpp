@@ -23,6 +23,9 @@ void CellManager::update()
 	collect_reproduction_requests();
 	apply_birth_requests();
 	apply_connection_requests();
+
+	// death
+	handle_death();
 }
 
 void CellManager::update_cells()

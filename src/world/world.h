@@ -22,7 +22,7 @@
 #include "Utils/fps_manager.h"
 #include "Utils/Graphics/font_renderer.hpp"
 
-
+#include "../Utils/o_vec_debug.h"
 
 
 class World : public WorldSettings
@@ -89,7 +89,12 @@ class World : public WorldSettings
     //alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
     alignas(64) std::vector<sf::Vector2f> collision_resolutions{};
     alignas(64) std::vector<sf::Vector2f> velocity_resolutions{};
-	
+
+    // debugging o_vectors
+    OVecDebug<Cell> dbg_cells_{ cell_manager_.get_all_cells()};
+    OVecDebug<Food> dbg_food_{food_manager_.get_food_vector()};
+	OVecDebug<Body> dbg_bodies_{bodies_};
+	OVecDebug<Spring> dbg_springs_{cell_manager_.get_all_springs()};
 
 public:
     // ── Toggles — written by ImGui (main thread), read by update thread ──────

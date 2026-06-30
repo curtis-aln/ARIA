@@ -7,6 +7,7 @@
 #include "tabs/tools_tab.h"
 #include "tabs/grid_tab.h"
 #include "tabs/display_tab.h"
+#include "tabs/o_vector_tab.h"
 #include <imgui.h>
 
 #include "imgui_settings.h"
@@ -28,6 +29,7 @@ ControlPanel::ControlPanel()
     m_tabs_.push_back(std::make_unique<ToolsTab>());
     m_tabs_.push_back(std::make_unique<GridTab>());
     m_tabs_.push_back(std::make_unique<DisplayTab>());
+    m_tabs_.push_back(std::make_unique<OVecDebugTab>());
 }
 
 

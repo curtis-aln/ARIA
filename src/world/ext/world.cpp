@@ -205,6 +205,8 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	cell_manager_.fill_snapshot(snapshot); // protozoa data
 
     copy_spatial_grids_to_snapshot(snapshot);
+
+	// updating the o_vector debug data for the ImGui panel
 }
 
 

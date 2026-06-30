@@ -35,6 +35,10 @@ public:
     int resize_buffering = 300; // if the array is full, we add this amount of empty slots to the end of the array 
 
 private:
+    template <class Obj2> friend class OVecDebug;
+
+public:
+
     // this vector tracks which objects are active and which are not, it is used to iterate over the array and skip inactive objects
     // every object emplaced into this datastructure gets its own index in this vector
     std::vector<bool> active_{};

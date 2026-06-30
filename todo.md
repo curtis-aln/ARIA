@@ -188,7 +188,9 @@ Position changes:
 - Get Simulation Running with 400,000 entitities before continuing with the rest of the features'
 
 
-- cell energy can drop below zero
+[Done] cell energy can drop below zero
+- you cant view cells when they are dead
+- Death is not handled correctly
 - Massive Lag spikes occour in the simulation
 - less than 25% of the CPU is being used
 - Massive Lines are drawn accross the simulation

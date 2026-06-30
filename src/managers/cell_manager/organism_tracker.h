@@ -75,6 +75,12 @@ public:
     // The new and improved update function now that we dont have a global protozoa class
     void update_primitive(const Cell* selected_cell, const o_vector<Cell>& all_cells, const o_vector<Spring>& all_springs, const o_vector<Body>& all_bodies)
     {
+		if (selected_cell == nullptr)
+		{
+			is_active = false;
+			return;
+		}
+
         // detecting if the selected protozoa has changed to recalculate some stats
         bool changed = false;
         if (selected_id != selected_cell->id_)
