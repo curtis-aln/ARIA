@@ -26,25 +26,18 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 	sf::Vector2f child_pos = Random::rand_position_in_circle(seed_body->position_, spawn_dist);
 
 	// we have all the information we need to spawn the next cell
-	Cell* child_cell = all_cells_.emplace(true, false);
-
-	if (!link_cell_to_body(child_cell, true, child_pos))
-	{
-		all_cells_.remove(child_cell); // dont forget to remove the cell if we fail to link it to a body
+	CellBodyPair pair = create_cell(child_pos);
+	if (!pair.is_valid())
 		return false;
-	}
-	Body* child_body = bodies_->at(child_cell->body_id_);
-	child_body->position_ = child_pos;
 
 	// now that the child cell is spawned, we can create a spring between the seed cell and the child cell
-	Spring* spring = all_springs_.emplace(true);
-	spring->reset();
-	spring->cell_A_id = seed_cell->id_;
-	spring->cell_B_id = child_cell->id_;
+	Spring* spring = create_spring(seed_cell->id_, pair.cell_ptr->id_);
+	if (spring == nullptr)
+		return false;
 
 	if (recursion_depth < max_recursion_depth)
 	{
-		build_protozoa_from_seed(child_cell, max_recursion_depth, recursion_depth + 1);
+		build_protozoa_from_seed(pair.cell_ptr, max_recursion_depth, recursion_depth + 1);
 	}
 
 	return true;

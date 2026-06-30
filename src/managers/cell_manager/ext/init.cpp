@@ -21,37 +21,16 @@ void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 	// The cells we currently have act as seeds that allow us to build the protozoa
 	for (int i = 0; i < count; i++)
 	{
-		Cell* cell = all_cells_.emplace(true, true);
-
-		if (!link_cell_to_body(cell, true, spawn_area->rand_pos()))
-		{
-			std::cerr << "[ERROR]: Failed to link cell to body during initialization. Max bodies reached.\n";
+		sf::Vector2f spawn_pos = spawn_area->rand_pos();
+		CellBodyPair pair = create_cell(spawn_pos, true);
+		if (!pair.is_valid())
 			break;
-		}
 
-		int max_recursion_depth = Random::rand_range(1, 4); // we want to limit the number of cells in a protozoa to avoid performance issues
-		if (!build_protozoa_from_seed(cell, 1))
-		{
+		// we want to limit the number of cells in a protozoa to avoid performance issues 
+		int max_recursion_depth = Random::rand_range(1, 4);
+		if (!build_protozoa_from_seed(pair.cell_ptr, 1))
 			break;
-		}
 	}
 	
 	std::cout << "Finished building protozoa's, total: " << all_cells_.size() << "\n";
-}
-
-bool CellManager::link_cell_to_body(Cell* cell, bool is_active, sf::Vector2f pos)
-{
-	// This function creates a new body for the cell and links them together
-	// returns true if successful, false if there are no more bodies available
-	Body* body = bodies_->emplace(is_active);
-	if (body == nullptr)
-	{
-		return false;
-	}
-	
-	body->position_ = pos;
-	body->radius_ = cell->radius;
-
-	cell->body_id_ = body->id_;
-	return true;
 }

@@ -200,3 +200,55 @@ void CellManager::drag_selected_cell_to_point(const sf::Vector2f& target_positio
 	const sf::Vector2f diff = mouse_pos - body->position_;
 	body->position_ += diff * move_fraction; // apply a small force towards the mouse position
 }
+
+
+CellBodyPair CellManager::create_cell(const sf::Vector2f& position, bool random_genetics)
+{
+	// This is the safest way to create a cell with a body, all creation events Must go through this function to ensure that the cell and body are linked correctly.
+	// if there are not any already avalable cells in the o_vector we create a new one
+
+	// Finding a body
+	Body* body = bodies_->emplace(true, true);
+	if (body == nullptr)
+		return { nullptr, nullptr };
+
+	// Finding a cell
+	Cell* cell = all_cells_.emplace(true, true);
+	if (cell == nullptr)
+	{
+		// raise an error as there shouldnt be a situation where we have a body but no cell, this should never happen
+		std::cerr << "[ERROR]: Failed to create cell during initialization. Max cells reached.\n";
+		bodies_->remove(body);
+		return { nullptr, nullptr };
+	}
+
+	// resetting the cell just incase it isnt brand new
+	cell->reset();
+
+	// connecting the two
+	cell->body_id_ = body->id_;
+	body->position_ = position;
+
+	if (random_genetics)
+	{
+		cell->randomize();
+		body->radius_ = cell->radius;
+		body->mass_ = body->radius_;
+	}
+
+	return { cell, body };
+}
+
+Spring* CellManager::create_spring(const int cell_a_id, const int cell_b_id)
+{
+	Spring* spring = all_springs_.emplace(true, true);
+	
+	if (spring == nullptr)
+	{
+		return nullptr;
+	}
+	spring->reset();
+	spring->cell_A_id = cell_a_id;
+	spring->cell_B_id = cell_b_id;
+	return spring;
+}

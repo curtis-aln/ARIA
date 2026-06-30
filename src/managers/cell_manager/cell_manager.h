@@ -15,6 +15,16 @@
 #include "organism_tracker.h"
 #include "../../simulation/context/sim_snapshot.h"
 
+struct CellBodyPair
+{
+	Cell* cell_ptr;
+	Body* body_ptr;
+
+	bool is_valid()
+	{
+		return (cell_ptr != nullptr) && (body_ptr != nullptr);
+	}
+};
 
 
 /* How reproduction works, in detail
@@ -101,6 +111,10 @@ public:
 	void fill_snapshot(SimSnapshot& snapshot);
 	void drag_selected_cell_to_point(const sf::Vector2f& target_position, const float move_fraction);
 
+	CellBodyPair create_cell(const sf::Vector2f& position, bool random_genetics = false);
+
+	Spring* create_spring(const int cell_a_id, const int cell_b_id);
+
 	// data fetching
 	int get_cell_count() const;
 	float calculate_average_generation() const;
@@ -143,10 +157,6 @@ private: // only functions this class can access
 	// updating
 	void update_springs();
 	void update_cells();
-
-	// misc
-	bool link_cell_to_body(Cell* cell, bool is_active, sf::Vector2f pos);
-
 
 	void fill_render_data(RenderData& render_data);
 	void handle_death();
