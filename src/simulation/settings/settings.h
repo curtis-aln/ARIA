@@ -15,6 +15,10 @@ struct SimulationSettings
 
 	inline static constexpr float camera_lerp_factor = 0.04f; // how quickly the camera follows the selected protozoa
 
+	inline static const std::vector<sf::Color> bg_colors = {
+		{0, 5, 40}
+	};
+
 	inline static bool full_screen;
 	inline static bool vsync;
 

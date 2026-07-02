@@ -18,7 +18,7 @@ int main()
 
 	std::cout << "ARIA - Artificial Realistic Intelligent Agents\n";
 
-    Random::set_seed(0);
+    //Random::set_seed(0);
 
     // Globally available settings loaded from toml file
 	load_settings(ARIA_SETTINGS_PATH);

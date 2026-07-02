@@ -7,7 +7,7 @@ void CellManager::handle_death()
 {
 	for (Cell* cell : all_cells_)
 	{
-		if (cell->is_alive() || cell->integrity > 0)
+		if (!cell->should_remove() || !bodies_->is_obj_active(cell->body_id_))
 			continue;
 		
 		all_cells_.remove(cell);

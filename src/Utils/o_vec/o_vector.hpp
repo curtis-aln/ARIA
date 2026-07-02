@@ -225,8 +225,10 @@ public:
 
     void remove(Obj* obj) 
     { 
-        if (active_[obj->id_]) 
-            remove(obj->id_); 
+        if (active_[obj->id_])
+            remove(obj->id_);
+        else
+            std::cout << "tried to remove when object isnt active\n";
     }
 
     void remove(const unsigned vector_index)
@@ -237,6 +239,8 @@ public:
             --active_objs;
             free_list[free_count++] = vector_index;
         }
+        else
+            std::cout << "tried to remove when object isnt active INDEX\n";
     }
 
     int      free_slots()   const { return free_count; }

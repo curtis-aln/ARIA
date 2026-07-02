@@ -106,6 +106,8 @@ struct RenderData
     alignas(64) std::vector<float>        radii;
     alignas(64) std::vector<std::pair<sf::Vector2f, sf::Vector2f>> spring_connections;
 
+	float camera_zoom = 1.f;
+
     OVecDebugImGuiSnapshot cell_debug_snapshot;
     OVecDebugImGuiSnapshot food_debug_snapshot;
     OVecDebugImGuiSnapshot body_debug_snapshot;

@@ -8,22 +8,19 @@
 #include "world_settings.h"
 #include "world_state.h"
 #include "../managers/cell_manager/cell_manager_settings.h"
+#include "../managers/cell_manager/organism_tracker.h"
 
-#include "collision/food_claim_buffer.h"
 #include "collision_resolver/collision_resolver.h"
 
 #include "../Utils/thread_pool.h"
-
 #include "../Utils/Graphics/CircleBatchRenderer.h"
 #include "../Utils/spatial_grid/simple_spatial_grid.h"
 #include "../Utils/spatial_grid/spatial_grid_renderer.h"
 #include "../simulation/context/sim_snapshot.h"
-#include "managers/cell_manager/organism_tracker.h"
-
-#include "Utils/fps_manager.h"
-#include "Utils/Graphics/font_renderer.hpp"
-
+#include "../Utils/fps_manager.h"
+#include "../Utils/Graphics/font_renderer.hpp"
 #include "../Utils/o_vec/o_vec_debug.h"
+#include "../Utils/Graphics/SFML_Grid.h"
 
 
 class World : public WorldSettings
@@ -35,6 +32,9 @@ class World : public WorldSettings
     WorldBorder        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
     sf::FloatRect world_rect_bounds_{ {0.f, 0.f}, {bounds_radius * 2.f, bounds_radius * 2.f} };
     sf::VertexArray world_border_renderer_{};
+
+    size_t _cells = static_cast<size_t>(CollisionResolver::cells_x / 4);
+	SFML_Grid visual_grid_{ *m_window_, world_rect_bounds_, _cells, 3, grid_color, grid_line_thickness };
 
     // Render data — written each update tick, read by the renderer.
     RenderData render_data_;
@@ -99,6 +99,7 @@ public:
     // ── Render ───────────────────────────────────────────────────────────────
     void render(const SimSnapshot& snapshot, Font* font, sf::Vector2f mouse_pos);
 
+
     // ── Accessors — spatial grids / food ─────────────────────────────────────
     SimpleSpatialGrid* get_spatial_grid() { return collision_resolver_.get_grid(); }
     SimpleSpatialGrid* get_food_spatial_grid() { return &food_manager_.spatial_hash_grid; }
@@ -142,6 +143,8 @@ public:
     void keyboardEvents(const sf::Keyboard::Key& event_key_code);
 
 private:
+   
+
     void update_entities();
     void bound_bodies();
     void bound_body_to_world(Body* body);
@@ -150,6 +153,7 @@ private:
     void copy_spatial_grids_to_snapshot(SimSnapshot& snapshot);
 
     // Rendering
+    void render_visual_grid(const SimSnapshot& snapshot);
     void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
     void draw_cell_outlines(const OrganismTracker& protozoa);
     void draw_cell_physical_information(const OrganismTracker& protozoa, Font* font) const;

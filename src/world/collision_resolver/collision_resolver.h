@@ -33,7 +33,7 @@ inline static const int nearby_ids_max = ResolutionSettings::cell_max_capacity *
 
 
 // This class is resonsible for the updating and rendering of the particles in the simulation
-class CollisionResolver : ResolutionSettings
+class CollisionResolver : public ResolutionSettings
 {
 	int thread_count_{};
 

@@ -23,6 +23,7 @@
 
 class Simulation : SimulationSettings, TextSettings
 {
+	sf::Color bg_color_ = Random::rand_val_in_vector(bg_colors);
     static sf::VideoMode getAdjustedVideoMode()
     {
         sf::VideoMode desktop = sf::VideoMode::getDesktopMode();

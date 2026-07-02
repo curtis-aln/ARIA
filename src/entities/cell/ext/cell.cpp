@@ -143,7 +143,7 @@ void Cell::update_organics(const Body* body)
 
 	// 5. Flag for reproduction — use assignment so it clears itself
 	//    when energy drops back below threshold
-	reproduce = (energy >= reproduce_energy_thresh);
+	reproduce = (energy >= reproduce_energy_thresh) && (offspring_index < 0);
 }
 
 

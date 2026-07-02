@@ -22,7 +22,7 @@ initial_energy           = 70.0
 
 # ── Cell Manager ──────────────────────────────────────────────────────────────────────
 [cell_manager]
-max_protozoa             = 30000
+max_protozoa             = 60000
 initial_protozoa         = 3000 # seeds
 
 # ── Food Manager ──────────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ update_freq = 4
 
 # --- physics ---
 food_radius              = 60.0
-friction                 = 0.98
+friction                 = 0.78
 vibration_strength       = 3.0
 
 # --- Color ---
@@ -49,9 +49,9 @@ food_visibility_ramp_frames = 90.0
 food_max_alpha           = 200.0
 
 # --- Birth ---
-spawn_proportionality_constant = 0.125
+spawn_proportionality_constant = 0.0025
 food_spawn_distance      = 200.0 
-reproductive_cooldown    = 320
+reproductive_cooldown    = 520
 reproductive_threshold   = 400
 
 # --- Nutrients ---

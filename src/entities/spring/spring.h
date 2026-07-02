@@ -110,19 +110,22 @@ struct Spring : SpringGenome, SpringSettings
 
 	void update_organics(Cell& cell_a, Cell& cell_b)
 	{
+		if (stress > spring_damage_threshold)
+		{
+			float excess = stress - spring_damage_threshold;
+			cell_a.integrity -= excess;
+			cell_b.integrity -= excess;
+		}
+
+		if (!cell_a.is_alive() || !cell_b.is_alive())
+			return;
+
 		handle_reproduction(cell_a, cell_b);
 
 		transfer_energy(cell_a, cell_b);
 
 		cell_a.energy -= work_done / 2.f; // Eventually springs will be their own organic systems with energy
 		cell_b.energy -= work_done / 2.f;
-
-		if (stress > spring_damage_threshold)
-		{
-			float excess = stress - spring_damage_threshold;
-			//cell_A.integrity -= excess;
-			//cell_B.integrity -= excess;
-		}
 	}
 
 

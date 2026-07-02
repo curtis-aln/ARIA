@@ -1,5 +1,32 @@
 #include "../cell_manager.h"
 
+/* Reproductive System
+
+[Contextual Systems]
+- A spring connects Two Cells together, Two cells can only be connected with no more than One Spring
+- Cells share energy with eachover through springs which allows their energys to reach pass the birth threshold roughly at the same time.
+- Cells cannot reproduce for a period of time after being born So offspring Dont mess up the reproductive process
+- Cells have a reproductive cooldown So Two reproductive processes dont occour at the same time
+
+[Method]
+1. A cell's energy passes the reproductive threshold.
+	1.1. reproduce is set to true in this cell
+2. Iterate Through all the springs, and check if their cells have reproduce set to true
+3. for each cell (reproducing), check if the spring cells already has an offspring index
+   - if one or the other cell does have an offspring
+   3.1. Create an offspring Request for the cell that doesn't have one
+   - if they both have offspring cells
+   3.1. Do Nothing
+   - if neither have offspring
+   3.2. create two offspring Requests
+4. Set Reproduce to false for the cells which have offspring
+5. Check if there is already a connection request made Between the two children
+	5.1. if there is a connection request, do nothing
+	5.2. if there isnt a connection request, make one
+
+6. The joining connections we made from the parents to children are weak so they will break naturally
+*/
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  build_protozoa_from_seed
 //
@@ -132,7 +159,7 @@ void CellManager::apply_birth_requests()
 		
 		Spring* spring = all_springs_.emplace(true);
 
-		spring->spring_const = 0.00001f;
+		spring->spring_const = 0.00000001f;
 		spring->amplitude = 0.f;
 		spring->damping = 0.9f;
 

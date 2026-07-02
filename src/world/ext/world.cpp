@@ -33,6 +33,8 @@ void World::init_circle_renderers()
 
 void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f mouse_pos)
 {
+    render_visual_grid(snapshot);
+
     if (snapshot.toggles.draw_cell_grid)
         cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
 
@@ -43,6 +45,18 @@ void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f m
     render_protozoa(snapshot, font);
 
     m_window_->draw(world_border_renderer_);
+}
+
+void World::render_visual_grid(const SimSnapshot& snapshot)
+{
+    float zoom = snapshot.render.camera_zoom;
+    float a = 1.f;
+	if (zoom < start_fading_zoom)
+	{
+		a = (zoom - start_fading_zoom) / fade_zoom_dist;
+		a = std::clamp(a, 0.f, 1.f);
+	}
+    visual_grid_.draw(a);
 }
 
 

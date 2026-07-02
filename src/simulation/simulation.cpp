@@ -74,6 +74,7 @@ void Simulation::update_one_frame()
     snap.stats.fps = fps_;
     snap.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
     snap.history = m_history_;
+	snap.render.camera_zoom = camera_.get_current_zoom();
 
     m_sim_buffer_.publish();
 
@@ -342,7 +343,7 @@ void Simulation::render()
 
     if (snap.stats.iterations_ <= 1)
         return;
-    m_window_.clear(GraphicalSettings::window_color);
+    m_window_.clear(bg_color_);
     if (m_world_.toggles.m_rendering_)
     {
         const sf::Vector2f pos = camera_.get_world_mouse_pos();
