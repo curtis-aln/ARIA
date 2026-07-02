@@ -38,4 +38,12 @@ struct FoodManagerSettings
 
 	inline static float nutrients_to_radius_scale = .5f; // radius = nutrients * this constant
 	inline static float fade_start_nutrients = 30.0f;       // nutrients level at which fading begins
+
+	inline static float food_launch_strength = 50.f;
+	inline static float food_launch_chance = 0.05f;
+
+	inline static const float spawn_immunity = 20;
+
+	inline static constexpr float vibrate_freq = 0.0065f;
+
 };

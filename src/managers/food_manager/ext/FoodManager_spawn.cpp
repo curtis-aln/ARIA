@@ -1,8 +1,5 @@
 #include "../food_manager.h"
 
-inline static float food_launch_strength = 50.f;
-inline static float food_launch_chance = 0.05f;
-
 void FoodManager::let_food_reproduce()
 {
 	// this function runs a pass over all the food and checks if it can reproduce, if it can then it will spawn a new food 

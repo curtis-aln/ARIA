@@ -65,9 +65,6 @@ public:
 
 private:
     void  update_food();
-    static void  update_food_nutrients(Food* food);
-    void update_food_size(Food* food, Body* body);
-    void  vibrate_food(Body* body, float strength);
     
     void  check_food_death(const Food* food);
     void  add_food_to_hash_grid();

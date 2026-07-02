@@ -22,6 +22,8 @@
 #include "../Utils/o_vec/o_vec_debug.h"
 #include "../Utils/Graphics/SFML_Grid.h"
 
+#include "world_renderer/world_renderer.h"
+
 
 class World : public WorldSettings
 {
@@ -31,25 +33,15 @@ class World : public WorldSettings
 
     WorldBorder        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
     sf::FloatRect world_rect_bounds_{ {0.f, 0.f}, {bounds_radius * 2.f, bounds_radius * 2.f} };
-    sf::VertexArray world_border_renderer_{};
-
-    size_t _cells = static_cast<size_t>(CollisionResolver::cells_x / 4);
-	SFML_Grid visual_grid_{ *m_window_, world_rect_bounds_, _cells, 3, grid_color, grid_line_thickness };
-
-    // Render data — written each update tick, read by the renderer.
-    RenderData render_data_;
-
-    // Statistics accumulated each tick by the update thread.
-    WorldStatistics statistics_{};
+   
+    RenderData render_data_; // Render data — written each update tick, read by the renderer.
+    WorldStatistics statistics_{}; // Statistics accumulated each tick by the update thread.
 
     // for the physics updating 
     // both food and cells query id's from this vector
 	o_vector<Body> bodies_{ max_entities };
 
     float tex_rad = 120;
-    CircleBatchRenderer outer_circle_renderer_{};
-    CircleBatchRenderer inner_circle_renderer_{};
-    std::vector<float>  outer_radii_{};
 
     FoodManager        food_manager_{ m_window_, &world_circular_bounds_, &bodies_ };
 	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_, &bodies_ };
@@ -57,7 +49,6 @@ class World : public WorldSettings
     sf::FloatRect bounds = { {0, 0}, {bounds_radius * 2, bounds_radius * 2} };
     
     CollisionResolver collision_resolver_{ &bounds, &bodies_, updating_threads, max_entities, max_entities };
-    SpatialGridRenderer cell_grid_renderer_{ collision_resolver_.get_grid()};
 
 	BarrierThreadPool food_thread_pool_{ (int)updating_threads };
 
@@ -65,13 +56,13 @@ class World : public WorldSettings
     static thread_local FixedSpan<uint32_t> tl_nearby_ids;
     static thread_local FixedSpan<obj_idx> tl_nearby_food;
 
-    std::vector<int> colour_job_boundaries_;
-
     // Generation tracking (internal — summarised into statistics_)
     float tracked_generation_ = 0.f;
     float frames_since_last_gen_change_ = 0.f;
 
     FrameRateSmoothing<30> frame_rate_smoothing_{};
+
+    WorldRenderer world_renderer_{ m_window_, &food_manager_, &collision_resolver_, world_rect_bounds_, world_circular_bounds_ };
 
     std::vector<std::function<void()>> food_jobs_;
 
@@ -91,7 +82,6 @@ public:
 
 public:
     explicit World(sf::RenderWindow* window = nullptr);
-    void init_circle_renderers();
 
     // ── Update ───────────────────────────────────────────────────────────────
     void update();
@@ -143,21 +133,12 @@ public:
     void keyboardEvents(const sf::Keyboard::Key& event_key_code);
 
 private:
-   
-
     void update_entities();
     void bound_bodies();
     void bound_body_to_world(Body* body);
 
     void copy_render_data_to_snapshot(SimSnapshot& snapshot);
     void copy_spatial_grids_to_snapshot(SimSnapshot& snapshot);
-
-    // Rendering
-    void render_visual_grid(const SimSnapshot& snapshot);
-    void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font);
-    void draw_cell_outlines(const OrganismTracker& protozoa);
-    void draw_cell_physical_information(const OrganismTracker& protozoa, Font* font) const;
-    void draw_spring_information(Font* font) const;
 
     void nearby_food_information(const OrganismTracker& protozoa) const;
 
@@ -166,6 +147,5 @@ private:
     void update_position_container();
     void update_statistics();
 
-    void render_protozoa(const SimSnapshot& snapshot, Font* font);
     void resolve_food_interactions();
 };

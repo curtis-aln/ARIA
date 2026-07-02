@@ -168,12 +168,26 @@ void CellManager::fill_render_data(RenderData& render_data)
 
 	// now we handle springs, we can just store the indexes as then the renderer can read them from the positions container above
 	const int spring_count = static_cast<int>(all_springs_.size());
-	render_data.spring_connections.resize(spring_count);
-	int i = 0;
+	render_data.spring_connections.clear();
 
 	for (Spring* spring : all_springs_)
 	{
-		render_data.spring_connections[i++] = { get_cell_pos(spring->cell_A_id), get_cell_pos(spring->cell_B_id) };
+		if (!bodies_->is_obj_active(spring->cell_A_id) || !bodies_->is_obj_active(spring->cell_B_id))
+			continue;
+
+		Body* body_a = get_cell_body(spring->cell_A_id);
+		Body* body_b = get_cell_body(spring->cell_B_id);
+
+		const float min_dist = body_a->radius_ + body_b->radius_;
+
+		// The reason why we cant use indexing to fill this array is because we dont know how many bodies are not active,
+		// so it messes with the indexing and leads to null connections
+		render_data.spring_connections.push_back({ 
+			get_cell_pos(spring->cell_A_id), 
+			get_cell_pos(spring->cell_B_id),
+			min_dist,
+			min_dist * 2.f,
+			spring->stress });
 	}
 }
 
@@ -192,6 +206,11 @@ const sf::Vector2f* CellManager::get_selected_protozoa_pos() const
 sf::Vector2f& CellManager::get_cell_pos(int cell_id)
 {
 	return bodies_->at(all_cells_.at(cell_id)->body_id_)->position_;
+}
+
+Body* CellManager::get_cell_body(int cell_id)
+{
+	return bodies_->at(all_cells_.at(cell_id)->body_id_);
 }
 
 void CellManager::drag_selected_cell_to_point(const sf::Vector2f& target_position, const float move_fraction)

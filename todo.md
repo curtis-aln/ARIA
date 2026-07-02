@@ -214,21 +214,21 @@ Next To work on:
 Today todo
 [Done] Add a Nice Background to the Simulation, make 5 or 6 nice colors that it randomly picks from (1)
 [Done] Add a faint white grid to the simulation under the protozoa, only show the grid when zoomed in enough (2)
-- Change the simulation so that the collision happens with the inner radii, not the outer one (3)
-- All the food die at the same time at the start of the simulation, add more randomness to this (4)
-- Add small circles to the end of the connections of cells to make them appear smoother (5)
-- Have the connections change size based on distance (6)
-- Have the connections change color based on distance (7)
-- Allow by defualt the rendering of ALL connections, not just on debug, make it run in real time (8)
+[Done] Change the simulation so that the collision happens with the inner radii, not the outer one (3)
+[Done] All the food die at the same time at the start of the simulation, add more randomness to this (4)
+[Done] Add small circles to the end of the connections of cells to make them appear smoother (5)
+[Done] Have the connections change size based on distance (6)
+[Done] Have the connections change color based on distance (7)
+[Done] Allow by defualt the rendering of ALL connections, not just on debug, make it run in real time (8)
 - Have the outer circle move based on the Velocity of the cell, so it looks more flowy and alive (9)
 
 SpeedRun Time. Start time: 19:10
 (1) completed at: 19:22
 (2) completed at: 19:44
-(3) completed at:
-(4) completed at:
-(5) completed at:
-(6) completed at:
-(7) completed at:
-(8) completed at:
-(9) completed at:
+(3) completed at: 19:53
+(4) completed at: 20:15
+(5) completed at: 21:11
+(6) completed at: 21:20
+(7) completed at: 21:25
+(8) completed at: 21:30
+(9) completed at: 

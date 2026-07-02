@@ -115,7 +115,7 @@ add_executable(ProjectARIA
     # ── World / simulation update loop
     src/world/ext/world.cpp
     src/world/ext/world_updating.cpp
-    src/world/ext/draw_cell_debug.cpp
+    
 
     # ── ImPlot (header-only library — sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
@@ -137,7 +137,7 @@ add_executable(ProjectARIA
  "src/simulation/imgui/imgui_settings.h" 
  "src/Utils/o_vec/o_vec_debug.h" 
  "src/simulation/imgui/tabs/o_vector_tab.cpp" 
- "src/simulation/imgui/tabs/o_vector_tab.h" "src/Utils/o_vec/o_vec_snapshot.h")
+ "src/simulation/imgui/tabs/o_vector_tab.h" "src/Utils/o_vec/o_vec_snapshot.h" "src/world/world_renderer/world_renderer.h")
 
  target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

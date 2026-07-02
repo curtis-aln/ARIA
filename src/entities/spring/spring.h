@@ -23,6 +23,7 @@ struct Spring : SpringGenome, SpringSettings
 	float work_done = 0.f;
 	float rest_length = 0.f;
 	float current_length = 0.f;
+	float ratio = 0.f;
 
 	float spring_force = {};
 	float damping_force = {};
@@ -47,6 +48,7 @@ struct Spring : SpringGenome, SpringSettings
 		broken = false;
 		spring_force = 0.f;
 		damping_force = 0.f;
+		ratio = 0.f;
 
 	}
 
@@ -97,6 +99,10 @@ struct Spring : SpringGenome, SpringSettings
 
 		const float force_magnitude = std::abs(total_force);
 
+
+		// Stress: 0 = relaxed, 1 = at breaking point
+		stress = force_magnitude / spring_break_force;
+
 		// Force-based break (complements your existing length-based break)
 		if (force_magnitude > spring_break_force)
 		{
@@ -104,8 +110,6 @@ struct Spring : SpringGenome, SpringSettings
 			return;
 		}
 
-		// Stress: 0 = relaxed, 1 = at breaking point
-		stress = force_magnitude / spring_break_force;
 	}
 
 	void update_organics(Cell& cell_a, Cell& cell_b)
@@ -147,11 +151,11 @@ private:
 		cell_b.energy -= transfer;
 	}
 
-	float calculate_rest_length(const int internal_clock) const
+	float calculate_rest_length(const int internal_clock)
 	{
 		// sin oscillates around vertical_shift with ±amplitude swing
 		const float sin_value = sinf(frequency * internal_clock + offset); // [-1, 1]
-		const float ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
+		ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
 		const float clamped = std::clamp(ratio, 0.f, 1.f);
 		return clamped * maximum_extension;
 	}

@@ -11,111 +11,17 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{25};
 
 
 
-World::World(sf::RenderWindow* window)
-    : m_window_(window), world_border_renderer_(make_circle(world_circular_bounds_.bounds_radius, world_circular_bounds_.center_))
+World::World(sf::RenderWindow* window) : m_window_(window)
 {
-    init_circle_renderers();
     food_manager_.init();
 
-
     render_data_.reserve(static_cast<int>(max_entities));
-    outer_radii_.resize(max_entities);
-}
-
-void World::init_circle_renderers()
-{
-	outer_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
-	inner_circle_renderer_.init(m_window_, tex_rad, CellManagerSettings::max_protozoa);
-
-	const int max_entities = CellManagerSettings::max_protozoa + FoodManagerSettings::max_food;
 }
 
 
 void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f mouse_pos)
 {
-    render_visual_grid(snapshot);
-
-    if (snapshot.toggles.draw_food_grid)
-        food_manager_.draw_food_grid(mouse_pos);
-
-    if (snapshot.toggles.draw_cell_grid)
-        cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
-
-    food_manager_.render(snapshot.food_data);
-    render_protozoa(snapshot, font);
-
-    m_window_->draw(world_border_renderer_);
-}
-
-void World::render_visual_grid(const SimSnapshot& snapshot)
-{
-    float zoom = snapshot.render.camera_zoom;
-    float a = 1.f;
-	if (zoom < start_fading_zoom)
-	{
-		a = (zoom - start_fading_zoom) / fade_zoom_dist;
-		a = std::clamp(a, 0.f, 1.f);
-	}
-    visual_grid_.draw(a);
-}
-
-
-void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
-{
-    int cell_count = snapshot.stats.cell_count;
-
-    // The springs are rendered first, so they appear behind the cells in the rendering order.
-	render_springs(snapshot);
-
-    inner_circle_renderer_.set_size(cell_count);
-    inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
-    inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
-    inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
-    inner_circle_renderer_.set_radii(snapshot.render.radii);
-
-    inner_circle_renderer_.update();
-    inner_circle_renderer_.render();
-
-	// Cells are made from two circles, an inner circle and an outer circle. The Outer circle is only rendered if simple mode is disabled.
-    if (!toggles.simple_mode)
-    {
-        outer_radii_.resize(snapshot.render.radii.size());
-
-        for (int i = 0; i < cell_count; ++i)
-            outer_radii_[i] = snapshot.render.radii[i] * GraphicalSettings::cell_outline_thickness;
-
-        outer_circle_renderer_.set_size(cell_count);
-        outer_circle_renderer_.set_colors(snapshot.render.outer_colors);
-        outer_circle_renderer_.set_positions_x(snapshot.render.positions_x);
-        outer_circle_renderer_.set_positions_y(snapshot.render.positions_y);
-        outer_circle_renderer_.set_radii(outer_radii_);
-
-        outer_circle_renderer_.update();
-        outer_circle_renderer_.render();
-    }
-
-	// If a protozoa is selected and debug mode is enabled, draw additional debug information for the selected protozoa.
-    if (snapshot.protozoa_tracker.is_active && snapshot.toggles.debug_mode)
-    {
-        draw_protozoa_debug(snapshot, font);
-    }
-}
-
-
-void World::render_springs(const SimSnapshot& snapshot)
-{
-	for (const std::pair <sf::Vector2f, sf::Vector2f>& spring_pair : snapshot.render.spring_connections)
-	{
-
-		if (toggles.debug_mode)
-		{
-			// the outline color should be that of cell a, the inline cololour should be that of cell b
-            const sf::Color outline_color = {200, 50, 220};
-            const sf::Color fill_color = { 200, 80, 220 };
-			draw_thick_line(*m_window_, spring_pair.first, spring_pair.second, GraphicalSettings::spring_thickness,
-				GraphicalSettings::spring_outline_thickness, fill_color, outline_color);
-		}
-	}
+	world_renderer_.render(snapshot, font, mouse_pos);
 }
 
 
@@ -173,7 +79,6 @@ void World::keyboardEvents(const sf::Keyboard::Key& event_key_code)
 
 void World::update_spatial_renderers()
 {
-    cell_grid_renderer_.rebuild();
     food_manager_.update_food_grid_renderer();
 }
 
@@ -196,8 +101,6 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	cell_manager_.fill_snapshot(snapshot); // protozoa data
 
     copy_spatial_grids_to_snapshot(snapshot);
-
-	// updating the o_vector debug data for the ImGui panel
 }
 
 
@@ -226,6 +129,8 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);
     render_data.spring_debug_snapshot = FillSnapshot<Spring>(dbg_springs_, "Spring", sf::Color::White);
 	render_data.cell_debug_snapshot = FillSnapshot<Cell>(dbg_cells_, "Cell", sf::Color::White);
+
+   
 }
 
 void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)
@@ -242,4 +147,21 @@ void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)
         calculate_spatial_grid_statistics(food_grid, snapshot.food_grid);
         calculate_spatial_grid_statistics(cell_grid, snapshot.cell_grid);
     }
+}
+
+int World::check_mouse_press(const OrganismTracker& protozoa, const sf::Vector2f mousePosition, const bool tolerance_check) const
+{
+    for (const Cell& cell : protozoa.cells)
+    {
+        const Body* body = bodies_.at(cell.body_id_);
+        const float dist_sq = (body->position_ - mousePosition).lengthSquared();
+        float tollarance_factor = 1.2f;
+        const float rad = cell.radius * tollarance_factor;
+        if (dist_sq < rad * rad)
+        {
+            return cell.body_id_;
+        }
+    }
+
+    return -1;
 }

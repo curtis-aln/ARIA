@@ -7,6 +7,7 @@
 #include "../entities/food/food.h"
 #include "../entities/body.h"
 #include "../entities/spring/spring.h"
+#include "world/connection_renderer.h"
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -104,7 +105,9 @@ struct RenderData
     alignas(64) std::vector<sf::Color>    outer_colors;
     alignas(64) std::vector<sf::Color>    inner_colors;
     alignas(64) std::vector<float>        radii;
-    alignas(64) std::vector<std::pair<sf::Vector2f, sf::Vector2f>> spring_connections;
+
+
+	std::vector<Connection> spring_connections;
 
 	float camera_zoom = 1.f;
 
@@ -112,6 +115,8 @@ struct RenderData
     OVecDebugImGuiSnapshot food_debug_snapshot;
     OVecDebugImGuiSnapshot body_debug_snapshot;
     OVecDebugImGuiSnapshot spring_debug_snapshot;
+
+    // for
 
     void reserve(const int max_cells)
     {

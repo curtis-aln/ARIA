@@ -124,6 +124,8 @@ public:
 
 	sf::Vector2f& get_cell_pos(int cell_id);
 
+	Body* get_cell_body(int cell_id);
+
 	const o_vector<Cell>& get_all_cells() const { return all_cells_; }
 	o_vector<Cell>& get_all_cells() { return all_cells_; }
 	const o_vector<Spring>& get_all_springs() const { return all_springs_; }
