@@ -19,7 +19,7 @@ World::World(sf::RenderWindow* window)
 
 
     render_data_.reserve(static_cast<int>(max_entities));
-    inner_radii_.resize(max_entities);
+    outer_radii_.resize(max_entities);
 }
 
 void World::init_circle_renderers()
@@ -35,11 +35,11 @@ void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f m
 {
     render_visual_grid(snapshot);
 
-    if (snapshot.toggles.draw_cell_grid)
-        cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
-
     if (snapshot.toggles.draw_food_grid)
         food_manager_.draw_food_grid(mouse_pos);
+
+    if (snapshot.toggles.draw_cell_grid)
+        cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
 
     food_manager_.render(snapshot.food_data);
     render_protozoa(snapshot, font);
@@ -64,40 +64,35 @@ void World::render_protozoa(const SimSnapshot& snapshot, Font* font)
 {
     int cell_count = snapshot.stats.cell_count;
 
-	render_springs(snapshot); // The springs are rendered first, so they appear behind the cells in the rendering order.
+    // The springs are rendered first, so they appear behind the cells in the rendering order.
+	render_springs(snapshot);
 
-    // If simple mode is not enabled, the inner circles of the cells are rendered. 
-    // The inner circles are scaled down by a factor defined in the graphical settings to create a visual distinction between the outer and inner parts of the cells.
+    inner_circle_renderer_.set_size(cell_count);
+    inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
+    inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
+    inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
+    inner_circle_renderer_.set_radii(snapshot.render.radii);
+
+    inner_circle_renderer_.update();
+    inner_circle_renderer_.render();
+
+	// Cells are made from two circles, an inner circle and an outer circle. The Outer circle is only rendered if simple mode is disabled.
     if (!toggles.simple_mode)
     {
-        inner_radii_.resize(snapshot.render.radii.size());
+        outer_radii_.resize(snapshot.render.radii.size());
 
         for (int i = 0; i < cell_count; ++i)
-            inner_radii_[i] = snapshot.render.radii[i] / GraphicalSettings::cell_outline_thickness;
+            outer_radii_[i] = snapshot.render.radii[i] * GraphicalSettings::cell_outline_thickness;
 
-        inner_circle_renderer_.set_size(cell_count);
-        inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
-        inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
-        inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
-        inner_circle_renderer_.set_radii(inner_radii_);
+        outer_circle_renderer_.set_size(cell_count);
+        outer_circle_renderer_.set_colors(snapshot.render.outer_colors);
+        outer_circle_renderer_.set_positions_x(snapshot.render.positions_x);
+        outer_circle_renderer_.set_positions_y(snapshot.render.positions_y);
+        outer_circle_renderer_.set_radii(outer_radii_);
 
-        inner_circle_renderer_.update();
-        inner_circle_renderer_.render();
+        outer_circle_renderer_.update();
+        outer_circle_renderer_.render();
     }
-
-
-	// The rendering of cells happens in two stages: first the outer circles are rendered, then the inner circles. 
-    // The outer circles represent the cell's outer boundary, while the inner circles represent the cell's inner content. 
-    // The rendering is done using a batch renderer for efficiency.
-    outer_circle_renderer_.set_size(cell_count);
-    outer_circle_renderer_.set_colors(snapshot.render.outer_colors);
-    outer_circle_renderer_.set_positions_x(snapshot.render.positions_x);
-    outer_circle_renderer_.set_positions_y(snapshot.render.positions_y);
-    outer_circle_renderer_.set_radii(snapshot.render.radii);
-
-	outer_circle_renderer_.update();
-    outer_circle_renderer_.render();
-
 
 	// If a protozoa is selected and debug mode is enabled, draw additional debug information for the selected protozoa.
     if (snapshot.protozoa_tracker.is_active && snapshot.toggles.debug_mode)

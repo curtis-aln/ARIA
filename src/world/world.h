@@ -49,7 +49,7 @@ class World : public WorldSettings
     float tex_rad = 120;
     CircleBatchRenderer outer_circle_renderer_{};
     CircleBatchRenderer inner_circle_renderer_{};
-    std::vector<float>  inner_radii_{};
+    std::vector<float>  outer_radii_{};
 
     FoodManager        food_manager_{ m_window_, &world_circular_bounds_, &bodies_ };
 	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_, &bodies_ };

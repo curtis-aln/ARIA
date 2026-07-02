@@ -213,7 +213,7 @@ Next To work on:
 
 Today todo
 [Done] Add a Nice Background to the Simulation, make 5 or 6 nice colors that it randomly picks from (1)
-- Add a faint white grid to the simulation under the protozoa, only show the grid when zoomed in enough (2)
+[Done] Add a faint white grid to the simulation under the protozoa, only show the grid when zoomed in enough (2)
 - Change the simulation so that the collision happens with the inner radii, not the outer one (3)
 - All the food die at the same time at the start of the simulation, add more randomness to this (4)
 - Add small circles to the end of the connections of cells to make them appear smoother (5)
@@ -224,7 +224,7 @@ Today todo
 
 SpeedRun Time. Start time: 19:10
 (1) completed at: 19:22
-(2) completed at:
+(2) completed at: 19:44
 (3) completed at:
 (4) completed at:
 (5) completed at:

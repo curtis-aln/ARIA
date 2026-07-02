@@ -15,7 +15,7 @@ struct CellGeneticConstraints
 
 struct CellInitialSpawnRanges
 {
-    inline static Range radius = { 30.f,          100.f };
+    inline static Range radius = { 25.f,          85.f };
     inline static Range amplitude = { 0.5f,          1.f };
     inline static Range frequency = { 1.f / 60.f,   1.f / 10.f };
     inline static Range offset = CellGeneticConstraints::offset;
