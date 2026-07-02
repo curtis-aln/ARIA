@@ -112,15 +112,15 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     snapshot.stats.cell_count = n;
 
 	// resizing the render data arrays to match the number of cells
-    render_data.positions_x.resize(n);
-    render_data.positions_y.resize(n);
+    render_data.positions.resize(n);
+	render_data.velocities.resize(n);
     render_data.outer_colors.resize(n);
     render_data.inner_colors.resize(n);
     render_data.radii.resize(n);
 
 	// efficiently copying the data from the internal render_data_ to the snapshot's render_data using memcpy
-    std::memcpy(render_data.positions_x.data(), render_data_.positions_x.data(), n * sizeof(float));
-    std::memcpy(render_data.positions_y.data(), render_data_.positions_y.data(), n * sizeof(float));
+    std::memcpy(render_data.positions.data(), render_data_.positions.data(), n * sizeof(sf::Vector2f));
+    std::memcpy(render_data.velocities.data(), render_data_.velocities.data(), n * sizeof(sf::Vector2f));
     std::memcpy(render_data.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
     std::memcpy(render_data.radii.data(), render_data_.radii.data(), n * sizeof(float));
@@ -129,8 +129,6 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);
     render_data.spring_debug_snapshot = FillSnapshot<Spring>(dbg_springs_, "Spring", sf::Color::White);
 	render_data.cell_debug_snapshot = FillSnapshot<Cell>(dbg_cells_, "Cell", sf::Color::White);
-
-   
 }
 
 void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)

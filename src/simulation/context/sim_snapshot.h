@@ -26,8 +26,7 @@ struct SimSnapshot
     {
 	    render.inner_colors.reserve(cell_render_reserve);
 	    render.outer_colors.reserve(cell_render_reserve);
-	    render.positions_x.reserve(cell_render_reserve);
-	    render.positions_y.reserve(cell_render_reserve);
+	    render.positions.reserve(cell_render_reserve);
 	    render.radii.reserve(cell_render_reserve);
     }
 };

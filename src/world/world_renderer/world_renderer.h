@@ -35,6 +35,7 @@ class WorldRenderer : public WorldSettings
 	CircleBatchRenderer outer_circle_renderer_{};
 	CircleBatchRenderer inner_circle_renderer_{};
 	std::vector<float>  outer_radii_{};
+	std::vector<sf::Vector2f>  outer_positions_{};
 
 	ConnectionRenderer connection_renderer_{};
 
@@ -98,8 +99,7 @@ private:
 
 		inner_circle_renderer_.set_size(cell_count);
 		inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
-		inner_circle_renderer_.set_positions_x(snapshot.render.positions_x);
-		inner_circle_renderer_.set_positions_y(snapshot.render.positions_y);
+		inner_circle_renderer_.set_positions(snapshot.render.positions);
 		inner_circle_renderer_.set_radii(snapshot.render.radii);
 
 		inner_circle_renderer_.update();
@@ -108,15 +108,25 @@ private:
 		// Cells are made from two circles, an inner circle and an outer circle. The Outer circle is only rendered if simple mode is disabled.
 		if (!snapshot.toggles.simple_mode)
 		{
-			outer_radii_.resize(snapshot.render.radii.size());
+			int size = snapshot.render.radii.size();
+			outer_radii_.resize(size);
+			outer_positions_.resize(size);
 
 			for (int i = 0; i < cell_count; ++i)
-				outer_radii_[i] = snapshot.render.radii[i] * GraphicalSettings::cell_outline_thickness;
+			{
+				// The outer radii moves about based on how the cell is moving
+				auto pos = snapshot.render.positions[i];
+				auto vel = snapshot.render.velocities[i];
+				auto rad = snapshot.render.radii[i] * GraphicalSettings::cell_outline_thickness;
+				float scaled_x = std::min(vel.x, rad - snapshot.render.radii[i]);
+				float scaled_y = std::min(vel.y, rad - snapshot.render.radii[i]);
+				outer_positions_[i] = pos - sf::Vector2f{ scaled_x, scaled_y };
+				outer_radii_[i] = rad;
+			}
 
 			outer_circle_renderer_.set_size(cell_count);
 			outer_circle_renderer_.set_colors(snapshot.render.outer_colors);
-			outer_circle_renderer_.set_positions_x(snapshot.render.positions_x);
-			outer_circle_renderer_.set_positions_y(snapshot.render.positions_y);
+			outer_circle_renderer_.set_positions(outer_positions_);
 			outer_circle_renderer_.set_radii(outer_radii_);
 
 			outer_circle_renderer_.update();

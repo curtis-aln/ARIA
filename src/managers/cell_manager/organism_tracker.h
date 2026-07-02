@@ -262,7 +262,7 @@ private:
         for (uint8_t i = 0; i < container.count; ++i)
         {
             const obj_idx cell_id = container[i];
-            const sf::Vector2f cell_position = { render_data.positions_x[cell_id], render_data.positions_y[cell_id] };
+            const sf::Vector2f cell_position = render_data.positions[cell_id];
             nearby_cell_positions[cells_in_neighbourhood++] = cell_position;
         }
 

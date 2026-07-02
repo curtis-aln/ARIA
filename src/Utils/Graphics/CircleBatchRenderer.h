@@ -55,8 +55,17 @@ public:
     }
 
     void set_colors(const std::vector<sf::Color>& colors) { colors_ = colors; }
-    void set_positions_x(const std::vector<float>& pos_x) { positions_x_ = pos_x; }
-    void set_positions_y(const std::vector<float>& pos_y) { positions_y_ = pos_y; }
+    void set_positions(const std::vector<sf::Vector2f>& positions) 
+    {
+		int size = positions.size();
+		positions_x_.resize(size);
+		positions_y_.resize(size);
+		for (size_t i = 0; i < size; i += 1)
+		{
+			positions_x_[i] = positions[i].x;
+			positions_y_[i] = positions[i].y;
+		}
+    }
     void set_radii(const std::vector<float>& radii) { radii_ = radii; }
     void set_size(size_t size) { circle_count_ = size; }
 

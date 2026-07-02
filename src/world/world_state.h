@@ -64,6 +64,7 @@ struct WorldStatistics
     int   highest_generation_ever = 0;
 	int   most_offspring_ever = 0;
 	int   entity_count = 0;
+    int container_size_read = 0;
 
     float average_generation = 0.f;
     float average_cells_per_protozoa = 0.f;
@@ -100,8 +101,8 @@ struct WorldStatistics
 // ─────────────────────────────────────────────────────────────────────────────
 struct RenderData
 {
-    alignas(64) std::vector<float> positions_x;
-    alignas(64) std::vector<float> positions_y;
+    alignas(64) std::vector<sf::Vector2f> positions;
+    alignas(64) std::vector<sf::Vector2f> velocities;
     alignas(64) std::vector<sf::Color>    outer_colors;
     alignas(64) std::vector<sf::Color>    inner_colors;
     alignas(64) std::vector<float>        radii;
@@ -120,8 +121,8 @@ struct RenderData
 
     void reserve(const int max_cells)
     {
-        positions_x.resize(max_cells);
-        positions_y.resize(max_cells);
+        positions.resize(max_cells);
+        velocities.resize(max_cells);
         outer_colors.resize(max_cells);
         inner_colors.resize(max_cells);
         radii.resize(max_cells);

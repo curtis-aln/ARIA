@@ -82,11 +82,11 @@ void World::update_position_container()
 	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
 	statistics_.entity_count = statistics_.cell_count + statistics_.food_count;
 
-	render_data_.outer_colors.resize(statistics_.entity_count);
-	render_data_.inner_colors.resize(statistics_.entity_count);
-	render_data_.positions_x.resize(statistics_.entity_count);
-	render_data_.positions_y.resize(statistics_.entity_count);
-	render_data_.radii.resize(statistics_.entity_count);
+	render_data_.outer_colors.resize(statistics_.cell_count);
+	render_data_.inner_colors.resize(statistics_.cell_count);
+	render_data_.positions.resize(statistics_.cell_count);
+	render_data_.velocities.resize(statistics_.cell_count);
+	render_data_.radii.resize(statistics_.cell_count);
 
 	// updating render data
 	int i = 0;
@@ -94,11 +94,20 @@ void World::update_position_container()
 	{
 		const Body* body = bodies_.at(cell->body_id_);
 
+		if (!bodies_.is_obj_active(cell->body_id_))
+			continue;
+
 		render_data_.outer_colors[i] = cell->get_outer_color();
 		render_data_.inner_colors[i] = cell->get_inner_color();
-		render_data_.positions_x[i] = body->position_.x;
-		render_data_.positions_y[i] = body->position_.y;
+		render_data_.positions[i] = body->position_;
+		render_data_.velocities[i] = body->velocity_;
 		render_data_.radii[i] = cell->radius;
 		i++;
 	}
+
+	render_data_.outer_colors.resize(i);
+	render_data_.inner_colors.resize(i);
+	render_data_.positions.resize(i);
+	render_data_.radii.resize(i);
+	render_data_.velocities.resize(i);
 }
