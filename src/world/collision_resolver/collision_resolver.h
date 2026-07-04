@@ -19,7 +19,7 @@ Modify the Settings struct to change the grid size, cell capacity, and collision
 struct ResolutionSettings
 {
 	// 1, 2, 4, 8, 16, 32, 64, 128
-	inline static uint32_t cells_x = (1u << 8); // for morton indexing, must be a power of 2
+	inline static uint32_t cells_x = (1u << 9); // for morton indexing, must be a power of 2
 	inline static uint32_t cells_y = cells_x;     // square worlds
 	inline static const uint32_t cell_max_capacity = 6; // maximum number of particles per cell, must be less than 256, but really shouldnt be any greater than 6
 

@@ -14,6 +14,7 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{25};
 World::World(sf::RenderWindow* window) : m_window_(window)
 {
     food_manager_.init();
+    bound_bodies();
 }
 
 
@@ -96,7 +97,7 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	copy_render_data_to_snapshot(snapshot); // render data
 
     food_manager_.fill_data(snapshot.food_data);
-	cell_manager_.fill_snapshot(snapshot); // protozoa data
+	cell_manager_.fill_snapshot(snapshot, visible_bounds); // protozoa data
 
     copy_spatial_grids_to_snapshot(snapshot);
 }

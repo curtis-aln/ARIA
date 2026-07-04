@@ -225,3 +225,7 @@ Speedrun time (again), start time: 6:35pm
 (1): 7:00pm
 (2): 7:00pm
 (3): 7:55pm
+
+
+
+12fps

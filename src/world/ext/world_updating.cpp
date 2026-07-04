@@ -6,6 +6,8 @@
 // write_snapshot is written to so the renderer knows what to draw
 void World::update(SimSnapshot& write_snapshot)
 {
+	visible_bounds = calulcate_visible_range();
+
 	// Sanity Check
 	if (get_entity_count() != bodies_.size())
 		std::cerr << "Warning: Entity count mismatch! bodies_.size() = " << bodies_.size() << ", get_entity_count() = " << get_entity_count() << std::endl;
@@ -25,7 +27,7 @@ void World::update(SimSnapshot& write_snapshot)
 	}
 
 	// We always update the position container, otherwise the simulation jitters when paused
-	update_position_container(write_snapshot);
+	update_position_container_optimized(write_snapshot);
 
 	// once the iteration has been completed, we update the statistics for the next frame
 	if (toggles.track_statistics)
@@ -63,12 +65,14 @@ void World::bound_body_to_world(Body* body)
 
 	// Circular boundary bounce
 	const sf::Vector2f diff = body->position_ - world_circular_bounds_.center_;
-	const float dist = diff.length();
-	const float max_dist = world_circular_bounds_.bounds_radius - body->radius_;
+	
+	const float dist_sq = diff.x * diff.x + diff.y * diff.y;
 
-	if (dist > max_dist && dist > 1e-6f)
+	const float max_dist = world_circular_bounds_.bounds_radius - (body->radius_ * 2.f);
+	
+	if (dist_sq > max_dist * max_dist && dist_sq > 0.0001f)
 	{
-		const sf::Vector2f normal = diff / dist; // outward normal (center → body)
+		const sf::Vector2f normal = diff / std::sqrt(dist_sq); // outward normal (center → body)
 
 		// Only reflect if actually moving outward — avoids double-bounce
 		// when collision resolution has already pushed the body inside
@@ -81,7 +85,7 @@ void World::bound_body_to_world(Body* body)
 	}
 
 	// very small attraction to the centre of the world
-	body->velocity_ += (world_circular_bounds_.center_ - body->position_) * 0.0000001f;
+	body->velocity_ += (world_circular_bounds_.center_ - body->position_) * 0.000000001f;
 }
 
 
@@ -120,29 +124,51 @@ void World::debug_sanity_checks()
 	}
 }
 
-void World::update_position_container(SimSnapshot& write_snapshot)
+sf::FloatRect World::calulcate_visible_range()
 {
-	/*
-	if (statistics_.iterations_ % 2000 == 0)
-		debug_sanity_checks();
+	auto window_size = static_cast<sf::Vector2i>(m_window_->getSize());
+	sf::Vector2f top_left = m_window_->mapPixelToCoords({ 0, 0 });
+	sf::Vector2f bottom_right = m_window_->mapPixelToCoords(sf::Vector2i{ window_size.x, window_size.y });
 
-	// Removing dead cells and food from the render data
+	sf::FloatRect visible_bounds = {
+		{top_left.x, top_left.y},
+		{bottom_right.x - top_left.x, bottom_right.y - top_left.y} };
+
+	// Adjust for cell maximim radius to ensure cells partially in view are included
+	const float max_rad = CellGeneticConstraints::radius.max;
+	visible_bounds.position.x -= max_rad;
+	visible_bounds.position.y -= max_rad;
+	visible_bounds.size.x += max_rad * 2.f;
+	visible_bounds.size.y += max_rad * 2.f;
+
+	return visible_bounds;
+}
+
+void World::update_position_container_optimized(SimSnapshot& write_snapshot)
+{
+	RenderData& rend_data = write_snapshot.render;
+	rend_data.outer_colors.clear();
+	rend_data.inner_colors.clear();
+	rend_data.positions.clear();
+	rend_data.velocities.clear();
+	rend_data.radii.clear();
+
 	for (const Cell* cell : cell_manager_.get_all_cells())
 	{
-		const Body* body = bodies_.at(cell->body_id_);
-
-		if (!bodies_.is_obj_active(cell->body_id_))
-		{
-			std::cout << "Removing MissMatched cell with body_id: " << cell->body_id_ << std::endl;
-			bodies_.remove(cell->body_id_);
-		}
+		Body* body = bodies_.at(cell->body_id_);
+		if (!visible_bounds.contains(body->position_))
+			continue;
+		
+		rend_data.outer_colors.push_back(cell->get_outer_color());
+		rend_data.inner_colors.push_back(cell->get_inner_color());
+		rend_data.positions.push_back(body->position_);
+		rend_data.velocities.push_back(body->velocity_);
+		rend_data.radii.push_back(cell->radius);
 	}
-	*/
+}
 
-	// count cells and food
-	statistics_.cell_count = static_cast<int>(cell_manager_.get_cell_count());
-	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
-
+void World::update_position_container(SimSnapshot& write_snapshot)
+{
 	RenderData& rend_data = write_snapshot.render;
 	rend_data.outer_colors.resize(statistics_.cell_count);
 	rend_data.inner_colors.resize(statistics_.cell_count);

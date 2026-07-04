@@ -27,6 +27,7 @@ void Simulation::run_simulation()
     // The simulation is designed to run at 30 iterations per second
     m_world_.toggles.max_frame_rate = SimulationSettings::initial_frame_rate;
 
+    update_one_frame(); // a lot of issues happen in the renderer when it runs before the very first update iter
     m_sim_thread_ = std::thread([this]
     {
             while (running)
@@ -320,7 +321,7 @@ void Simulation::render()
     float dt = static_cast<float>(m_delta_time_.get_delta());
     m_total_time_elapsed_ += dt;
 
-    if (snap.stats.iterations_ <= 1)
+    if (snap.stats.iterations_ <= 2)
         return;
     m_window_.clear(bg_color_);
     if (m_world_.toggles.m_rendering_)

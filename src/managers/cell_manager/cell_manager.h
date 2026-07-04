@@ -110,7 +110,6 @@ public:
 	
 	void create_new_protozoa(int count, WorldBorder* spawn_area);
 	void check_for_extinction_event();
-	void fill_snapshot(SimSnapshot& snapshot);
 	void drag_selected_cell_to_point(const sf::Vector2f& target_position, const float move_fraction);
 
 	CellBodyPair create_cell(const sf::Vector2f& position, bool random_genetics = false);
@@ -122,6 +121,8 @@ public:
 	float calculate_average_generation() const;
 	Cell* find_cell_by_id(const int id) { return all_cells_.at(id); }
 	Cell* find_cell_at_point(const sf::Vector2f mouse_position, bool make_selected_cell);
+	void fill_snapshot(SimSnapshot& snapshot, sf::FloatRect& visible_bounds);
+	void fill_render_data(RenderData& render_data, sf::FloatRect& visible_bounds);
 	const sf::Vector2f* get_selected_protozoa_pos() const;
 
 	sf::Vector2f& get_cell_pos(int cell_id);
@@ -164,6 +165,5 @@ private: // only functions this class can access
 	void update_springs();
 	void update_cells();
 
-	void fill_render_data(RenderData& render_data);
 	void handle_death();
 };

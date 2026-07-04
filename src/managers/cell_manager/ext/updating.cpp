@@ -155,7 +155,7 @@ Cell* CellManager::find_cell_at_point(const sf::Vector2f mouse_position, bool ma
 	return nullptr;
 }
 
-void CellManager::fill_snapshot(SimSnapshot& snapshot)
+void CellManager::fill_snapshot(SimSnapshot& snapshot, sf::FloatRect& visible_bounds)
 {
 	// Selected cell Logic
 	if (selected_cell != nullptr)
@@ -165,10 +165,10 @@ void CellManager::fill_snapshot(SimSnapshot& snapshot)
 	snapshot.protozoa_tracker = protozoa_tracker_;
 	snapshot.selected_a_cell = selected_cell != nullptr;
 
-	fill_render_data(snapshot.render);
+	fill_render_data(snapshot.render, visible_bounds);
 }
 
-void CellManager::fill_render_data(RenderData& render_data)
+void CellManager::fill_render_data(RenderData& render_data, sf::FloatRect& visible_bounds)
 {
 	const int n = get_cell_count();
 
@@ -183,6 +183,13 @@ void CellManager::fill_render_data(RenderData& render_data)
 
 		Body* body_a = get_cell_body(spring->cell_A_id);
 		Body* body_b = get_cell_body(spring->cell_B_id);
+
+		// If either of the cells are visible we draw the spring, otherwise we dont draw it
+		bool cell_a_visible = visible_bounds.contains({body_a->position_.x, body_a->position_.y});
+		bool cell_b_visible = visible_bounds.contains({body_b->position_.x, body_b->position_.y});
+
+		if (!cell_a_visible && !cell_b_visible)
+			continue;
 
 		const float min_dist = body_a->radius_ + body_b->radius_;
 

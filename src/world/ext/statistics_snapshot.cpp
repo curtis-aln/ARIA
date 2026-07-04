@@ -12,6 +12,10 @@ void World::update_statistics()
 
 	toggles.min_speed += toggles.delta_min_speed;
 
+	// count cells and food
+	statistics_.cell_count = static_cast<int>(cell_manager_.get_cell_count());
+	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
+
 	if (stats.cell_count == 0)
 		return;
 

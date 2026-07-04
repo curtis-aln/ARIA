@@ -33,6 +33,7 @@ class World : public WorldSettings
 
     WorldBorder        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
     sf::FloatRect world_rect_bounds_{ {0.f, 0.f}, {bounds_radius * 2.f, bounds_radius * 2.f} };
+    sf::FloatRect visible_bounds = world_rect_bounds_;
    
     WorldStatistics statistics_{}; // Statistics accumulated each tick by the update thread.
 
@@ -134,6 +135,10 @@ private:
     int check_mouse_press(const OrganismTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
    
     void debug_sanity_checks();
+
+    sf::FloatRect calulcate_visible_range();
+
+    void update_position_container_optimized(SimSnapshot& write_snapshot);
 
     void update_position_container(SimSnapshot& write_snapshot);
     void update_statistics();

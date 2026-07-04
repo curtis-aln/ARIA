@@ -36,6 +36,7 @@ class WorldRenderer : public WorldSettings
 	CircleBatchRenderer inner_circle_renderer_{};
 	std::vector<float>  outer_radii_{};
 	std::vector<sf::Vector2f>  outer_positions_{};
+	std::vector<sf::Color>  colors_{};
 
 	ConnectionRenderer connection_renderer_{};
 
@@ -92,27 +93,32 @@ private:
 
 	void render_protozoa(const SimSnapshot& snapshot, Font* font)
 	{
-		int cell_count = snapshot.stats.cell_count;
+		int size = snapshot.render.positions.size();
 
 		// The springs are rendered first, so they appear behind the cells in the rendering order.
 		render_springs(snapshot);
 
-		inner_circle_renderer_.set_size(cell_count);
-		inner_circle_renderer_.set_colors(snapshot.render.inner_colors);
-		inner_circle_renderer_.set_positions(snapshot.render.positions);
-		inner_circle_renderer_.set_radii(snapshot.render.radii);
+		const float zoom = snapshot.render.camera_zoom;
+		bool simplify_colors = zoom < 0.05f;
 
-		inner_circle_renderer_.update();
-		inner_circle_renderer_.render();
+		if (!simplify_colors)
+		{
+			inner_circle_renderer_.set_size(size);
+			inner_circle_renderer_.set_colors(simplify_colors ? colors_ : snapshot.render.inner_colors);
+			inner_circle_renderer_.set_positions(snapshot.render.positions);
+			inner_circle_renderer_.set_radii(snapshot.render.radii);
+
+			inner_circle_renderer_.update();
+			inner_circle_renderer_.render();
+		}
 
 		// Cells are made from two circles, an inner circle and an outer circle. The Outer circle is only rendered if simple mode is disabled.
-		if (!snapshot.toggles.simple_mode)
+		if (!snapshot.toggles.simple_mode) // 0.05
 		{
-			int size = snapshot.render.radii.size();
 			outer_radii_.resize(size);
 			outer_positions_.resize(size);
 
-			for (int i = 0; i < cell_count; ++i)
+			for (int i = 0; i < size; ++i)
 			{
 				// The outer radii moves about based on how the cell is moving
 				auto pos = snapshot.render.positions[i];
@@ -124,7 +130,7 @@ private:
 				outer_radii_[i] = rad;
 			}
 
-			outer_circle_renderer_.set_size(cell_count);
+			outer_circle_renderer_.set_size(size);
 			outer_circle_renderer_.set_colors(snapshot.render.outer_colors);
 			outer_circle_renderer_.set_positions(outer_positions_);
 			outer_circle_renderer_.set_radii(outer_radii_);
@@ -143,7 +149,12 @@ private:
 
 	void render_springs(const SimSnapshot& snapshot)
 	{
-		connection_renderer_.update(snapshot.render.spring_connections, false);
+		const float zoom = snapshot.render.camera_zoom;
+		if (zoom < 0.012f)
+			return;
+
+		bool no_curves = zoom < 0.08f;
+		connection_renderer_.update(snapshot.render.spring_connections, no_curves);
 		connection_renderer_.draw(*m_window_);
 	}
 

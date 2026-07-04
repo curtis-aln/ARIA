@@ -17,9 +17,6 @@ CollisionResolver::CollisionResolver(sf::Rect<float>* bounds, o_vector<Body>* en
 	collision_indexes_.resize(thread_count_, CollisionVector(max_collisions_per_thread));
 
 	collision_thread_pool_.set_jobs(collision_jobs_);  // once
-
-   
-    add_particles_to_grid();
 }
 
 
