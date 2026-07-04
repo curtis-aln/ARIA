@@ -82,9 +82,7 @@ void CellManager::update_food_interactions(FoodManager& food_manager)
 
 		sf::Vector2f pos = body->position_;
 
-		
-
-		FixedSpan<obj_idx> nearby_food_ids{100};
+		nearby_food_ids.clear();
 		grid.find(pos.x, pos.y, &nearby_food_ids);
 
 		for (int i = 0; i < nearby_food_ids.count; ++i)

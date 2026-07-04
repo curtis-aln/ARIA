@@ -1,78 +1,84 @@
-# ── World ─────────────────────────────────────────────────────────────────────
-[world]
-bounds_radius            = 130000
-border_repulsion_magnitude = 0.001
-max_speed                = 30.0
-cells_x = 1024
-cells_y = 1024
-cell_max_capacity = 14
+# ══════════════════════════════════════════════════════════════════════════
+# Project A.R.I.A — Simulation Configuration
+# Loaded once at startup by load_settings() (settings.cpp).
+# Every key below is REQUIRED: a missing key throws std::runtime_error,
+# ══════════════════════════════════════════════════════════════════════════
 
-# ── Protozoa ──────────────────────────────────────────────────────────────────
-[protozoa]
-max_cells                = 0
-spawn_radius             = 100.0
-energy_decay_rate        = 0.03
-wander_threshold         = 600.0   
-breaking_length          = 400.0   
-maximum_extension        = 250.0    
-spring_work_const        = 0.00001
-reproductive_cooldown    = 500
-digestive_time           = 100
-initial_energy           = 70.0
-
-# ── Cell Manager ──────────────────────────────────────────────────────────────────────
-[cell_manager]
-max_protozoa             = 500000
-initial_protozoa         = 80000 # seeds
-
-# ── Food Manager ──────────────────────────────────────────────────────────────────────
-[food_manager]
-max_food                 = 400000
-initial_food             = 400000
-
-# ── Food ──────────────────────────────────────────────────────────────────────
-[food]
-
-# --- spatial grid ---
-cells_x = 512
-cells_y = 512
-cell_max_capacity        = 15
-update_freq = 4
-
-# --- physics ---
-food_radius              = 60.0
-friction                 = 0.78
-vibration_strength       = 3.0
-
-# --- Color ---
-food_visibility_ramp_frames = 90.0
-food_max_alpha           = 200.0
-
-# --- Birth ---
-spawn_proportionality_constant = 0.0025
-food_spawn_distance      = 200.0 
-reproductive_cooldown    = 520
-reproductive_threshold   = 400
-
-# --- Nutrients ---
-initial_nutrients        = 10.0
-final_nutrients          = 80.0
-nutrient_development_time = 300
-
-# --- Death ---
-death_age                = 2300.0
-death_age_chance         = 0.01
-
-# ── Graphics ──────────────────────────────────────────────────────────────────
-[graphical]
-spring_thickness         = 9.0
-spring_outline_thickness = 6.0
-cell_outline_thickness   = 1.3
-food_transparency        = 200
-
-# ── Simulation ────────────────────────────────────────────────────────────────
+# ── Simulation / Window ─────────────────────────────────────────────────
 [simulation]
 vsync                    = false
-full_screen              = false
-ui_scale_percent         = 100.0
-max_fps                  = 0
+full_screen               = false
+ui_scale_percent          = 100.0
+max_fps                   = 0            # 0 = uncapped
+
+# ── Graphical ────────────────────────────────────────────────────────────
+[graphical]
+spring_thickness           = 9.0
+spring_outline_thickness   = 6.0
+cell_outline_thickness     = 1.3         # relative to cell radius
+food_transparency          = 200         # 0-255
+
+# ── World ────────────────────────────────────────────────────────────────
+[world]
+bounds_radius               = 120000
+border_repulsion_magnitude  = 0.001
+cells_x                     = 256    
+cells_y                     = 256
+cell_max_capacity           = 14
+
+# ── Cell Manager ─────────────────────────────────────────────────────────
+[cell_manager]
+max_protozoa                = 500000     
+initial_protozoa            = 80000     
+auto_reset_on_extinction    = true    
+
+# ── Cell ─────────────────────────────────────────────────────────────────
+[cell]
+max_cells                  = 500000     
+spawn_radius                = 50.0   
+energy_decay_rate           = 0.03
+wander_threshold             = 600.0
+reproductive_cooldown        = 500
+digestive_time                = 100
+initial_energy                = 70.0
+breaking_length                = 400.0
+maximum_extension               = 250.0
+spring_work_const                = 0.00001
+
+
+# ── Food Manager ─────────────────────────────────────────────────────────
+[food_manager]
+max_food                    = 400000
+initial_food                 = 400000
+
+# ── Food ─────────────────────────────────────────────────────────────────
+[food]
+# spatial grid
+cells_x                     = 512
+cells_y                      = 512
+cell_max_capacity             = 15
+update_freq                    = 4
+
+# physics
+food_radius                  = 60.0
+friction                      = 0.78
+vibration_strength             = 3.0
+
+# color / fade
+food_visibility_ramp_frames  = 90.0
+food_max_alpha                = 200.0
+
+# birth
+spawn_proportionality_constant = 0.0025
+food_spawn_distance           = 200.0
+reproductive_cooldown          = 520
+reproductive_threshold          = 400
+
+# nutrients
+initial_nutrients             = 10.0
+final_nutrients                = 80.0
+nutrient_development_time       = 300
+
+# death
+death_age                     = 2300.0
+death_age_chance               = 0.01

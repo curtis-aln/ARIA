@@ -120,12 +120,28 @@ private:
 
 			for (int i = 0; i < size; ++i)
 			{
-				// The outer radii moves about based on how the cell is moving
 				auto pos = snapshot.render.positions[i];
 				auto vel = snapshot.render.velocities[i];
-				auto rad = snapshot.render.radii[i] * GraphicalSettings::cell_outline_thickness;
-				float scaled_x = std::min(vel.x, rad - snapshot.render.radii[i]);
-				float scaled_y = std::min(vel.y, rad - snapshot.render.radii[i]);
+				const float base_radius = snapshot.render.radii[i];
+				const float rad = base_radius * GraphicalSettings::cell_outline_thickness;
+				const float margin = rad - base_radius; // available slack in the outline ring
+
+				// Ease-out: strong response near the centre (t≈0), tapering to zero
+				// additional movement as the offset nears the outer edge of the ring (t≈1).
+				auto ease_out = [margin](float v) -> float
+					{
+						if (margin <= 0.f)
+							return 0.f;
+
+						const float sign = (v < 0.f) ? -1.f : 1.f;
+						const float t = std::clamp(std::abs(v) / margin, 0.f, 1.f);
+						const float eased = 1.f - (1.f - t) * (1.f - t); // 1 - (1-t)^2
+						return sign * eased * margin;
+					};
+
+				const float scaled_x = ease_out(vel.x);
+				const float scaled_y = ease_out(vel.y);
+
 				outer_positions_[i] = pos - sf::Vector2f{ scaled_x, scaled_y };
 				outer_radii_[i] = rad;
 			}

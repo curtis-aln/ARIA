@@ -6,7 +6,7 @@ struct FoodManagerSettings
 {
 	inline static uint32_t cells_x;
 	inline static uint32_t cells_y;
-	inline static uint32_t cell_max_capacity;
+	inline static uint8_t cell_max_capacity;
 	inline static size_t update_freq; // food do not move that often so they dont have to be updated in the grid every frame
 
 	inline static unsigned max_food;

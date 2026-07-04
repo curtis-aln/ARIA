@@ -70,6 +70,9 @@ class CellManager: protected CellManagerSettings
 	sf::RenderWindow* m_window_ = nullptr;
 	WorldBorder* world_bounds_ = nullptr;
 
+	uint8_t total_max_capacity = FoodManagerSettings::cell_max_capacity * static_cast<uint8_t>(9);
+	FixedSpan<obj_idx> nearby_food_ids{ total_max_capacity };
+
 	// The user can click on a protozoa to select it for debugging purposes. we store a pointer to it here.
 	Cell* selected_cell = nullptr;
 
