@@ -82,6 +82,12 @@ void Cell::create_offspring(Cell* child, Body* parent_body, Body* child_body, co
 	return true;
 }
 
+void Cell::turn_off_reproduction()
+{
+	time_since_last_reproduced_ = 0;
+	reproduce = false;
+}
+
 
 // When a child cell is created, it should be spawned somewhere near the parent cell.
 [[nodiscard]] sf::Vector2f  Cell::get_pos_nearby(const Body* body, const float range) const

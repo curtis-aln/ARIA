@@ -137,3 +137,14 @@ o_vector<Food>& FoodManager::get_food_vector()
 {
 	return food_vector;
 }
+
+
+bool FoodManager::has_food_with_body_id(int body_id)
+{
+	for (Food* food : food_vector)
+	{
+		if (food->body_id_ == body_id)
+			return true;
+	}
+	return false;
+}

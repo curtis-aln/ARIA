@@ -2,43 +2,50 @@
 #include "../world.h"
 
 
-void World::update()
+// This function is called by the simulation thread to update the world state
+// write_snapshot is written to so the renderer knows what to draw
+void World::update(SimSnapshot& write_snapshot)
 {
+	// Sanity Check
 	if (get_entity_count() != bodies_.size())
-	{
 		std::cerr << "Warning: Entity count mismatch! bodies_.size() = " << bodies_.size() << ", get_entity_count() = " << get_entity_count() << std::endl;
-	}
-
-	frame_rate_smoothing_.update_frame_rate();
-	toggles.min_speed += toggles.delta_min_speed;
-
+	
 	if (should_drag_protozoa_)
 		cell_manager_.drag_selected_cell_to_point(m_window_->mapPixelToCoords(sf::Mouse::getPosition(*m_window_)), 0.1f);
 
-	update_entities();
+	if (toggles.m_tick_frame_time || !toggles.paused)
+	{
+		// updating the food and the cells in the world
+		food_manager_.update();
+		cell_manager_.update();
 
-	// updating the food and the cells in the world
-	food_manager_.update();
-	cell_manager_.update();
+		update_entities();
 
-	cell_manager_.update_food_interactions(food_manager_);
+		cell_manager_.update_food_interactions(food_manager_);
+	}
+
+	// We always update the position container, otherwise the simulation jitters when paused
+	update_position_container(write_snapshot);
 
 	// once the iteration has been completed, we update the statistics for the next frame
 	if (toggles.track_statistics)
 		update_statistics();
+
+	fill_snapshot(write_snapshot);
+
+	// This code allows up to step frame by frame through the update loop
+	if (toggles.m_tick_frame_time) toggles.m_tick_frame_time = false;
 }
 
 
 void World::update_entities()
 {
-	collision_resolver_.add_particles_to_grid();
-	collision_resolver_.run_collision_detection();
-	collision_resolver_.handle_collision_resolutions();
-
 	// filling the containers that go to the renderer and to the spatial grid
 	bound_bodies();
 
-	update_position_container();
+	collision_resolver_.add_particles_to_grid();
+	collision_resolver_.run_collision_detection();
+	collision_resolver_.handle_collision_resolutions();
 }
 
 
@@ -72,21 +79,76 @@ void World::bound_body_to_world(Body* body)
 		// Clamp position flush to the inner surface
 		body->position_ = world_circular_bounds_.center_ + normal * max_dist;
 	}
+
+	// very small attraction to the centre of the world
+	body->velocity_ += (world_circular_bounds_.center_ - body->position_) * 0.0000001f;
 }
 
 
-void World::update_position_container()
+void World::debug_sanity_checks()
 {
-	// Single pass: count cells and food
+	for (const Cell* cell : cell_manager_.get_all_cells())
+	{
+		const Body* body = bodies_.at(cell->body_id_);
+
+		if (!bodies_.is_obj_active(cell->body_id_))
+		{
+			std::cout << "Removing MissMatched cell with body_id: " << cell->body_id_ << std::endl;
+			bodies_.remove(cell->body_id_);
+		}
+	}
+
+	for (const Food* cell : food_manager_.get_food_vector())
+	{
+		const Body* body = bodies_.at(cell->body_id_);
+
+		if (!bodies_.is_obj_active(cell->body_id_))
+		{
+			std::cout << "Removing MissMatched food with body_id: " << cell->body_id_ << std::endl;
+			bodies_.remove(cell->body_id_);
+		}
+	}
+
+	for (Body* body : bodies_)
+	{
+		// Finding out if the body is missing a cell or food
+		if (!cell_manager_.has_cell_with_body_id(body->id_) && !food_manager_.has_food_with_body_id(body->id_))
+		{
+			std::cout << "MissMatched body with id: " << body->id_ << std::endl;
+			//bodies_.remove(body->id_);
+		}
+	}
+}
+
+void World::update_position_container(SimSnapshot& write_snapshot)
+{
+	/*
+	if (statistics_.iterations_ % 2000 == 0)
+		debug_sanity_checks();
+
+	// Removing dead cells and food from the render data
+	for (const Cell* cell : cell_manager_.get_all_cells())
+	{
+		const Body* body = bodies_.at(cell->body_id_);
+
+		if (!bodies_.is_obj_active(cell->body_id_))
+		{
+			std::cout << "Removing MissMatched cell with body_id: " << cell->body_id_ << std::endl;
+			bodies_.remove(cell->body_id_);
+		}
+	}
+	*/
+
+	// count cells and food
 	statistics_.cell_count = static_cast<int>(cell_manager_.get_cell_count());
 	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
-	statistics_.entity_count = statistics_.cell_count + statistics_.food_count;
 
-	render_data_.outer_colors.resize(statistics_.cell_count);
-	render_data_.inner_colors.resize(statistics_.cell_count);
-	render_data_.positions.resize(statistics_.cell_count);
-	render_data_.velocities.resize(statistics_.cell_count);
-	render_data_.radii.resize(statistics_.cell_count);
+	RenderData& rend_data = write_snapshot.render;
+	rend_data.outer_colors.resize(statistics_.cell_count);
+	rend_data.inner_colors.resize(statistics_.cell_count);
+	rend_data.positions.resize(statistics_.cell_count);
+	rend_data.velocities.resize(statistics_.cell_count);
+	rend_data.radii.resize(statistics_.cell_count);
 
 	// updating render data
 	int i = 0;
@@ -94,20 +156,12 @@ void World::update_position_container()
 	{
 		const Body* body = bodies_.at(cell->body_id_);
 
-		if (!bodies_.is_obj_active(cell->body_id_))
-			continue;
-
-		render_data_.outer_colors[i] = cell->get_outer_color();
-		render_data_.inner_colors[i] = cell->get_inner_color();
-		render_data_.positions[i] = body->position_;
-		render_data_.velocities[i] = body->velocity_;
-		render_data_.radii[i] = cell->radius;
+		rend_data.outer_colors[i] = cell->get_outer_color();
+		rend_data.inner_colors[i] = cell->get_inner_color();
+		rend_data.positions[i] = body->position_;
+		rend_data.velocities[i] = body->velocity_;
+		rend_data.radii[i] = cell->radius;
 		i++;
 	}
 
-	render_data_.outer_colors.resize(i);
-	render_data_.inner_colors.resize(i);
-	render_data_.positions.resize(i);
-	render_data_.radii.resize(i);
-	render_data_.velocities.resize(i);
 }

@@ -55,7 +55,7 @@ class Simulation : SimulationSettings, TextSettings
     
     bool  left_mouse_pressed_event = false;
     bool  right_mouse_pressed_event = false;
-    float fps_ = 0.f;
+    float rendering_frame_rate = 0.f;
 
     ImPlotColormap m_plot_colormap_{};
 
@@ -92,7 +92,6 @@ private:
     void render();
     void manage_frame_rate();
     void fill_snapshot(SimSnapshot& snapshot);
-    void update_world();
     void resolve_modifications();
 
     // events

@@ -312,7 +312,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
     ImGui::Text("Mut R    %.4f  Rng %.4f", c.mutation_rate, c.mutation_range);
     ImGui::Text("Ate      %d  (%zu fr ago)", c.total_food_eaten_, c.time_since_last_ate_);
 
-    ImGui::Text("reproduce: %d", c.reproduce);
+    ImGui::Text("reproduce: %d", c.can_reproduce());
 	ImGui::Text("offspring idx: %d", c.offspring_index);
 	ImGui::Text("connection idx: %d", c.connection_index);
 	ImGui::Text("spring copy idx: %d", c.spring_to_copy_index);

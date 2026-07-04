@@ -5,18 +5,18 @@ border_repulsion_magnitude = 0.001
 max_speed                = 30.0
 cells_x = 32
 cells_y = 32
-cell_max_capacity = 6
+cell_max_capacity = 14
 
 # ── Protozoa ──────────────────────────────────────────────────────────────────
 [protozoa]
 max_cells                = 0
 spawn_radius             = 100.0
-energy_decay_rate        = 0.08
+energy_decay_rate        = 0.03
 wander_threshold         = 600.0   
 breaking_length          = 400.0   
 maximum_extension        = 250.0    
 spring_work_const        = 0.00001
-reproductive_cooldown    = 200
+reproductive_cooldown    = 500
 digestive_time           = 100
 initial_energy           = 70.0
 
@@ -28,7 +28,7 @@ initial_protozoa         = 3000 # seeds
 # ── Food Manager ──────────────────────────────────────────────────────────────────────
 [food_manager]
 max_food                 = 80000
-initial_food             = 30000
+initial_food             = 15000
 
 # ── Food ──────────────────────────────────────────────────────────────────────
 [food]
@@ -56,7 +56,7 @@ reproductive_threshold   = 400
 
 # --- Nutrients ---
 initial_nutrients        = 10.0
-final_nutrients          = 100.0
+final_nutrients          = 80.0
 nutrient_development_time = 300
 
 # --- Death ---

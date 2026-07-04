@@ -147,15 +147,6 @@ public:
 
     cell_idx inline add_object(const float x, const float y, const size_t obj_id)
     {
-        const float cx = x / cell_width;
-        const float cy = y / cell_height;
-
-        if (cx < 0.f || cy < 0.f || cx >= static_cast<float>(CellsX) || cy >= static_cast<float>(CellsY))
-        {
-            std::cout << "bad index";
-            return static_cast<cell_idx>(-1);
-        }
-
         const cell_idx index = hash(x, y);
         uint8_t& cap = cell_capacities[index];
 

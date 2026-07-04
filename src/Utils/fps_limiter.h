@@ -5,14 +5,14 @@
 
 class frame_rater {
 public:
-    explicit frame_rater(double fps = 60.0) :
-        time_between_frames{ 1.0 / fps },
+    explicit frame_rater(double rendering_frame_rate = 60.0) :
+        time_between_frames{ 1.0 / rendering_frame_rate },
         tp{ std::chrono::steady_clock::now() }
     {}
 
     // change the frame rate on the fly
-    void set_fps(double fps) {
-        time_between_frames = std::chrono::duration<double>{ 1.0 / fps };
+    void set_fps(double rendering_frame_rate) {
+        time_between_frames = std::chrono::duration<double>{ 1.0 / rendering_frame_rate };
     }
 
     void sleep() {

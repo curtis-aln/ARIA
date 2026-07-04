@@ -100,7 +100,7 @@ void CellManager::update_food_interactions(FoodManager& food_manager)
 			if (dist_sq < rel_rad_sq + 1.f)
 			{
 				// The cell is in contact with the food
-				float transfer = CellSettings::conversion_rate;
+				float transfer = CellSettings::bite_amount;
 				cell->eat(transfer);
 				food->nutrients -= transfer;
 			}

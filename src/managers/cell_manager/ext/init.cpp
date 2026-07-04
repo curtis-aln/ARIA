@@ -16,6 +16,16 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	}
 }
 
+bool CellManager::has_cell_with_body_id(int body_id)
+{
+	for (Cell* cell : all_cells_)
+	{
+		if (cell->body_id_ == body_id)
+			return true;
+	}
+	return false;
+}
+
 void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 {
 	// The cells we currently have act as seeds that allow us to build the protozoa

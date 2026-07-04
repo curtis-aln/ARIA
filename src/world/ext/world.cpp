@@ -14,8 +14,6 @@ thread_local FixedSpan<obj_idx> World::tl_nearby_food{25};
 World::World(sf::RenderWindow* window) : m_window_(window)
 {
     food_manager_.init();
-
-    render_data_.reserve(static_cast<int>(max_entities));
 }
 
 
@@ -110,20 +108,6 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
 
     const int n = cell_manager_.get_cell_count();
     snapshot.stats.cell_count = n;
-
-	// resizing the render data arrays to match the number of cells
-    render_data.positions.resize(n);
-	render_data.velocities.resize(n);
-    render_data.outer_colors.resize(n);
-    render_data.inner_colors.resize(n);
-    render_data.radii.resize(n);
-
-	// efficiently copying the data from the internal render_data_ to the snapshot's render_data using memcpy
-    std::memcpy(render_data.positions.data(), render_data_.positions.data(), n * sizeof(sf::Vector2f));
-    std::memcpy(render_data.velocities.data(), render_data_.velocities.data(), n * sizeof(sf::Vector2f));
-    std::memcpy(render_data.outer_colors.data(), render_data_.outer_colors.data(), n * sizeof(sf::Color));
-    std::memcpy(render_data.inner_colors.data(), render_data_.inner_colors.data(), n * sizeof(sf::Color));
-    std::memcpy(render_data.radii.data(), render_data_.radii.data(), n * sizeof(float));
 
     render_data.body_debug_snapshot = FillSnapshot<Body>(dbg_bodies_, "Body", sf::Color::White);
     render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);

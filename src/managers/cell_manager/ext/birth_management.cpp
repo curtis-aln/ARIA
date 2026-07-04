@@ -92,10 +92,10 @@ void CellManager::collect_reproduction_requests()
 	// for all the cells that want to reproduce
 	for (Cell* cell : all_cells_)
 	{
-		if (cell->reproduce)
+		if (cell->can_reproduce())
 		{
 			// add this request to the list of birth requests, we will handle it later in apply_birth_requests()
-			cell->reproduce = false;
+			cell->turn_off_reproduction();
 			birth_requests.push_back({ cell->id_ });
 		}
 
@@ -147,7 +147,7 @@ void CellManager::apply_birth_requests()
 
 		// create the offspring by filling in its genetics and other properties based on the parent cell
 		parent_cell->create_offspring(offspring, parent_body, offspring_body, true);
-		parent_cell->reproduce = false;
+		parent_cell->turn_off_reproduction();
 
 		// it's important to tell the parent cell which offspring is theirs, so we can apply connection requests
 		parent_cell->offspring_index = offspring->id_;

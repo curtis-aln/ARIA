@@ -49,6 +49,7 @@ public:
     void  init();
 
     int    get_size()               const;
+    bool has_food_with_body_id(int body_id);
     void update_food_grid_renderer();
     void fill_data(FoodData& other_food_data);
     const o_vector<Food>& get_food_vector() const;

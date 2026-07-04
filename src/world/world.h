@@ -34,7 +34,6 @@ class World : public WorldSettings
     WorldBorder        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
     sf::FloatRect world_rect_bounds_{ {0.f, 0.f}, {bounds_radius * 2.f, bounds_radius * 2.f} };
    
-    RenderData render_data_; // Render data — written each update tick, read by the renderer.
     WorldStatistics statistics_{}; // Statistics accumulated each tick by the update thread.
 
     // for the physics updating 
@@ -84,7 +83,7 @@ public:
     explicit World(sf::RenderWindow* window = nullptr);
 
     // ── Update ───────────────────────────────────────────────────────────────
-    void update();
+    void update(SimSnapshot& write_snapshot);
 
     // ── Render ───────────────────────────────────────────────────────────────
     void render(const SimSnapshot& snapshot, Font* font, sf::Vector2f mouse_pos);
@@ -108,18 +107,7 @@ public:
     static SpatialGridData get_grid_data(SimpleSpatialGrid* grid);
     void calculate_spatial_grid_statistics(SimpleSpatialGrid* grid, SpatialGridData& data);
 
-    void fill_snapshot(SimSnapshot& snapshot);
-
-
-	//Cell* at(const int idx) { return cell_manager_.all_cells_.at(idx); }
-    //const Cell* at(const int idx) const { return cell_manager_.all_cells_.at(idx); }
-
-    // ── Render data getters — read by renderer from snapshot ─────────────────
-    const std::vector<sf::Vector2f>& get_positions()    const { return render_data_.positions; }
-    const std::vector<sf::Color>& get_outer_colors() const { return render_data_.outer_colors; }
-    const std::vector<sf::Color>& get_inner_colors() const { return render_data_.inner_colors; }
-    const std::vector<float>& get_radii()        const { return render_data_.radii; }
-    const RenderData& get_render_data()  const { return render_data_; }
+    
 
     // ── Statistics getters — read by ImGui from snapshot ─────────────────────
     const WorldStatistics& get_statistics()  const { return statistics_; }
@@ -132,6 +120,8 @@ public:
     void keyboardEvents(const sf::Keyboard::Key& event_key_code);
 
 private:
+    void fill_snapshot(SimSnapshot& snapshot);
+
     void update_entities();
     void bound_bodies();
     void bound_body_to_world(Body* body);
@@ -143,7 +133,9 @@ private:
 
     int check_mouse_press(const OrganismTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
    
-    void update_position_container();
+    void debug_sanity_checks();
+
+    void update_position_container(SimSnapshot& write_snapshot);
     void update_statistics();
 
     void resolve_food_interactions();

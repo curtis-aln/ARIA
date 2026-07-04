@@ -47,36 +47,20 @@ void Simulation::run_simulation()
 
 void Simulation::update_one_frame()
 {
+    // This is how the frame rate is limited to the desired fps
     if (m_world_.toggles.max_frame_rate != 0)
-    {
         m_frame_rater_.sleep();
-    }
-
+   
+    // Any interputs made by imgui need to be processed by the updating thread
     resolve_modifications();
 
-    if (m_world_.toggles.m_tick_frame_time)
-    {
-        m_world_.update();
-        m_world_.toggles.m_tick_frame_time = false;
-    }
-
-    else if (!m_world_.toggles.paused)
-    {
-        m_world_.update();
-                    
-    }
-
-    // Package results into the triple buffer
+	// Retrieve a writable snapshot from the triple buffer. This snapshot will be filled with the current state of the simulation.
     SimSnapshot& snap = m_sim_buffer_.get_write_buffer();
+  
+    m_world_.update(snap); 
+    fill_snapshot(snap);
 
-    // Filling the snapshot with information
-    m_world_.fill_snapshot(snap);
-    snap.stats.fps = fps_;
-    snap.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
-    snap.history = m_history_;
-	snap.render.camera_zoom = camera_.get_current_zoom();
-
-    m_sim_buffer_.publish();
+	m_sim_buffer_.publish(); // Publish the filled snapshot to make it available for rendering.
 
     if (m_total_time_elapsed_ >= 30)
     {
@@ -86,14 +70,9 @@ void Simulation::update_one_frame()
         //std::cout << m_world_.get_statistics().entity_count << " entity count \n";
     }
 
-    camera_follow_selected_protozoa();
-    
+    camera_follow_selected_protozoa(); 
 }
 
-void Simulation::update_world()
-{
-
-}
 
 void Simulation::resolve_modifications()
 {
@@ -363,24 +342,25 @@ void Simulation::render()
 
 void Simulation::manage_frame_rate()
 {
-    fps_ = static_cast<float>(m_clock_.get_average_frame_rate());
+    rendering_frame_rate = static_cast<float>(m_clock_.get_average_frame_rate());
     m_clock_.update_frame_rate();
 
     const WorldStatistics& stats = m_world_.get_statistics();
 
     std::ostringstream title;
     title << simulation_name
-        << " | FPS: " << std::fixed << std::setprecision(1) << fps_
+        << " | FPS: " << std::fixed << std::setprecision(1) << rendering_frame_rate
         << " | protozoa: " << stats.cell_count
         << " | food: " << m_world_.get_food_count()
         << " | average generation: " << stats.average_generation;
     m_window_.setTitle(title.str());
 }
 
-void Simulation::fill_snapshot(SimSnapshot& snapshot)
+void Simulation::fill_snapshot(SimSnapshot& snap)
 {
-	m_world_.fill_snapshot(snapshot);
-    snapshot.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
-	snapshot.stats.fps = fps_;
-  
+    snap.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
+	snap.stats.rendering_frame_rate = rendering_frame_rate;
+
+    snap.history = m_history_;
+    snap.render.camera_zoom = camera_.get_current_zoom();
 }

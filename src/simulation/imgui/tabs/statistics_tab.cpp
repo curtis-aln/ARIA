@@ -15,7 +15,7 @@ void StatisticsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::BeginChild("ST_perf", { cw, ch }, true);
     ImGui::TextDisabled("Performance");
     ImGui::Separator();
-    StatRow::draw("Rendering FPS", "%.1f", snap.stats.fps);
+    StatRow::draw("Rendering FPS", "%.1f", snap.stats.rendering_frame_rate);
     StatRow::draw("Updating FPS", "%.1f", snap.stats.updating_fps);
     StatRow::draw("Frame", "%u", snap.stats.iterations_);
     StatRow::draw("Elapsed", "%s", PlotUtils::format_time(snap.stats.m_total_time_elapsed_).c_str());

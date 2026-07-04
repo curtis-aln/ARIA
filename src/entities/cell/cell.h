@@ -17,7 +17,7 @@ struct Cell : public CellGenome, CellSettings
 {
 private:
 	uint16_t clock_ = 0;
-
+	bool reproduce = false; // signals to the protozoa manager that this cell needs an offspring index set
 
 protected:
 	bool dead = false;
@@ -44,7 +44,6 @@ public:
 	uint8_t  offspring_count = 0;
 
 	// reproductive related variables
-	bool reproduce = false; // signals to the protozoa manager that this cell needs an offspring index set
 	int32_t offspring_index = -1; // any value less than 0 means unfined
 	int32_t connection_index = -1; // tells the protozoa manager what to connect offspring index to
 	int32_t spring_to_copy_index = -1; // tells the protozoa manager which spring to copy 
@@ -73,6 +72,8 @@ public:
 	[[nodiscard]] bool can_die() const;
 
 	[[nodiscard]] bool can_reproduce() const;
+
+	void turn_off_reproduction();
 
 	[[nodiscard]] sf::Vector2f get_pos_nearby(const Body* body, const float range) const;
 

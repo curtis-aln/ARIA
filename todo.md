@@ -192,7 +192,7 @@ We could perhaps pack more information into a birth or connection request to hel
 
 
 [Done] cell energy can drop below zero
-- you cant view cells when they are dead
+[Done] you cant view cells when they are dead
 - Death is not handled correctly
 - Massive Lag spikes occour in the simulation
 - less than 25% of the CPU is being used
@@ -212,23 +212,15 @@ Next To work on:
 
 
 Today todo
-[Done] Add a Nice Background to the Simulation, make 5 or 6 nice colors that it randomly picks from (1)
-[Done] Add a faint white grid to the simulation under the protozoa, only show the grid when zoomed in enough (2)
-[Done] Change the simulation so that the collision happens with the inner radii, not the outer one (3)
-[Done] All the food die at the same time at the start of the simulation, add more randomness to this (4)
-[Done] Add small circles to the end of the connections of cells to make them appear smoother (5)
-[Done] Have the connections change size based on distance (6)
-[Done] Have the connections change color based on distance (7)
-[Done] Allow by defualt the rendering of ALL connections, not just on debug, make it run in real time (8)
-- Have the outer circle move based on the Velocity of the cell, so it looks more flowy and alive (9)
+[Done] Use the SimSnapshot to write RenderData, then remove the copies from the fillsnapshot (1)
+[Done] Make sure we are writing to the simsnapshot Before reproducing or killing protozoa (2)
+- Locate and Fix the cell -> Body missmatch, look at cases where a body exists but protozoa doesnt or vise versa (3)
+- Make the Spring connections simple when zoomed out far enough (4)
+- Draw the cell as a single circle averaged of its two colors when zoomed out far enough (5)
+- Stop updating the cell's inner body by velocity when zoomed out far enough (6)
+- Spend Some Time Optimizing the simulation to run at 60fps with 100,000 cells and 300,000 food (7)
+- restore resolve_modifications function (8)
 
-SpeedRun Time. Start time: 19:10
-(1) completed at: 19:22
-(2) completed at: 19:44
-(3) completed at: 19:53
-(4) completed at: 20:15
-(5) completed at: 21:11
-(6) completed at: 21:20
-(7) completed at: 21:25
-(8) completed at: 21:30
-(9) completed at: 
+Speedrun time (again), start time: 6:35pm
+(1): 19:00
+(2): 19:00

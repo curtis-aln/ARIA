@@ -8,6 +8,8 @@ struct CellSettings
 	inline static float reproduce_energy_thresh = 200.f;
 	inline static float conversion_rate = 2.45f;
 
+	inline static float bite_amount = 15.f;
+
 	inline static int max_cells;
 
 	inline static float spawn_radius;

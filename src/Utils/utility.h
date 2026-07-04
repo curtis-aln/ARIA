@@ -16,10 +16,10 @@ inline std::string format_variables(const std::vector<std::pair<std::string, dou
 }
 
 
-inline void caption_frame_rate(sf::RenderWindow& window, const std::string& title, const int fps)
+inline void caption_frame_rate(sf::RenderWindow& window, const std::string& title, const int rendering_frame_rate)
 {
 	std::ostringstream oss;
-	oss << title << " " << fps << "fps \n";
+	oss << title << " " << rendering_frame_rate << "fps \n";
 	const std::string string_frame_rate = oss.str();
 	window.setTitle(string_frame_rate);
 }

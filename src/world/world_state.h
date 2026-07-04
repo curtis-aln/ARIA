@@ -60,10 +60,12 @@ struct WorldStatistics
 {
     int   cell_count = 0;
     int   food_count = 0;
+
+
     int   peak_protozoa_ever = 0;
     int   highest_generation_ever = 0;
 	int   most_offspring_ever = 0;
-	int   entity_count = 0;
+	
     int container_size_read = 0;
 
     float average_generation = 0.f;
@@ -85,7 +87,7 @@ struct WorldStatistics
     float tracked_generation = 0.f;
     float frames_since_last_gen_change = 0.f;
 
-    float fps = 0.f;
+    float rendering_frame_rate = 0.f;
 	float updating_fps = 0.f;
     int iterations_ = 0;
     float m_total_time_elapsed_ = 0.f;
