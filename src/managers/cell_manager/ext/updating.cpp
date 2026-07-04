@@ -43,20 +43,26 @@ void CellManager::update_springs()
 {
 	for (Spring* spring : all_springs_)
 	{
-		Cell* cell_a = all_cells_.at(spring->cell_A_id);
-		Cell* cell_b = all_cells_.at(spring->cell_B_id);
-		Body* body_a = bodies_->at(cell_a->body_id_);
-		Body* body_b = bodies_->at(cell_b->body_id_);
-
-		if (spring->broken || !bodies_->is_obj_active(body_a->id_) || !bodies_->is_obj_active(body_b->id_))
+		// if the spring has broken on its own
+		if (spring->is_spring_broken())
 		{
-			if (spring->clock_ > 30)
-			{
-				all_springs_.remove(spring);
-			}
-			spring->broken = false;
+			all_springs_.remove(spring);
 			continue;
 		}
+
+		Cell* cell_a = all_cells_.at(spring->cell_A_id);
+		Cell* cell_b = all_cells_.at(spring->cell_B_id);
+
+		// if the spring is connected to a cell that has died, we remove the spring
+		if (cell_a->should_remove() || cell_b->should_remove())
+		{
+			all_springs_.remove(spring);
+			continue;
+		}
+
+		// otherwise we update the spring physics and organics
+		Body* body_a = bodies_->at(cell_a->body_id_);
+		Body* body_b = bodies_->at(cell_b->body_id_);
 
 		spring->update_physics(*body_a, *body_b);
 		spring->update_organics(*cell_a, *cell_b);
@@ -172,8 +178,8 @@ void CellManager::fill_render_data(RenderData& render_data)
 
 	for (Spring* spring : all_springs_)
 	{
-		if (!bodies_->is_obj_active(spring->cell_A_id) || !bodies_->is_obj_active(spring->cell_B_id))
-			continue;
+		Cell* cell_a = all_cells_.at(spring->cell_A_id);
+		Cell* cell_b = all_cells_.at(spring->cell_B_id);
 
 		Body* body_a = get_cell_body(spring->cell_A_id);
 		Body* body_b = get_cell_body(spring->cell_B_id);
@@ -248,7 +254,7 @@ CellBodyPair CellManager::create_cell(const sf::Vector2f& position, bool random_
 	}
 
 	// resetting the cell just incase it isnt brand new
-	cell->reset();
+	cell->recreate();
 
 	// connecting the two
 	cell->body_id_ = body->id_;

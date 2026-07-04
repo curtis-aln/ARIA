@@ -10,7 +10,10 @@ struct SpringResult { float work_done; float force_magnitude; bool broken; };
 
 struct Spring : SpringGenome, SpringSettings
 {
+private:
+	bool broken = false;
 
+public:
 	// unique spring ID, used for genome referencing, must not change during the spring's lifetime
 	uint32_t id_{};
 
@@ -30,15 +33,13 @@ struct Spring : SpringGenome, SpringSettings
 
 	float stress = 0.f; // 0..1, normalised force relative to break threshold
 
-	bool broken = false;
-	bool active = true;
+	
 
 	Spring(const uint8_t _id=0, const uint8_t _cell_A_id=0, const uint8_t _cell_B_id=0)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id_(_id), SpringGenome()
 	{
 
 	}
-
 
 	void reset()
 	{
@@ -50,6 +51,20 @@ struct Spring : SpringGenome, SpringSettings
 		damping_force = 0.f;
 		ratio = 0.f;
 
+	}
+
+	void break_spring()
+	{
+		// springs have a spawn immunity
+		if (clock_ > 30)
+			broken = true;
+		else
+			broken = false;
+	}
+
+	bool is_spring_broken()
+	{
+		return broken;
 	}
 
 	void create_offspring(Spring& offspring)

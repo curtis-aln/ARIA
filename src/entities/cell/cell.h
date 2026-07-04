@@ -60,7 +60,7 @@ public:
 	[[nodiscard]] sf::Color get_outer_color() const { return { outer_r, outer_g, outer_b, outer_transparency }; }
 	[[nodiscard]] sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, inner_transparency }; }
 
-	void reset();
+	void recreate();
 	void eat(const float nutrients);
 
 	static bool consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f& food_pos, const float combined_rad);

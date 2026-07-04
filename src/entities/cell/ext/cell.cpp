@@ -1,6 +1,6 @@
 #include "../cell.h"
 
-void Cell::reset()
+void Cell::recreate()
 {
 	energy = initial_energy;
 	clock_ = 0;

@@ -12,6 +12,5 @@ void CellManager::handle_death()
 		
 		all_cells_.remove(cell);
 		bodies_->remove(cell->body_id_);
-		cell->reset();
 	}
 }

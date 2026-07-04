@@ -133,18 +133,16 @@ void CellManager::apply_birth_requests()
 {
 	for (const BirthRequest& req : birth_requests)
 	{
-		// create a new cell and body for the offspring
-		Body* offspring_body = bodies_->emplace(true, true);
-		if (offspring_body == nullptr)
-			return;
-		
-		Cell* offspring = all_cells_.emplace(true, true);
-		offspring->body_id_ = offspring_body->id_;
-
 		// retrieve the parent cell
 		Cell* parent_cell = all_cells_.at(req.parent_cell_id);
 		Body* parent_body = bodies_->at(parent_cell->body_id_);
 
+		CellBodyPair pair = create_cell(parent_body->position_, false);
+		if (!pair.is_valid())
+			return;
+		Body* offspring_body = pair.body_ptr;
+		Cell* offspring = pair.cell_ptr;
+		
 		// create the offspring by filling in its genetics and other properties based on the parent cell
 		parent_cell->create_offspring(offspring, parent_body, offspring_body, true);
 		parent_cell->turn_off_reproduction();
@@ -195,20 +193,15 @@ void CellManager::apply_connection_requests()
 {
 	for (const ConnectionRequest& req : connection_requests)
 	{
-		// we need to check if the spring to copy index is valid, if it is we copy the spring data to the new spring
-		const bool valid_spring_to_copy = req.spring_to_copy_index >= 0
-			&& req.spring_to_copy_index < all_springs_.size();
-
 		Spring* new_spring = all_springs_.emplace(true, true);
 		new_spring->cell_A_id = req.offspring_id;
 		new_spring->cell_B_id = req.connect_to_id;
 
-		if (valid_spring_to_copy)
+		if (req.spring_to_copy_index != -1)
 		{
 			Spring* parent_spring = all_springs_.at(req.spring_to_copy_index);
 			parent_spring->create_offspring(*new_spring);
 		}
-
 	}
 
 	connection_requests.clear();
