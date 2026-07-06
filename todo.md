@@ -223,5 +223,10 @@ ONE HUNDRED BUG FIXES
 (5) You can now control the rendering frame rate
 (6) Combined 3 clock classes into 1 
 
+(7) Fixed Toggles not working
+(8) Moved Fps trackers to the sim tab
+(9) removed the redundant statistics in the stats tab
+(10) Added Functionality to the Reset Simulation Button
 
 - Protozoa Bounding Boxes are wrong
+- Updating Fps and Rendering Fps should be shown on the Top where it says Aria Control Panel

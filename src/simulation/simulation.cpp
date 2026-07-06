@@ -75,6 +75,10 @@ void Simulation::resolve_modifications()
             const SimCommand& cmd = m_commands.front();
             switch (cmd.type)
             {
+			case CommandType::SetToggles:
+				m_world_.toggles = cmd.toggles;
+				break;
+
             case CommandType::SetUpdatingFrameRate:
                 sim_state_.max_frame_rate_updating = cmd.float_val;
 				updating_clock_.set_target_fps(cmd.float_val);
@@ -84,6 +88,10 @@ void Simulation::resolve_modifications()
                 sim_state_.max_frame_rate_rendering = cmd.float_val;
                 rendering_clock_.set_target_fps(cmd.float_val);
                 break;
+
+			case CommandType::ResetSimulation:
+				m_world_.reset_world();
+				break;
 
             //case CommandType::SetRadius:
             //    if (selected_protozoa)
@@ -172,9 +180,7 @@ void Simulation::resolve_modifications()
                 //}
                 break;
 
-            case CommandType::ResetSimulation:
-                break; // todo
-
+    
             case CommandType::NavToProtozoa:
                 //m_world_.selected_protozoa_ = m_world_.all_protozoa_.at(cmd.int_val);
                 break;

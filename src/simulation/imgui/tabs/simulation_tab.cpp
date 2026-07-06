@@ -31,8 +31,12 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::Separator();
 
     ImGui::Text("Time:  %s", PlotUtils::format_time(snap.sim_state.total_time_elapsed).c_str());
+    ImGui::SameLine(150.0f); // fixed x-offset lines both columns up
+    ImGui::Text("Rendering FPS %.1f", snap.sim_state.rendering_frame_rate);
+
     ImGui::Text("Frame: %u", snap.stats.iterations_);
-    ImGui::Spacing();
+    ImGui::SameLine(150.0f);
+    ImGui::Text("Updating FPS %.1f", snap.sim_state.updating_frame_rate);
 
     const float bw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
     if (ImGui::Button(snap.toggles.paused ? "Resume [Spc]" : "Pause  [Spc]", { bw, 0.f }))

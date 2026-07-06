@@ -16,6 +16,29 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	}
 }
 
+void CellManager::reset()
+{
+	birth_requests.clear();
+	connection_requests.clear();
+	recent_lifetimes_.clear();
+	distribution_.clear();
+	selected_cell = nullptr;
+	
+	for (Cell* cell : all_cells_)
+	{
+		all_cells_.remove(cell->id_);
+		bodies_->remove(cell->body_id_);
+		cell->recreate();
+	}
+
+	for (Spring* spring : all_springs_)
+	{
+		all_springs_.remove(spring->id_);
+	}
+
+	create_new_protozoa(CellManagerSettings::initial_protozoa, world_bounds_);
+}
+
 bool CellManager::has_cell_with_body_id(int body_id)
 {
 	for (Cell* cell : all_cells_)

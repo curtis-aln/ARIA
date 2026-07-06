@@ -11,17 +11,6 @@ void StatisticsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     const float cw = (total - sp * 4.f) / 5.f;
     const float ch = -ImGui::GetFrameHeightWithSpacing() - 4.f; // leave room for bottom button
 
-    // ── Performance ───────────────────────────────────────────────────────────
-    ImGui::BeginChild("ST_perf", { cw, ch }, true);
-    ImGui::TextDisabled("Performance");
-    ImGui::Separator();
-    StatRow::draw("Rendering FPS", "%.1f", snap.sim_state.rendering_frame_rate);
-    StatRow::draw("Updating FPS", "%.1f", snap.sim_state.updating_frame_rate);
-    StatRow::draw("Frame", "%u", snap.stats.iterations_);
-    StatRow::draw("Elapsed", "%s", PlotUtils::format_time(snap.sim_state.total_time_elapsed).c_str());
-    ImGui::EndChild();
-    ImGui::SameLine();
-
     // ── Population ────────────────────────────────────────────────────────────
     ImGui::BeginChild("ST_pop", { cw, ch }, true);
     ImGui::TextDisabled("Population");

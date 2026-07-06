@@ -86,6 +86,8 @@ public:
     // ── Render ───────────────────────────────────────────────────────────────
     void render(const SimSnapshot& snapshot, sf::Vector2f mouse_pos);
 
+    void reset_world();
+
 
     // ── Accessors — spatial grids / food ─────────────────────────────────────
     SimpleSpatialGrid* get_spatial_grid() { return collision_resolver_.get_grid(); }

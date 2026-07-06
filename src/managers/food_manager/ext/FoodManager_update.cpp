@@ -66,3 +66,15 @@ void FoodManager::init()
 
 	std::cout << "Initialized " << initial_food << " food.\n";
 }
+
+
+void FoodManager::reset()
+{
+	for (Food* food : food_vector)
+	{
+		bodies_->remove(food->body_id_);
+		food_vector.remove(food);
+	}
+
+	init();
+}

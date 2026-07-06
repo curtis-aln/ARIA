@@ -23,6 +23,17 @@ void World::render(const SimSnapshot& snapshot, const sf::Vector2f mouse_pos)
 	world_renderer_.render(snapshot, mouse_pos);
 }
 
+void World::reset_world()
+{
+	// Resetting the food manager
+    food_manager_.reset();
+	// Resetting the cell manager
+    cell_manager_.reset();
+
+	// Resetting the world information and Statistics
+	statistics_ = WorldStatistics{};
+	toggles = WorldToggles{};
+}
 
 bool World::handle_mouse_click(const sf::Vector2f mouse_position)
 {

@@ -109,6 +109,8 @@ public:
 	// Constructor and initialization
 	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
 
+	void reset();
+
 	bool has_cell_with_body_id(int body_id);
 	
 	void create_new_protozoa(int count, WorldBorder* spawn_area);
