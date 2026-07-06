@@ -30,7 +30,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::TextDisabled("Playback");
     ImGui::Separator();
 
-    ImGui::Text("Time:  %s", PlotUtils::format_time(snap.stats.m_total_time_elapsed_).c_str());
+    ImGui::Text("Time:  %s", PlotUtils::format_time(snap.sim_state.total_time_elapsed).c_str());
     ImGui::Text("Frame: %u", snap.stats.iterations_);
     ImGui::Spacing();
 
@@ -38,9 +38,10 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::Button(snap.toggles.paused ? "Resume [Spc]" : "Pause  [Spc]", { bw, 0.f }))
     {
 		SimCommand cmd{ CommandType::SetToggles };
-		cmd.toggles.paused = !cmd.toggles.paused;
+		cmd.toggles.paused = !snap.toggles.paused;
 		ctx.push(cmd);
     }
+
     ImGui::SameLine();
     if (ImGui::Button("Step [O]", { -1.f, 0.f }))
     {
@@ -57,8 +58,8 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         constexpr float kSliderMax = 210.f; // top 10 units = "Max" zone
         constexpr float kMaxThreshold = 200.f;
 
-        const bool is_unlimited = snap.toggles.max_frame_rate <= 0.f;
-        float fps_val = is_unlimited ? kSliderMax : snap.toggles.max_frame_rate;
+        const bool is_unlimited = snap.sim_state.max_frame_rate_updating <= 0.f;
+        float fps_val = is_unlimited ? kSliderMax : snap.sim_state.max_frame_rate_updating;
 
         const char* fmt = is_unlimited ? "sim max fps: MAX" : "sim max fps %.1f";
 
@@ -78,23 +79,6 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     }
 
     ImGui::Separator();
-    ImGui::TextDisabled("Fast Forward");
-
-    if (m_fast_fwd_) ImGui::PushStyleColor(ImGuiCol_Button, { 0.6f, 0.2f, 0.2f, 1.f });
-    if (ImGui::Button(m_fast_fwd_ ? "Stop##ff" : "Start##ff", { -1.f, 0.f }))
-        m_fast_fwd_ = !m_fast_fwd_;
-    if (m_fast_fwd_) ImGui::PopStyleColor();
-
-    ImGui::Spacing();
-    const char* conds[] = { "Time elapsed (s)", "Population target", "Generation target" };
-    int c = static_cast<int>(m_ff_cond_);
-    ImGui::SetNextItemWidth(-1.f);
-    if (ImGui::Combo("##ffcond", &c, conds, 3))
-        m_ff_cond_ = static_cast<FFCondition>(c);
-    ImGui::SetNextItemWidth(-1.f);
-    ImGui::InputFloat("Target##ff", &m_ff_target_, 10.f, 100.f, "%.0f");
-    ImGui::Spacing();
-
     ImGui::EndChild();
     ImGui::SameLine();
 
@@ -204,13 +188,6 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::Separator();
 
     ImGui::SetNextItemWidth(-1.f);
-    
-    //slider_float_cmd("##minsp", snap.toggles.min_speed, 0.f, 135.f, "Min Speed %.1f", CommandType::SetToggles);
-	
-    float ds = snap.toggles.delta_min_speed * 1000.f;
-    ImGui::SetNextItemWidth(-1.f);
-
-	//slider_float_cmd("##dsp", ds, 0.2f, 2.f, "Delta Spd %.3f", CommandType::SetToggles);
 
     static float world_radius = WorldSettings::bounds_radius;
     ImGui::SetNextItemWidth(-1.f);

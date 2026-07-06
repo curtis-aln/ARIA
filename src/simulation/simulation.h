@@ -18,7 +18,7 @@
 #include <mutex>
 #include <queue>
 #include "../managers/cell_manager/organism_tracker.h"
-
+#include "sim_state.h"
 
 
 class Simulation : SimulationSettings, TextSettings
@@ -39,23 +39,25 @@ class Simulation : SimulationSettings, TextSettings
     std::uint32_t   windowStyle = sf::Style::None;
     sf::RenderWindow m_window_{ videoMode, "Project ARIA", windowStyle };
 
-    FrameRateSmoothing<frame_smoothing> m_clock_{};
+    FrameRateSmoothing<frame_smoothing> render_loop_clock_{};
+    FrameRateSmoothing<frame_smoothing> update_loop_clock_{};
+
 	frame_rater m_frame_rater_{ 60 }; // used to cap the frame rate in the update thread
 
     Camera camera_{ &m_window_, 1.f };
 
     StopWatch m_delta_time_{};
-    float    m_total_time_elapsed_ = 0.f;
 
     World           m_world_{};
     PopulationHistory m_history_;
     ControlPanel    m_control_panel_;
 
+    SimulationState sim_state_{};
+
     bool  tracking = false;
     
     bool  left_mouse_pressed_event = false;
     bool  right_mouse_pressed_event = false;
-    float rendering_frame_rate = 0.f;
 
     ImPlotColormap m_plot_colormap_{};
 

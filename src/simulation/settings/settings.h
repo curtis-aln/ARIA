@@ -7,7 +7,9 @@ void load_settings(const std::string& path);
 
 struct SimulationSettings
 {
-	inline static constexpr int initial_frame_rate = 30;
+	inline static constexpr int initial_frame_rate_updating = 30;
+	inline static constexpr int initial_frame_rate_rendering = 144;
+
 	inline static constexpr int frame_smoothing = 30;
 	inline static constexpr double resize_shrinkage = 0.95;
 	inline static const std::string simulation_name = "Project A.R.I.A";

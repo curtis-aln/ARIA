@@ -80,7 +80,7 @@ private:
 
 	void render_visual_grid(const SimSnapshot& snapshot)
 	{
-		float zoom = snapshot.render.camera_zoom;
+		float zoom = snapshot.sim_state.camera_zoom;
 		float a = 1.f;
 		if (zoom < start_fading_zoom)
 		{
@@ -98,7 +98,7 @@ private:
 		// The springs are rendered first, so they appear behind the cells in the rendering order.
 		render_springs(snapshot);
 
-		const float zoom = snapshot.render.camera_zoom;
+		const float zoom = snapshot.sim_state.camera_zoom;
 		bool simplify_colors = zoom < 0.05f;
 
 		if (!simplify_colors)
@@ -165,7 +165,7 @@ private:
 
 	void render_springs(const SimSnapshot& snapshot)
 	{
-		const float zoom = snapshot.render.camera_zoom;
+		const float zoom = snapshot.sim_state.camera_zoom;
 		if (zoom < 0.012f)
 			return;
 

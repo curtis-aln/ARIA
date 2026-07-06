@@ -60,8 +60,6 @@ class World : public WorldSettings
     float tracked_generation_ = 0.f;
     float frames_since_last_gen_change_ = 0.f;
 
-    FrameRateSmoothing<30> frame_rate_smoothing_{};
-
     WorldRenderer world_renderer_{ m_window_, &food_manager_, &collision_resolver_, world_rect_bounds_, world_circular_bounds_ };
 
     std::vector<std::function<void()>> food_jobs_;

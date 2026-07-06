@@ -32,14 +32,7 @@ struct WorldToggles
 	bool  hide_panels = false; // whether to hide ImGui panels (for recording clean screenshots)
 	bool track_spatial_grids = false;  // gather spatial grid statistics each frame
 	bool  open_extinction_window = false; // whether to open the extinction confirmation popup
-
     bool run_physics_only = true;
-
-
-    float min_speed = 0.f;
-    float delta_min_speed = 0.f;
-
-	float max_frame_rate = 0.f; // 0 = unlimited
 
     // Mouse tool — written by UI, read by handle_left_click()
     int   mouse_mode = 0;      // 0 = Add, 1 = Remove
@@ -60,7 +53,6 @@ struct WorldStatistics
 {
     int   cell_count = 0;
     int   food_count = 0;
-
 
     int   peak_protozoa_ever = 0;
     int   highest_generation_ever = 0;
@@ -87,10 +79,7 @@ struct WorldStatistics
     float tracked_generation = 0.f;
     float frames_since_last_gen_change = 0.f;
 
-    float rendering_frame_rate = 0.f;
-	float updating_fps = 0.f;
     int iterations_ = 0;
-    float m_total_time_elapsed_ = 0.f;
 
     std::vector<float> gen_data{};
 };
@@ -111,8 +100,6 @@ struct RenderData
 
 
 	std::vector<Connection> spring_connections;
-
-	float camera_zoom = 1.f;
 
     OVecDebugImGuiSnapshot cell_debug_snapshot;
     OVecDebugImGuiSnapshot food_debug_snapshot;

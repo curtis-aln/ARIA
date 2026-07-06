@@ -6,11 +6,7 @@ void World::update_statistics()
 
 	// World statistics
 	stats.iterations_++;
-	frame_rate_smoothing_.update_frame_rate();
-	stats.updating_fps = frame_rate_smoothing_.get_average_frame_rate();
 	++stats.frames_since_last_gen_change;
-
-	toggles.min_speed += toggles.delta_min_speed;
 
 	// count cells and food
 	statistics_.cell_count = static_cast<int>(cell_manager_.get_cell_count());

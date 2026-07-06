@@ -3,6 +3,7 @@
 #include "../../world/world_state.h"
 #include "simulation/imgui/population_history.h"
 #include "../../managers/cell_manager/organism_tracker.h"
+#include "../sim_state.h"
 #include "managers/food_manager/food_data.h"
 
 
@@ -12,6 +13,7 @@ struct SimSnapshot
     WorldStatistics stats;
     RenderData render;
     FoodData food_data;
+	SimulationState sim_state;
 
     SpatialGridData food_grid;
     SpatialGridData cell_grid;

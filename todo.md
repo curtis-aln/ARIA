@@ -212,3 +212,10 @@ Next To work on:
 
 
 I could do with being able to modify the food nutrients Live
+
+
+ONE HUNDRED BUG FIXES
+(1) removed redundant fast forward code in Simulation Tab
+(2) Fixed bug where you could not unpause from the simulation Tab
+
+- Remove TextSettings

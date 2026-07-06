@@ -25,7 +25,8 @@ Simulation::Simulation() : m_world_(&m_window_)
 void Simulation::run_simulation()
 {
     // The simulation is designed to run at 30 iterations per second
-    m_world_.toggles.max_frame_rate = SimulationSettings::initial_frame_rate;
+    sim_state_.max_frame_rate_updating = SimulationSettings::initial_frame_rate_updating;
+    sim_state_.max_frame_rate_rendering = SimulationSettings::initial_frame_rate_rendering;
 
     update_one_frame(); // a lot of issues happen in the renderer when it runs before the very first update iter
     m_sim_thread_ = std::thread([this]
@@ -49,8 +50,9 @@ void Simulation::run_simulation()
 void Simulation::update_one_frame()
 {
     // This is how the frame rate is limited to the desired fps
-    if (m_world_.toggles.max_frame_rate != 0)
+    if (sim_state_.max_frame_rate_updating != 0)
         m_frame_rater_.sleep();
+    update_loop_clock_.update_frame_rate();
    
     // Any interputs made by imgui need to be processed by the updating thread
     resolve_modifications();
@@ -63,10 +65,10 @@ void Simulation::update_one_frame()
 
 	m_sim_buffer_.publish(); // Publish the filled snapshot to make it available for rendering.
 
-    if (m_total_time_elapsed_ >= 30)
+    if (sim_state_.total_time_elapsed >= 30)
     {
         //running = false;
-        //std::cout << m_total_time_elapsed_ << " time elapsed \n";
+        //std::cout << sim_state_.total_time_elapsed << " time elapsed \n";
 		//std::cout << m_world_.get_statistics().iterations_ << " iterations \n";
         //std::cout << m_world_.get_statistics().entity_count << " entity count \n";
     }
@@ -93,7 +95,7 @@ void Simulation::resolve_modifications()
                 break;
 
 			case CommandType::SetFrameRate:
-                m_world_.toggles.max_frame_rate = cmd.float_val;
+                sim_state_.max_frame_rate_updating = cmd.float_val;
 				m_frame_rater_.set_fps(cmd.float_val);
 				break;
 
@@ -319,7 +321,7 @@ void Simulation::render()
     // Always grab the freshest completed simulation frame
     const SimSnapshot& snap = m_sim_buffer_.begin_read();
     float dt = static_cast<float>(m_delta_time_.get_delta());
-    m_total_time_elapsed_ += dt;
+    sim_state_.total_time_elapsed += dt;
 
     if (snap.stats.iterations_ <= 2)
         return;
@@ -343,14 +345,14 @@ void Simulation::render()
 
 void Simulation::manage_frame_rate()
 {
-    rendering_frame_rate = static_cast<float>(m_clock_.get_average_frame_rate());
-    m_clock_.update_frame_rate();
+    sim_state_.rendering_frame_rate = static_cast<float>(render_loop_clock_.get_average_frame_rate());
+    render_loop_clock_.update_frame_rate();
 
     const WorldStatistics& stats = m_world_.get_statistics();
 
     std::ostringstream title;
     title << simulation_name
-        << " | FPS: " << std::fixed << std::setprecision(1) << rendering_frame_rate
+        << " | FPS: " << std::fixed << std::setprecision(1) << sim_state_.rendering_frame_rate
         << " | protozoa: " << stats.cell_count
         << " | food: " << m_world_.get_food_count()
         << " | average generation: " << stats.average_generation;
@@ -359,9 +361,9 @@ void Simulation::manage_frame_rate()
 
 void Simulation::fill_snapshot(SimSnapshot& snap)
 {
-    snap.stats.m_total_time_elapsed_ = m_total_time_elapsed_;
-	snap.stats.rendering_frame_rate = rendering_frame_rate;
+    sim_state_.updating_frame_rate = update_loop_clock_.get_average_frame_rate();
 
+    snap.sim_state = sim_state_;
     snap.history = m_history_;
-    snap.render.camera_zoom = camera_.get_current_zoom();
+    snap.sim_state.camera_zoom = camera_.get_current_zoom();
 }

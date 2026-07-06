@@ -125,5 +125,5 @@ void Simulation::handle_events()
 		dispatch_event(*event, cam_pos);
 	}
 
-	camera_.update(m_clock_.get_delta_time());
+	camera_.update(render_loop_clock_.get_delta_time());
 }
