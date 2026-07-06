@@ -85,7 +85,7 @@ void World::bound_body_to_world(Body* body)
 	}
 
 	// very small attraction to the centre of the world
-	body->velocity_ += (world_circular_bounds_.center_ - body->position_) * 0.000000001f;
+	body->velocity_ += (world_circular_bounds_.center_ - body->position_) * 0.000000015f;
 }
 
 

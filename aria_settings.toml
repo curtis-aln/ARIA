@@ -20,7 +20,7 @@ food_transparency          = 200         # 0-255
 
 # ── World ────────────────────────────────────────────────────────────────
 [world]
-bounds_radius               = 120000
+bounds_radius               = 30000
 border_repulsion_magnitude  = 0.001
 cells_x                     = 256    
 cells_y                     = 256
@@ -28,8 +28,8 @@ cell_max_capacity           = 14
 
 # ── Cell Manager ─────────────────────────────────────────────────────────
 [cell_manager]
-max_protozoa                = 500000     
-initial_protozoa            = 80000     
+max_protozoa                = 70000     
+initial_protozoa            = 8000     
 auto_reset_on_extinction    = true    
 
 # ── Cell ─────────────────────────────────────────────────────────────────
@@ -48,14 +48,14 @@ spring_work_const                = 0.00001
 
 # ── Food Manager ─────────────────────────────────────────────────────────
 [food_manager]
-max_food                    = 400000
-initial_food                 = 400000
+max_food                    =  30000
+initial_food                 = 30000
 
 # ── Food ─────────────────────────────────────────────────────────────────
 [food]
 # spatial grid
-cells_x                     = 512
-cells_y                      = 512
+cells_x                     = 256
+cells_y                      = 256
 cell_max_capacity             = 15
 update_freq                    = 4
 
@@ -76,7 +76,7 @@ reproductive_threshold          = 400
 
 # nutrients
 initial_nutrients             = 10.0
-final_nutrients                = 80.0
+final_nutrients                = 50.0
 nutrient_development_time       = 300
 
 # death

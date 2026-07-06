@@ -211,23 +211,4 @@ Next To work on:
 
 
 
-Today todo
-[Done] Use the SimSnapshot to write RenderData, then remove the copies from the fillsnapshot (1)
-[Done] Make sure we are writing to the simsnapshot Before reproducing or killing protozoa (2)
-[Done] Locate and Fix the cell -> Body missmatch, look at cases where a body exists but protozoa doesnt or vise versa (3)
-[Done] Make the Spring connections simple when zoomed out far enough (4)
-[Done] Draw the cell as a single circle averaged of its two colors when zoomed out far enough (5)
-[Done] Stop updating the cell's inner body by velocity when zoomed out far enough (6)
-- Spend Some Time Optimizing the simulation to run at 60fps with 100,000 cells and 300,000 food (7)
-- restore resolve_modifications function (8)
-
-Speedrun time (again), start time: 6:35pm
-(1): 7:00pm
-(2): 7:00pm
-(3): 7:55pm
-(4): 9:20pm
-(5): 9:20pm
-(6): 9:20pm
-
-----------------------------------------
-12fps
+I could do with being able to modify the food nutrients Live
