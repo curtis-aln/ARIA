@@ -121,7 +121,11 @@ public:
 
 	Spring* create_spring(const int cell_a_id, const int cell_b_id);
 
+	void gather_food_in_radius(FixedSpan<cell_idx>& indexes, const sf::Vector2f& position, const float radius);
+
 	void remove_cells_in_radius(const sf::Vector2f& position, const float radius);
+
+	void influence_cell_velocities_in_radii(const sf::Vector2f& position, const float radius, const int intensity);
 
 	// data fetching
 	int get_cell_count() const;

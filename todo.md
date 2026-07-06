@@ -230,4 +230,12 @@ ONE HUNDRED BUG FIXES
 
 (11) Added all functionality to the Mouse Interaction Right Click
 
+(12) You can now attract and Repel Cells
+(13) You can now attract and Repel food
+
+- No way to see how many cells or food are in the circle
+- No way to Attract Cells / Food
+- No way to Repel Cells / Food
+- Background Grid doesnt Fade out
+- you can accidently click on protozoa when zoomed out
 - Protozoa Bounding Boxes are wrong

@@ -52,6 +52,10 @@ public:
 
     void remove_food_in_area(const sf::Vector2f& center, float radius);
 
+    void gather_food_in_radius(FixedSpan<cell_idx>& indexes, const sf::Vector2f& position, const float radius);
+
+    void influence_food_velocities_in_radii(const sf::Vector2f& position, const float radius, const int intensity);
+
     int    get_size()               const;
     bool has_food_with_body_id(int body_id);
     void update_food_grid_renderer();

@@ -110,37 +110,43 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::TextDisabled("Mouse Tools");
     ImGui::Separator();
 
-    // ── Add / Remove mode toggle ──────────────────────────────────────────────────
+    // ── Mode toggle (Add / Remove / Attract / Repel) ──────────────────────────────
     const float hw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
 
-    if (m_mouse_mode_ == 0) ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.5f, 0.2f, 1.f });
-    if (ImGui::Button("Add##mode", { hw, 0.f }))
-    {
-        m_mouse_mode_ = 0;
-        SimCommand cmd{ CommandType::SetMouseMode };
-        cmd.int_val = 0;
-        ctx.push(cmd);
-    }
-    if (m_mouse_mode_ == 0) ImGui::PopStyleColor();
+    auto mode_button = [&](const char* label, int mode, ImVec4 active_color, bool same_line, bool last_in_row)
+        {
+            if (same_line) ImGui::SameLine();
 
-    ImGui::SameLine();
+            bool is_active = (m_mouse_mode_ == mode);
+            if (is_active) ImGui::PushStyleColor(ImGuiCol_Button, active_color);
 
-    if (m_mouse_mode_ == 1) ImGui::PushStyleColor(ImGuiCol_Button, { 0.6f, 0.2f, 0.2f, 1.f });
-    if (ImGui::Button("Remove##mode", { -1.f, 0.f }))
-    {
-        m_mouse_mode_ = 1;
-        SimCommand cmd{ CommandType::SetMouseMode };
-        cmd.int_val = 1;
-        ctx.push(cmd);
-    }
-    if (m_mouse_mode_ == 1) ImGui::PopStyleColor();
+            if (ImGui::Button(label, { last_in_row ? -1.f : hw, 0.f }))
+            {
+                m_mouse_mode_ = mode;
+                SimCommand cmd{ CommandType::SetMouseMode };
+                cmd.int_val = mode;
+                ctx.push(cmd);
+            }
+
+            if (is_active) ImGui::PopStyleColor();
+        };
+
+    // Row 1: Add / Remove
+    mode_button("Add##mode", 0, { 0.2f, 0.5f, 0.2f, 1.f }, false, false);
+    mode_button("Remove##mode", 1, { 0.6f, 0.2f, 0.2f, 1.f }, true, true);
+
+    // Row 2: Attract / Repel
+    mode_button("Attract##mode", 2, { 0.2f, 0.35f, 0.6f, 1.f }, false, false);
+    mode_button("Repel##mode", 3, { 0.55f, 0.35f, 0.15f, 1.f }, true, true);
 
     ImGui::Spacing();
 
-    // ── Checkboxes (shared state across Add/Remove) ───────────────────────────────
-    // One pair of local flags drives both modes, so toggling Add/Remove
-    // never changes what's checked.
-    ImGui::TextDisabled(m_mouse_mode_ == 0 ? "Add:" : "Remove:");
+    // ── Checkboxes (shared state across all modes) ────────────────────────────────
+    const char* mode_label =
+        m_mouse_mode_ == 0 ? "Add:" :
+        m_mouse_mode_ == 1 ? "Remove:" :
+        m_mouse_mode_ == 2 ? "Attract:" : "Repel:";
+    ImGui::TextDisabled(mode_label);
 
     if (ImGui::Checkbox("Cells##shared", &m_cells_))
     {

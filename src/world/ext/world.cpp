@@ -88,19 +88,36 @@ void World::keyboardEvents(const sf::Keyboard::Key& event_key_code)
 
 void World::handle_right_click(WorldBorder& spawn_area)
 {
-    if (statistics_.mouse_mode == 0) // Add
-    {
-        for (int i = 0; i < statistics_.mouse_intensity; i++)
-        {
-            if (toggles.mouse_add_cells) cell_manager_.create_new_protozoa(1, &spawn_area);
-            if (toggles.mouse_add_food)   food_manager_.create_food(spawn_area.rand_pos(), true);
-        }
-    }
+    const auto& center = spawn_area.center_;
+    const float rad = statistics_.mouse_radius;
+    const float intensity = statistics_.mouse_intensity;
+    const bool  do_cells = toggles.mouse_rem_cells;
+    const bool  do_food = toggles.mouse_rem_food;
 
-    else // Remove
+    switch (statistics_.mouse_mode)
     {
-        if (toggles.mouse_rem_cells) cell_manager_.remove_cells_in_radius(spawn_area.center_, statistics_.mouse_radius); 
-        if (toggles.mouse_rem_food) food_manager_.remove_food_in_area(spawn_area.center_, statistics_.mouse_radius);
+    case 0: // Add
+        for (int i = 0; i < static_cast<int>(intensity); i++)
+        {
+            if (do_cells) cell_manager_.create_new_protozoa(1, &spawn_area);
+            if (do_food)  food_manager_.create_food(spawn_area.rand_pos(), true);
+        }
+        break;
+
+    case 1: // Remove
+        if (do_cells) cell_manager_.remove_cells_in_radius(center, rad);
+        if (do_food)  food_manager_.remove_food_in_area(center, rad);
+        break;
+
+    case 2: // Attract
+        if (do_cells) cell_manager_.influence_cell_velocities_in_radii(center, rad, intensity);
+        if (do_food)  food_manager_.influence_food_velocities_in_radii(center, rad, intensity);
+        break;
+
+    case 3: // Repel
+        if (do_cells) cell_manager_.influence_cell_velocities_in_radii(center, rad, -intensity);
+        if (do_food)  food_manager_.influence_food_velocities_in_radii(center, rad, -intensity);
+        break;
     }
 }
 
