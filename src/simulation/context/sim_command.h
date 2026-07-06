@@ -18,6 +18,10 @@ enum class CommandType
     SetUpdatingFrameRate,
     SetRenderingFrameRate,
 
+    SetMouseMode,
+	SetInfluenceRadius,       // set the influence radius of the mouse tool
+	SetMouseIntensity,        // set the intensity of the mouse tool
+
     // ── Spawn ─────────────────────────────────────────────────────────────
     SpawnRandom,            // spawn N random organisms
     SpawnFromFile,          // stub

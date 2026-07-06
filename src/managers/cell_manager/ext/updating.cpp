@@ -289,3 +289,27 @@ Spring* CellManager::create_spring(const int cell_a_id, const int cell_b_id)
 	spring->cell_B_id = cell_b_id;
 	return spring;
 }
+
+void CellManager::remove_cells_in_radius(const sf::Vector2f& position, const float radius)
+{
+	for (Cell* cell : all_cells_)
+	{
+		Body* body = bodies_->at(cell->body_id_);
+		float dist_sq = (body->position_ - position).lengthSquared();
+		if (dist_sq < radius * radius)
+		{
+			remove_cell(cell);
+		}
+	}
+
+	for (Spring* spring : all_springs_)
+	{
+		// making sure we remove the springs that are connected to the cells that have been removed
+		Cell* cell_a = all_cells_.at(spring->cell_A_id);
+		Cell* cell_b = all_cells_.at(spring->cell_B_id);
+		if (all_cells_.is_obj_active(cell_a->id_) == false || all_cells_.is_obj_active(cell_b->id_) == false)
+		{
+			all_springs_.remove(spring);
+		}
+	}
+}

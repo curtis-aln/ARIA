@@ -121,6 +121,8 @@ public:
 
 	Spring* create_spring(const int cell_a_id, const int cell_b_id);
 
+	void remove_cells_in_radius(const sf::Vector2f& position, const float radius);
+
 	// data fetching
 	int get_cell_count() const;
 	float calculate_average_generation() const;
@@ -171,4 +173,5 @@ private: // only functions this class can access
 	void update_cells();
 
 	void handle_death();
+	void remove_cell(Cell* cell);
 };

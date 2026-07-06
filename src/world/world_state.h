@@ -35,13 +35,14 @@ struct WorldToggles
     bool run_physics_only = true;
 
     // Mouse tool — written by UI, read by handle_left_click()
-    int   mouse_mode = 0;      // 0 = Add, 1 = Remove
+
     bool  mouse_add_cells = true;
     bool  mouse_add_food = false;
     bool  mouse_rem_cells = true;
     bool  mouse_rem_food = false;
-    float mouse_intensity = 1.f;
-    float mouse_radius = 100.f;
+    
+
+	bool show_influence_radius = false; // whether to show the influence radius of the mouse tool
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,6 +81,11 @@ struct WorldStatistics
     float frames_since_last_gen_change = 0.f;
 
     int iterations_ = 0;
+
+
+    int   mouse_mode = 0;      // 0 = Add, 1 = Remove
+    int mouse_intensity = 1;
+    float mouse_radius = 300.f;
 
     std::vector<float> gen_data{};
 };

@@ -86,6 +86,24 @@ void World::keyboardEvents(const sf::Keyboard::Key& event_key_code)
     }
 }
 
+void World::handle_right_click(WorldBorder& spawn_area)
+{
+    if (statistics_.mouse_mode == 0) // Add
+    {
+        for (int i = 0; i < statistics_.mouse_intensity; i++)
+        {
+            if (toggles.mouse_add_cells) cell_manager_.create_new_protozoa(1, &spawn_area);
+            if (toggles.mouse_add_food)   food_manager_.create_food(spawn_area.rand_pos(), true);
+        }
+    }
+
+    else // Remove
+    {
+        if (toggles.mouse_rem_cells) cell_manager_.remove_cells_in_radius(spawn_area.center_, statistics_.mouse_radius); 
+        if (toggles.mouse_rem_food) food_manager_.remove_food_in_area(spawn_area.center_, statistics_.mouse_radius);
+    }
+}
+
 
 void World::update_spatial_renderers()
 {

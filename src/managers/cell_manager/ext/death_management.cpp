@@ -9,8 +9,15 @@ void CellManager::handle_death()
 	{
 		if (!cell->should_remove() || !bodies_->is_obj_active(cell->body_id_))
 			continue;
-		
-		all_cells_.remove(cell);
-		bodies_->remove(cell->body_id_);
+		remove_cell(cell);
 	}
+}
+
+void CellManager::remove_cell(Cell* cell)
+{
+	if (cell == nullptr)
+		return;
+
+	all_cells_.remove(cell);
+	bodies_->remove(cell->body_id_);
 }

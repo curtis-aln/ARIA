@@ -8,6 +8,9 @@ struct SimulationState
 
 	float camera_zoom = 1.f;
 
+	float mouse_pos_x = 0.f;
+	float mouse_pos_y = 0.f;
+
 	// Statistics
 	float rendering_frame_rate = 0.f;
 	float updating_frame_rate = 0.f;

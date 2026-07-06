@@ -110,7 +110,7 @@ public:
     
 
     // ── Statistics getters — read by ImGui from snapshot ─────────────────────
-    const WorldStatistics& get_statistics()  const { return statistics_; }
+    WorldStatistics& get_statistics()  { return statistics_; }
     int   get_food_count()                   const { return food_manager_.get_size(); }
 
     void render_springs(const SimSnapshot& snapshot);
@@ -118,6 +118,8 @@ public:
     // ── Selection ─────────────────────────────────────────────────────────────
     bool handle_mouse_click(sf::Vector2f mouse_position);
     void keyboardEvents(const sf::Keyboard::Key& event_key_code);
+
+    void handle_right_click(WorldBorder& spawn_area);
 
 private:
     void fill_snapshot(SimSnapshot& snapshot);

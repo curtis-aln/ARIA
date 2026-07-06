@@ -65,10 +65,32 @@ public:
 		food_manager_->render(snapshot.food_data);
 		render_protozoa(snapshot);
 
+		render_influence_radii(snapshot);
+
 		m_window_->draw(world_border_renderer_);
 	}
 
 private:
+	void render_influence_radii(const SimSnapshot& snapshot)
+	{
+		// renders a circle around the mouse to show its influence radius when adding or removing entities
+		if (!snapshot.toggles.show_influence_radius)
+			return;
+
+		sf::Vector2f mouse_pos = {snapshot.sim_state.mouse_pos_x, snapshot.sim_state.mouse_pos_y};
+		float influence_radius = snapshot.stats.mouse_radius;
+
+		sf::CircleShape influence_circle;
+		influence_circle.setPointCount(60);
+		influence_circle.setRadius(influence_radius);
+		influence_circle.setFillColor(sf::Color(0, 0, 0, 0));
+		influence_circle.setOutlineColor(sf::Color(255, 255, 255, 100));
+		influence_circle.setOutlineThickness(2.f + influence_radius / 150.f);
+		influence_circle.setPosition(mouse_pos - sf::Vector2f(influence_radius, influence_radius));
+
+		m_window_->draw(influence_circle);
+	}
+
 	void init_circle_renderers()
 	{
 		float texture_radius = 120;

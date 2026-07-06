@@ -93,6 +93,18 @@ void Simulation::resolve_modifications()
 				m_world_.reset_world();
 				break;
 
+			case CommandType::SetInfluenceRadius:
+				m_world_.get_statistics().mouse_radius = cmd.float_val;
+				break;
+
+			case CommandType::SetMouseIntensity:
+				m_world_.get_statistics().mouse_intensity = cmd.int_val;
+				break;
+
+            case CommandType::SetMouseMode:
+				m_world_.get_statistics().mouse_mode = cmd.int_val;
+				break;
+
             //case CommandType::SetRadius:
             //    if (selected_protozoa)
             //        selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;
@@ -233,48 +245,14 @@ void Simulation::resolve_modifications()
             m_commands.pop();
         }
 
-        const WorldToggles& t = m_world_.toggles; // or however you access live toggles
+        const auto& stats = m_world_.get_statistics();
+        const auto t = m_world_.toggles;
 
         auto* cell_manager = m_world_.get_cell_manager();
-        WorldBorder bounds{ camera_.get_world_mouse_pos(), t.mouse_radius };
+        WorldBorder bounds{ camera_.get_world_mouse_pos(), stats.mouse_radius };
 
         if (right_mouse_pressed_event)
-        {
-            if (t.mouse_mode == 0) // Add
-            {
-                // adding cells
-                if (t.mouse_add_cells)
-                {
-                    cell_manager->create_new_protozoa(1, &bounds);
-                }
-
-                if (t.mouse_add_food)
-                {
-
-                }
-                //m_world_.food_manager.add_food_at_point(
-                //	cam_pos,
-                //	static_cast<int>(t.mouse_intensity),
-                //	t.mouse_radius); // IMGUI_TODO: implement add_food_at_point()
-            }
-            else // Remove
-            {
-                if (t.mouse_rem_cells)
-                {
-                    std::cout << "removing cells";
-                }
-                //m_world_.get_cell_manager().remove_particles_in_radius(
-                //	cam_pos, t.mouse_radius); // IMGUI_TODO: implement this
-
-                if (t.mouse_rem_food)
-                {
-
-                }
-                //m_world_.food_manager.remove_food_in_radius(
-                //	cam_pos, t.mouse_radius); // IMGUI_TODO: implement this
-            }
-        }
-    
+            m_world_.handle_right_click(bounds);
     } // mutex released here
 }
 
@@ -353,6 +331,10 @@ void Simulation::manage_updating_frame_rate()
 void Simulation::fill_snapshot(SimSnapshot& snap)
 {
     sim_state_.camera_zoom = camera_.get_current_zoom();
+    
+	sf::Vector2f mouse_pos = camera_.get_world_mouse_pos();
+	sim_state_.mouse_pos_x = mouse_pos.x;
+	sim_state_.mouse_pos_y = mouse_pos.y;
 
     snap.sim_state = sim_state_;
     snap.history = m_history_;

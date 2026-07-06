@@ -50,6 +50,8 @@ public:
 
     void reset();
 
+    void remove_food_in_area(const sf::Vector2f& center, float radius);
+
     int    get_size()               const;
     bool has_food_with_body_id(int body_id);
     void update_food_grid_renderer();

@@ -228,5 +228,6 @@ ONE HUNDRED BUG FIXES
 (9) removed the redundant statistics in the stats tab
 (10) Added Functionality to the Reset Simulation Button
 
+(11) Added all functionality to the Mouse Interaction Right Click
+
 - Protozoa Bounding Boxes are wrong
-- Updating Fps and Rendering Fps should be shown on the Top where it says Aria Control Panel

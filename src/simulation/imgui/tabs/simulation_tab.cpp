@@ -42,7 +42,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::Button(snap.toggles.paused ? "Resume [Spc]" : "Pause  [Spc]", { bw, 0.f }))
     {
 		SimCommand cmd{ CommandType::SetToggles };
-		cmd.toggles.paused = !snap.toggles.paused;
+		ctx.toggles.paused = !snap.toggles.paused;
 		ctx.push(cmd);
     }
 
@@ -50,8 +50,8 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::Button("Step [O]", { -1.f, 0.f }))
     {
 		SimCommand cmd{ CommandType::SetToggles };
-		cmd.toggles.m_tick_frame_time = true;
-		cmd.toggles.paused = true; // stepping implies pausing
+		ctx.toggles.m_tick_frame_time = true;
+		ctx.toggles.paused = true; // stepping implies pausing
 		ctx.push(cmd);
     }
 
@@ -117,9 +117,8 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::Button("Add##mode", { hw, 0.f }))
     {
         m_mouse_mode_ = 0;
-        SimCommand cmd{ CommandType::SetToggles };
-        cmd.toggles = snap.toggles;
-        cmd.toggles.mouse_mode = 0;
+        SimCommand cmd{ CommandType::SetMouseMode };
+        cmd.int_val = 0;
         ctx.push(cmd);
     }
     if (m_mouse_mode_ == 0) ImGui::PopStyleColor();
@@ -130,53 +129,33 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::Button("Remove##mode", { -1.f, 0.f }))
     {
         m_mouse_mode_ = 1;
-        SimCommand cmd{ CommandType::SetToggles };
-        cmd.toggles = snap.toggles;
-        cmd.toggles.mouse_mode = 1;
+        SimCommand cmd{ CommandType::SetMouseMode };
+        cmd.int_val = 1;
         ctx.push(cmd);
     }
     if (m_mouse_mode_ == 1) ImGui::PopStyleColor();
 
     ImGui::Spacing();
 
-    // ── Checkboxes for active mode ────────────────────────────────────────────────
-    if (m_mouse_mode_ == 0)
+    // ── Checkboxes (shared state across Add/Remove) ───────────────────────────────
+    // One pair of local flags drives both modes, so toggling Add/Remove
+    // never changes what's checked.
+    ImGui::TextDisabled(m_mouse_mode_ == 0 ? "Add:" : "Remove:");
+
+    if (ImGui::Checkbox("Cells##shared", &m_cells_))
     {
-        ImGui::TextDisabled("Add:");
-        if (ImGui::Checkbox("Cells##add", &m_add_cells_))
-        {
-            SimCommand cmd{ CommandType::SetToggles };
-            cmd.toggles = snap.toggles;
-            cmd.toggles.mouse_add_cells = m_add_cells_;
-            ctx.push(cmd);
-        }
-        ImGui::SameLine();
-        if (ImGui::Checkbox("Food##add", &m_add_food_))
-        {
-            SimCommand cmd{ CommandType::SetToggles };
-            cmd.toggles = snap.toggles;
-            cmd.toggles.mouse_add_food = m_add_food_;
-            ctx.push(cmd);
-        }
+        SimCommand cmd{ CommandType::SetToggles };
+        ctx.toggles.mouse_add_cells = m_cells_;
+        ctx.toggles.mouse_rem_cells = m_cells_;
+        ctx.push(cmd);
     }
-    else
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Food##shared", &m_food_))
     {
-        ImGui::TextDisabled("Remove:");
-        if (ImGui::Checkbox("Cells##rem", &m_remove_cells_))
-        {
-            SimCommand cmd{ CommandType::SetToggles };
-            cmd.toggles = snap.toggles;
-            cmd.toggles.mouse_rem_cells = m_remove_cells_;
-            ctx.push(cmd);
-        }
-        ImGui::SameLine();
-        if (ImGui::Checkbox("Food##rem", &m_remove_food_))
-        {
-            SimCommand cmd{ CommandType::SetToggles };
-            cmd.toggles = snap.toggles;
-            cmd.toggles.mouse_rem_food = m_remove_food_;
-            ctx.push(cmd);
-        }
+        SimCommand cmd{ CommandType::SetToggles };
+        ctx.toggles.mouse_add_food = m_food_;
+        ctx.toggles.mouse_rem_food = m_food_;
+        ctx.push(cmd);
     }
 
     ImGui::Spacing();
@@ -184,20 +163,29 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     // ── Intensity and radius sliders ──────────────────────────────────────────────
     ImGui::SetNextItemWidth(-1.f);
-    if (ImGui::SliderFloat("##intensity", &m_mouse_intensity_, 0.1f, 10.f, "Intensity %.2f"))
+    if (ImGui::SliderInt("##intensity", &m_mouse_intensity_, 1, 25, "Intensity %d%"))
     {
-        SimCommand cmd{ CommandType::SetToggles };
-        cmd.toggles = snap.toggles;
-        cmd.toggles.mouse_intensity = m_mouse_intensity_;
+        SimCommand cmd{ CommandType::SetMouseIntensity };
+        cmd.int_val = m_mouse_intensity_;
         ctx.push(cmd);
     }
 
     ImGui::SetNextItemWidth(-1.f);
-    if (ImGui::SliderFloat("##radius", &m_mouse_radius_, 10.f, 1000.f, "Radius %.0f"))
+	m_mouse_radius_ = snap.stats.mouse_radius; // sync with sim state
+    if (ImGui::SliderFloat("##radius", &m_mouse_radius_, 200.f, 10000.f, "Radius %.0f"))
+    {
+        SimCommand cmd{ CommandType::SetInfluenceRadius };
+        cmd.float_val = m_mouse_radius_;
+        ctx.push(cmd);
+    }
+
+    ImGui::Spacing();
+
+	m_show_influence_radius_ = snap.toggles.show_influence_radius; // sync with sim state
+    if (ImGui::Checkbox("Show Influence Radius##other", &m_show_influence_radius_))
     {
         SimCommand cmd{ CommandType::SetToggles };
-        cmd.toggles = snap.toggles;
-        cmd.toggles.mouse_radius = m_mouse_radius_;
+        ctx.toggles.show_influence_radius = m_show_influence_radius_;
         ctx.push(cmd);
     }
 

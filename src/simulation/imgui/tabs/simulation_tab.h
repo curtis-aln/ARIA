@@ -16,10 +16,12 @@ private:
 
 
     int   m_mouse_mode_ = 0;      // 0 = Add, 1 = Remove
-    bool  m_add_cells_       = true;
-    bool  m_add_food_        = false;
+    bool  m_cells_       = true;
+    bool  m_food_        = false;
     bool  m_remove_cells_    = true;
     bool  m_remove_food_     = false;
-    float m_mouse_intensity_ = 1.f;
+	bool  m_show_influence_radius_ = false;
+
+    int m_mouse_intensity_ = 1;
     float m_mouse_radius_    = 100.f;
 };

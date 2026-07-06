@@ -78,3 +78,18 @@ void FoodManager::reset()
 
 	init();
 }
+
+
+void FoodManager::remove_food_in_area(const sf::Vector2f& center, float radius)
+{
+	for (Food* food : food_vector)
+	{
+		Body* body = bodies_->at(food->body_id_);
+		const float dist_sq = (body->position_ - center).lengthSquared();
+
+		if (dist_sq <= radius * radius)
+		{
+			remove_food(food->id_);
+		}
+	}
+}
