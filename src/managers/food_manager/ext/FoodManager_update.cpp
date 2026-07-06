@@ -82,14 +82,13 @@ void FoodManager::reset()
 
 void FoodManager::remove_food_in_area(const sf::Vector2f& center, float radius)
 {
-	FixedSpan<cell_idx> indexes{ static_cast<uint8_t>(250) };
-	gather_food_in_radius(indexes, center, radius);
+	gather_food_in_radius(select_indexes, center, radius);
 
-	for (int i = 0; i < indexes.count; ++i)
-		remove_food(food_vector.at(indexes[i])->id_);
+	for (int i = 0; i < select_indexes.count; ++i)
+		remove_food(food_vector.at(select_indexes[i])->id_);
 }
 
-void FoodManager::gather_food_in_radius(FixedSpan<cell_idx>& indexes, const sf::Vector2f& position, const float radius)
+void FoodManager::gather_food_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, const sf::Vector2f& position, const float radius)
 {
 	indexes.clear();
 
@@ -107,12 +106,11 @@ void FoodManager::gather_food_in_radius(FixedSpan<cell_idx>& indexes, const sf::
 
 void FoodManager::influence_food_velocities_in_radii(const sf::Vector2f& position, const float radius, const int intensity)
 {
-	FixedSpan<cell_idx> indexes{ static_cast<uint8_t>(250) };
-	gather_food_in_radius(indexes, position, radius);
+	gather_food_in_radius(select_indexes, position, radius);
 
-	for (int i = 0; i < indexes.count; ++i)
+	for (int i = 0; i < select_indexes.count; ++i)
 	{
-		Food* food = food_vector.at(indexes[i]);
+		Food* food = food_vector.at(select_indexes[i]);
 		Body* body = bodies_->at(food->body_id_);
 
 		sf::Vector2f direction = (position - body->position_).normalized();

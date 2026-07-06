@@ -3,14 +3,14 @@
 
 // A non-owning view over a fixed contiguous heap-allocated buffer.
 // Zero overhead — drop-in replacement for query result containers.
-template<typename T>
+template<typename T, typename SizeType = uint8_t>
 struct FixedSpan
 {
     std::unique_ptr<T[]> buffer;
-    uint8_t count = 0;
-    uint8_t max_size = 0;
+    SizeType count = 0;
+    SizeType max_size = 0;
 
-	FixedSpan(uint8_t max_elements)
+	FixedSpan(SizeType max_elements)
         : buffer(std::make_unique<T[]>(max_elements))
         , max_size(max_elements)
     {}
@@ -23,7 +23,7 @@ struct FixedSpan
     }
 
     // Direct index access into the buffer
-    T operator[](uint8_t index) const
+    T operator[](SizeType index) const
     {
         return buffer[index];
     }
@@ -46,7 +46,7 @@ struct FixedSpan
 
     // O(1) removal — swaps target with last element then decrements count.
 // Does not preserve order, which is fine for an unordered query result.
-    void remove(uint8_t index)
+    void remove(SizeType index)
     {
         buffer[index] = buffer[--count];
     }

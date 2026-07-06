@@ -87,6 +87,9 @@ struct WorldStatistics
     int mouse_intensity = 1;
     float mouse_radius = 300.f;
 
+    int highlighted_cells = 0;
+    int highlighted_food = 0;
+
     std::vector<float> gen_data{};
 };
 

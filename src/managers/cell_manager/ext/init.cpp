@@ -65,5 +65,4 @@ void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 			break;
 	}
 	
-	std::cout << "Finished building protozoa's, total: " << all_cells_.size() << "\n";
 }

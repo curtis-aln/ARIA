@@ -94,6 +94,9 @@ class CellManager: protected CellManagerSettings
 	OrganismTracker protozoa_tracker_{};
 
 public:
+	uint16_t max_size = static_cast<uint16_t>(10000);
+	FixedSpan<cell_idx, uint16_t> select_indexes{ max_size };
+
 	// statistics tracking
 	uint16_t   longest_lived_ever_ = 0;
 	uint8_t   most_offspring_ever_ = 0;
@@ -121,7 +124,7 @@ public:
 
 	Spring* create_spring(const int cell_a_id, const int cell_b_id);
 
-	void gather_food_in_radius(FixedSpan<cell_idx>& indexes, const sf::Vector2f& position, const float radius);
+	void gather_food_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, const sf::Vector2f& position, const float radius);
 
 	void remove_cells_in_radius(const sf::Vector2f& position, const float radius);
 

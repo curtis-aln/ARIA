@@ -163,6 +163,8 @@ void CellManager::fill_snapshot(SimSnapshot& snapshot, sf::FloatRect& visible_bo
 	snapshot.protozoa_tracker = protozoa_tracker_;
 	snapshot.selected_a_cell = selected_cell != nullptr;
 
+	snapshot.stats.highlighted_cells = select_indexes.count;
+
 	fill_render_data(snapshot.render, visible_bounds);
 }
 
@@ -290,7 +292,7 @@ Spring* CellManager::create_spring(const int cell_a_id, const int cell_b_id)
 	return spring;
 }
 
-void CellManager::gather_food_in_radius(FixedSpan<cell_idx>& indexes, const sf::Vector2f& position, const float radius)
+void CellManager::gather_food_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, const sf::Vector2f& position, const float radius)
 {
 	indexes.clear();
 
@@ -307,11 +309,10 @@ void CellManager::gather_food_in_radius(FixedSpan<cell_idx>& indexes, const sf::
 
 void CellManager::remove_cells_in_radius(const sf::Vector2f& position, const float radius)
 {
-	FixedSpan<cell_idx> indexes{ static_cast<uint8_t>(250) };
-	gather_food_in_radius(indexes, position, radius);
+	gather_food_in_radius(select_indexes, position, radius);
 
-	for (int i = 0; i < indexes.count; ++i)
-		remove_cell(all_cells_.at(indexes[i]));
+	for (int i = 0; i < select_indexes.count; ++i)
+		remove_cell(all_cells_.at(select_indexes[i]));
 
 	for (Spring* spring : all_springs_)
 	{
@@ -327,12 +328,11 @@ void CellManager::remove_cells_in_radius(const sf::Vector2f& position, const flo
 
 void CellManager::influence_cell_velocities_in_radii(const sf::Vector2f& position, const float radius, const int intensity)
 {
-	FixedSpan<cell_idx> indexes{ static_cast<uint8_t>(250) };
-	gather_food_in_radius(indexes, position, radius);
+	gather_food_in_radius(select_indexes, position, radius);
 
-	for (int i = 0; i < indexes.count; ++i)
+	for (int i = 0; i < select_indexes.count; ++i)
 	{
-		Cell* cell = all_cells_.at(indexes[i]);
+		Cell* cell = all_cells_.at(select_indexes[i]);
 		Body* body = bodies_->at(cell->body_id_);
 
 		sf::Vector2f direction = (position - body->position_).normalized();

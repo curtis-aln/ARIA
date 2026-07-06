@@ -77,6 +77,7 @@ public:
 
     bool should_drag_protozoa_ = false;
 
+
 public:
     explicit World(sf::RenderWindow* window = nullptr);
 

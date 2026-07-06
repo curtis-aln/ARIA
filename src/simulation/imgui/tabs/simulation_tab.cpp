@@ -195,6 +195,11 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         ctx.push(cmd);
     }
 
+    ImGui::Spacing();
+
+    ImGui::Text("Highlighted Cells: %u", snap.stats.highlighted_cells);
+    ImGui::Text("Highlighted Food: %u", snap.stats.highlighted_food);
+
     ImGui::EndChild();
     ImGui::SameLine();
 
