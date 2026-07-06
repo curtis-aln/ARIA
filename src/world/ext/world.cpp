@@ -18,9 +18,9 @@ World::World(sf::RenderWindow* window) : m_window_(window)
 }
 
 
-void World::render(const SimSnapshot& snapshot, Font* font, const sf::Vector2f mouse_pos)
+void World::render(const SimSnapshot& snapshot, const sf::Vector2f mouse_pos)
 {
-	world_renderer_.render(snapshot, font, mouse_pos);
+	world_renderer_.render(snapshot, mouse_pos);
 }
 
 

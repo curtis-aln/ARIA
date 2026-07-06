@@ -52,7 +52,7 @@ public:
 		init_circle_renderers();
 	}
 
-	void render(const SimSnapshot& snapshot, Font* font, sf::Vector2f mouse_pos)
+	void render(const SimSnapshot& snapshot, sf::Vector2f mouse_pos)
 	{
 		render_visual_grid(snapshot);
 
@@ -63,7 +63,7 @@ public:
 			cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);
 
 		food_manager_->render(snapshot.food_data);
-		render_protozoa(snapshot, font);
+		render_protozoa(snapshot);
 
 		m_window_->draw(world_border_renderer_);
 	}
@@ -91,7 +91,7 @@ private:
 	}
 
 
-	void render_protozoa(const SimSnapshot& snapshot, Font* font)
+	void render_protozoa(const SimSnapshot& snapshot)
 	{
 		int size = snapshot.render.positions.size();
 
@@ -158,7 +158,7 @@ private:
 		// If a protozoa is selected and debug mode is enabled, draw additional debug information for the selected protozoa.
 		if (snapshot.protozoa_tracker.is_active && snapshot.toggles.debug_mode)
 		{
-			draw_protozoa_debug(snapshot, font);
+			draw_protozoa_debug(snapshot);
 		}
 	}
 
@@ -174,7 +174,7 @@ private:
 		connection_renderer_.draw(*m_window_);
 	}
 
-	void draw_protozoa_debug(const SimSnapshot& snapshot, Font* font)
+	void draw_protozoa_debug(const SimSnapshot& snapshot)
 	{
 		const OrganismTracker& protozoa = snapshot.protozoa_tracker;
 
@@ -188,7 +188,7 @@ private:
 		if (snapshot.toggles.show_bounding_boxes)
 			draw_protozoa_bounding_box(protozoa.bounds, *m_window_);
 
-		draw_cell_physical_information(snapshot, font);
+		draw_cell_physical_information(snapshot);
 	}
 
 
@@ -219,7 +219,7 @@ private:
 	}
 
 
-	void draw_cell_physical_information(const SimSnapshot& snapshot, Font* font) const
+	void draw_cell_physical_information(const SimSnapshot& snapshot) const
 	{
 		const OrganismTracker& protozoa = snapshot.protozoa_tracker;
 
@@ -243,9 +243,9 @@ private:
 
 			// drawing cell stats
 			const auto top_left = rect.position;
-			const auto spacing = font->get_text_size("0").y;
-			const sf::Vector2f offset = { 0, spacing };
-			font->draw(top_left, "id: " + std::to_string(cell.body_id_), false);
+			//const auto spacing = font->get_text_size("0").y;
+			//const sf::Vector2f offset = { 0, spacing };
+			//font->draw(top_left, "id: " + std::to_string(cell.body_id_), false);
 
 			i++;
 		}

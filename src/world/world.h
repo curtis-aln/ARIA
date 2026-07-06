@@ -17,7 +17,6 @@
 #include "../Utils/spatial_grid/simple_spatial_grid.h"
 #include "../Utils/spatial_grid/spatial_grid_renderer.h"
 #include "../simulation/context/sim_snapshot.h"
-#include "../Utils/fps_manager.h"
 #include "../Utils/Graphics/font_renderer.hpp"
 #include "../Utils/o_vec/o_vec_debug.h"
 #include "../Utils/Graphics/SFML_Grid.h"
@@ -85,7 +84,7 @@ public:
     void update(SimSnapshot& write_snapshot);
 
     // ── Render ───────────────────────────────────────────────────────────────
-    void render(const SimSnapshot& snapshot, Font* font, sf::Vector2f mouse_pos);
+    void render(const SimSnapshot& snapshot, sf::Vector2f mouse_pos);
 
 
     // ── Accessors — spatial grids / food ─────────────────────────────────────

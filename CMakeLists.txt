@@ -132,7 +132,7 @@ add_executable(ProjectARIA
  "src/world/world_border.h" "src/entities/cell/ext/cell.cpp" 
  "src/world/world_settings.h" 
  "src/entities/body.h" 
- "src/Utils/fps_limiter.h" 
+  
  "src/world/ext/statistics_snapshot.cpp" 
  "src/simulation/imgui/imgui_settings.h" 
  "src/Utils/o_vec/o_vec_debug.h" 

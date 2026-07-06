@@ -217,5 +217,11 @@ I could do with being able to modify the food nutrients Live
 ONE HUNDRED BUG FIXES
 (1) removed redundant fast forward code in Simulation Tab
 (2) Fixed bug where you could not unpause from the simulation Tab
+(3) When you pause / unpause in IMGUI it no longer resets the max fps
 
-- Remove TextSettings
+(4) Removed redundant TextSettings Implementation
+(5) You can now control the rendering frame rate
+(6) Combined 3 clock classes into 1 
+
+
+- Protozoa Bounding Boxes are wrong

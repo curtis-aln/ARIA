@@ -14,7 +14,9 @@ enum class CommandType
     ClearAllFood,
     ClearAllProtozoa,
     NavToProtozoa,
-    SetFrameRate,
+
+    SetUpdatingFrameRate,
+    SetRenderingFrameRate,
 
     // ── Spawn ─────────────────────────────────────────────────────────────
     SpawnRandom,            // spawn N random organisms

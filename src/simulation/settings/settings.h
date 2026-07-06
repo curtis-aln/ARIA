@@ -8,7 +8,7 @@ void load_settings(const std::string& path);
 struct SimulationSettings
 {
 	inline static constexpr int initial_frame_rate_updating = 30;
-	inline static constexpr int initial_frame_rate_rendering = 144;
+	inline static constexpr int initial_frame_rate_rendering = 60;
 
 	inline static constexpr int frame_smoothing = 30;
 	inline static constexpr double resize_shrinkage = 0.95;
@@ -48,21 +48,4 @@ struct GraphicalSettings
 	inline static const std::vector<sf::Color> food_outline_colors = {
 		{250, 60, 60}
 	};
-};
-
-
-
-
-
-struct TextSettings
-{
-	// locations for the fonts
-	inline static const std::string bold_font_location = "media/fonts/Roboto-Bold.ttf";
-	inline static const std::string regular_font_location = "media/fonts/Roboto-Regular.ttf";
-
-	// Universal font sizes - only these many fonts should be created
-	static constexpr unsigned title_font_size = 30;
-	static constexpr unsigned regular_font_size = 20;
-	static constexpr unsigned cell_statistic_font_size = 15;
-
 };

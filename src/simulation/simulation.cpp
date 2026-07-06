@@ -10,24 +10,20 @@ Simulation::Simulation() : m_world_(&m_window_)
     camera_.m_view_.setCenter({ rad, rad });
     camera_.update_window_view();
 
-    title_font.set_render_window(&m_window_);
-    regular_font.set_render_window(&m_window_);
-    cell_statistic_font.set_render_window(&m_window_);
-
-    title_font.set_font_size(title_font_size);
-    regular_font.set_font_size(regular_font_size);
-    cell_statistic_font.set_font_size(cell_statistic_font_size);
-
     init_imGUI();
+
+    // The simulation is designed to run at 30 iterations per second
+    sim_state_.max_frame_rate_updating = SimulationSettings::initial_frame_rate_updating;
+    sim_state_.max_frame_rate_rendering = SimulationSettings::initial_frame_rate_rendering;
+    updating_clock_.set_target_fps(sim_state_.max_frame_rate_updating);
+    rendering_clock_.set_target_fps(sim_state_.max_frame_rate_rendering);
+
     std::cout << "Program Finished initialising. running. . .\n";
 }
 
 void Simulation::run_simulation()
 {
-    // The simulation is designed to run at 30 iterations per second
-    sim_state_.max_frame_rate_updating = SimulationSettings::initial_frame_rate_updating;
-    sim_state_.max_frame_rate_rendering = SimulationSettings::initial_frame_rate_rendering;
-
+  
     update_one_frame(); // a lot of issues happen in the renderer when it runs before the very first update iter
     m_sim_thread_ = std::thread([this]
     {
@@ -38,7 +34,7 @@ void Simulation::run_simulation()
     while (running)
     {
         handle_events();
-        manage_frame_rate();
+        manage_rendering_frame_rate();
         render();
     }
 
@@ -49,11 +45,8 @@ void Simulation::run_simulation()
 
 void Simulation::update_one_frame()
 {
-    // This is how the frame rate is limited to the desired fps
-    if (sim_state_.max_frame_rate_updating != 0)
-        m_frame_rater_.sleep();
-    update_loop_clock_.update_frame_rate();
-   
+    manage_updating_frame_rate();
+
     // Any interputs made by imgui need to be processed by the updating thread
     resolve_modifications();
 
@@ -64,14 +57,6 @@ void Simulation::update_one_frame()
     fill_snapshot(snap);
 
 	m_sim_buffer_.publish(); // Publish the filled snapshot to make it available for rendering.
-
-    if (sim_state_.total_time_elapsed >= 30)
-    {
-        //running = false;
-        //std::cout << sim_state_.total_time_elapsed << " time elapsed \n";
-		//std::cout << m_world_.get_statistics().iterations_ << " iterations \n";
-        //std::cout << m_world_.get_statistics().entity_count << " entity count \n";
-    }
 
     camera_follow_selected_protozoa(); 
 }
@@ -90,14 +75,15 @@ void Simulation::resolve_modifications()
             const SimCommand& cmd = m_commands.front();
             switch (cmd.type)
             {
-            case CommandType::SetToggles:
-                m_world_.toggles = cmd.toggles;
-                break;
-
-			case CommandType::SetFrameRate:
+            case CommandType::SetUpdatingFrameRate:
                 sim_state_.max_frame_rate_updating = cmd.float_val;
-				m_frame_rater_.set_fps(cmd.float_val);
+				updating_clock_.set_target_fps(cmd.float_val);
 				break;
+
+            case CommandType::SetRenderingFrameRate:
+                sim_state_.max_frame_rate_rendering = cmd.float_val;
+                rendering_clock_.set_target_fps(cmd.float_val);
+                break;
 
             //case CommandType::SetRadius:
             //    if (selected_protozoa)
@@ -320,7 +306,7 @@ void Simulation::render()
 {
     // Always grab the freshest completed simulation frame
     const SimSnapshot& snap = m_sim_buffer_.begin_read();
-    float dt = static_cast<float>(m_delta_time_.get_delta());
+    float dt = static_cast<float>(rendering_clock_.get_delta_time());
     sim_state_.total_time_elapsed += dt;
 
     if (snap.stats.iterations_ <= 2)
@@ -329,7 +315,7 @@ void Simulation::render()
     if (m_world_.toggles.m_rendering_)
     {
         const sf::Vector2f pos = camera_.get_world_mouse_pos();
-        m_world_.render(snap, &cell_statistic_font, pos);
+        m_world_.render(snap, pos);
     }
 
     update_line_graphs(snap);
@@ -337,33 +323,31 @@ void Simulation::render()
 
     m_sim_buffer_.end_read();
 
-    
-
     ImGui::SFML::Render(m_window_);
     m_window_.display();
 }
 
-void Simulation::manage_frame_rate()
+void Simulation::manage_rendering_frame_rate()
 {
-    sim_state_.rendering_frame_rate = static_cast<float>(render_loop_clock_.get_average_frame_rate());
-    render_loop_clock_.update_frame_rate();
+    rendering_clock_.tick();
+    rendering_clock_.limit_frame_rate();
 
-    const WorldStatistics& stats = m_world_.get_statistics();
+    sim_state_.rendering_frame_rate = rendering_clock_.get_average_frame_rate();
+}
 
-    std::ostringstream title;
-    title << simulation_name
-        << " | FPS: " << std::fixed << std::setprecision(1) << sim_state_.rendering_frame_rate
-        << " | protozoa: " << stats.cell_count
-        << " | food: " << m_world_.get_food_count()
-        << " | average generation: " << stats.average_generation;
-    m_window_.setTitle(title.str());
+void Simulation::manage_updating_frame_rate()
+{
+    // This is how the frame rate is limited to the desired fps
+    updating_clock_.tick();
+	updating_clock_.limit_frame_rate();
+
+    sim_state_.updating_frame_rate = updating_clock_.get_average_frame_rate();
 }
 
 void Simulation::fill_snapshot(SimSnapshot& snap)
 {
-    sim_state_.updating_frame_rate = update_loop_clock_.get_average_frame_rate();
+    sim_state_.camera_zoom = camera_.get_current_zoom();
 
     snap.sim_state = sim_state_;
     snap.history = m_history_;
-    snap.sim_state.camera_zoom = camera_.get_current_zoom();
 }

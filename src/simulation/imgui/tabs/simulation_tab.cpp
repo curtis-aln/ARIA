@@ -61,11 +61,30 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         const bool is_unlimited = snap.sim_state.max_frame_rate_updating <= 0.f;
         float fps_val = is_unlimited ? kSliderMax : snap.sim_state.max_frame_rate_updating;
 
-        const char* fmt = is_unlimited ? "sim max fps: MAX" : "sim max fps %.1f";
+        const char* fmt = is_unlimited ? "Updating Max FPS: MAX" : "Updating Max FPS %.1f";
 
-        if (ImGui::SliderFloat("##fps", &fps_val, 30.f, kSliderMax, fmt))
+        if (ImGui::SliderFloat("##updating fps", &fps_val, 30.f, kSliderMax, fmt))
         {
-            SimCommand cmd{ CommandType::SetFrameRate };
+            SimCommand cmd{ CommandType::SetUpdatingFrameRate };
+            cmd.float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val;
+            ctx.push(cmd);
+        }
+    }
+
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(-1.f);
+    {
+        constexpr float kSliderMax = 150.f; // top 10 units = "Max" zone
+        constexpr float kMaxThreshold = 140.f;
+
+        const bool is_unlimited = snap.sim_state.max_frame_rate_rendering <= 0.f;
+        float fps_val = is_unlimited ? kSliderMax : snap.sim_state.max_frame_rate_rendering;
+
+        const char* fmt = is_unlimited ? "Rendering Max FPS: MAX" : "Rendering Max FPS %.1f";
+
+        if (ImGui::SliderFloat("##rendering fps", &fps_val, 30.f, kSliderMax, fmt))
+        {
+            SimCommand cmd{ CommandType::SetRenderingFrameRate };
             cmd.float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val;
             ctx.push(cmd);
         }

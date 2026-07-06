@@ -4,9 +4,7 @@
 #include "imgui/population_history.h"
 #include "imgui/control_panel.h"
 
-#include "../Utils/time.h"
-#include "../Utils/fps_manager.h"
-#include "../Utils/fps_limiter.h"
+#include "../Utils/custom_clock.h"
 #include "../Utils/UI/Camera.hpp"
 
 #include <imgui-SFML.h>
@@ -21,7 +19,7 @@
 #include "sim_state.h"
 
 
-class Simulation : SimulationSettings, TextSettings
+class Simulation : SimulationSettings
 {
 	sf::Color bg_color_ = Random::rand_val_in_vector(bg_colors);
     static sf::VideoMode getAdjustedVideoMode()
@@ -31,22 +29,14 @@ class Simulation : SimulationSettings, TextSettings
                                (unsigned)(desktop.size.y * resize_shrinkage) });
     }
 
-    Font title_font{ nullptr, title_font_size, bold_font_location };
-    Font regular_font{ nullptr, regular_font_size, regular_font_location };
-    Font cell_statistic_font{ nullptr, cell_statistic_font_size, regular_font_location };
-
     sf::VideoMode   videoMode = full_screen ? sf::VideoMode::getDesktopMode() : getAdjustedVideoMode();
     std::uint32_t   windowStyle = sf::Style::None;
     sf::RenderWindow m_window_{ videoMode, "Project ARIA", windowStyle };
 
-    FrameRateSmoothing<frame_smoothing> render_loop_clock_{};
-    FrameRateSmoothing<frame_smoothing> update_loop_clock_{};
-
-	frame_rater m_frame_rater_{ 60 }; // used to cap the frame rate in the update thread
+    CustomClock<frame_smoothing> updating_clock_{ initial_frame_rate_updating};
+    CustomClock<frame_smoothing> rendering_clock_{ initial_frame_rate_rendering};
 
     Camera camera_{ &m_window_, 1.f };
-
-    StopWatch m_delta_time_{};
 
     World           m_world_{};
     PopulationHistory m_history_;
@@ -92,7 +82,8 @@ private:
     void handle_imGUI(const SimSnapshot & snapshot, float dt);
     void extinction_popup();
     void render();
-    void manage_frame_rate();
+    void manage_rendering_frame_rate();
+    void manage_updating_frame_rate();
     void fill_snapshot(SimSnapshot& snapshot);
     void resolve_modifications();
 
