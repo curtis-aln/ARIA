@@ -165,6 +165,11 @@ void CellManager::fill_snapshot(SimSnapshot& snapshot, sf::FloatRect& visible_bo
 
 	snapshot.stats.highlighted_cells = select_indexes.count;
 
+	snapshot.stats.spring_breaking_force = Spring::SPRING_BREAK_FORCE;
+	snapshot.stats.spring_breaking_length = Spring::SPRING_BREAK_LENGTH;
+	snapshot.stats.spring_damage_threshold = Spring::SPRING_DAMAGE_THRESH;
+	snapshot.stats.spring_work_const = Spring::SPRING_WORK_CONST;
+
 	fill_render_data(snapshot.render, visible_bounds);
 }
 

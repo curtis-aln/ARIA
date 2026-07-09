@@ -14,6 +14,11 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	{
 		std::cerr << "[ERROR]: CellManager initialized with null window pointer.\n";
 	}
+
+	Spring::SPRING_BREAK_LENGTH = SpringSettings::breaking_length;
+	Spring::SPRING_BREAK_FORCE = SpringSettings::spring_break_force;
+	Spring::SPRING_DAMAGE_THRESH = SpringSettings::spring_damage_threshold;
+	Spring::SPRING_WORK_CONST = SpringSettings::spring_work_const;
 }
 
 void CellManager::reset()
@@ -60,8 +65,8 @@ void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 			break;
 
 		// we want to limit the number of cells in a protozoa to avoid performance issues 
-		int max_recursion_depth = Random::rand_range(1, 4);
-		if (!build_protozoa_from_seed(pair.cell_ptr, 1))
+		int max_recursion_depth = Random::rand_range(1, 6);
+		if (!build_protozoa_from_seed(pair.cell_ptr, max_recursion_depth))
 			break;
 	}
 	

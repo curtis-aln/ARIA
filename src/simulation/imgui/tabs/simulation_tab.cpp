@@ -205,16 +205,46 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 
     // ── World Settings ────────────────────────────────────────────────────────
-    ImGui::BeginChild("SIM_world", { cw, ch }, true);
-    ImGui::TextDisabled("World");
+    ImGui::BeginChild("Nautral Selection", { cw, ch }, true);
+    ImGui::TextDisabled("Springs");
     ImGui::Separator();
 
     ImGui::SetNextItemWidth(-1.f);
+	m_spring_breaking_force_ = snap.stats.spring_breaking_force;
+    if (ImGui::SliderFloat("##breaking force", &m_spring_breaking_force_, 0.f, 30.f, "breaking force %.2f"))
+    {
+        SimCommand cmd{ CommandType::SetSpringBreakingForce };
+        cmd.float_val = m_spring_breaking_force_;
+        ctx.push(cmd);
+    }
 
-    static float world_radius = WorldSettings::bounds_radius;
     ImGui::SetNextItemWidth(-1.f);
-    ImGui::InputFloat("##wrad", &world_radius, 1000.f, 10000.f, "R=%.0f");
-    ImGui::TextDisabled("TODO: wire World::resize()");
+	m_spring_breaking_length_ = snap.stats.spring_breaking_length;
+    if (ImGui::SliderFloat("##breaking Length", &m_spring_breaking_length_, 0.f, 400.f, "breaking Length %.2f"))
+    {
+        SimCommand cmd{ CommandType::SetSpringBreakingLength };
+        cmd.float_val = m_spring_breaking_length_;
+        ctx.push(cmd);
+    }
+
+    ImGui::SetNextItemWidth(-1.f);
+	m_spring_damage_threshold_ = snap.stats.spring_damage_threshold;
+    if (ImGui::SliderFloat("##Damage Threshold", &m_spring_damage_threshold_, 0.f, 1.f, "Damage Threshold %.2f"))
+    {
+        SimCommand cmd{ CommandType::SetSpringDamageThreshold };
+        cmd.float_val = m_spring_damage_threshold_;
+        ctx.push(cmd);
+    }
+
+    ImGui::SetNextItemWidth(-1.f);
+	m_spring_work_const_ = snap.stats.spring_work_const;
+    if (ImGui::SliderFloat("##Spring Work Const", &m_spring_work_const_, 0.f, 0.001f, "Spring Work Const %.6f"))
+    {
+        SimCommand cmd{ CommandType::SetSpringWorkConst };
+        cmd.float_val = m_spring_work_const_;
+        ctx.push(cmd);
+    }
+    
 
     ImGui::EndChild();
     ImGui::SameLine();

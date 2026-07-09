@@ -91,6 +91,12 @@ struct WorldStatistics
     int highlighted_food = 0;
 
     std::vector<float> gen_data{};
+
+    // for springs
+    float spring_breaking_length = 0.f;
+	float spring_breaking_force = 0.f;
+	float spring_work_const = 0.f;
+	float spring_damage_threshold = 0.f;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

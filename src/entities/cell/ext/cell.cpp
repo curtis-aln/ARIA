@@ -60,6 +60,10 @@ void Cell::create_offspring(Cell* child, Body* parent_body, Body* child_body, co
 
 	if (mutate)
 		child->mutate();
+
+	// setting the physical parameters of the childs body
+	child_body->radius_ = child->radius;
+
 }
 
 [[nodiscard]] bool  Cell::can_die() const
@@ -122,6 +126,7 @@ void Cell::update_organics(const Body* body)
 {
 	if (dead)
 	{
+		sinwave_current_friction_ = 0.6f;
 		integrity -= integrity_drain_rate;
 		return;
 	}

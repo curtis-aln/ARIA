@@ -58,6 +58,8 @@ struct ConnectionRequest
 	int32_t offspring_id;
 	int32_t connect_to_id;
 	int32_t  spring_to_copy_index;
+
+	bool weak = false;
 };
 
 inline static constexpr size_t max_lifetime_samples_ = 500;

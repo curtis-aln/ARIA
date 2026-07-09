@@ -55,7 +55,7 @@ public:
 
 	[[nodiscard]] bool is_alive() const { return !dead; }
 	[[nodiscard]] bool should_reproduce() const { return reproduce; }
-	[[nodiscard]] bool should_remove() const { return dead && (integrity <= 0); }
+	[[nodiscard]] bool should_remove() const { return can_die() && (integrity <= 0); }
 
 	[[nodiscard]] sf::Color get_outer_color() const { return { outer_r, outer_g, outer_b, outer_transparency }; }
 	[[nodiscard]] sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, inner_transparency }; }
@@ -80,7 +80,6 @@ public:
 	[[nodiscard]] float calculate_friction() const;
 
 	void update_statistics();
-
 
 	void update_organics(const Body* body);
 

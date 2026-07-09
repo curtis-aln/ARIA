@@ -106,13 +106,8 @@ void CellManager::collect_reproduction_requests()
 			connection_requests.push_back(ConnectionRequest{
 				cell->offspring_index,
 				cell->connection_index,
-				cell->spring_to_copy_index
-				});
+				cell->spring_to_copy_index});
 
-			// reset the reproductive fields so we don't create multiple connection requests for the same cells
-			cell->connection_index = -1;
-			cell->offspring_index = -1;
-			cell->spring_to_copy_index = -1;
 		}
 	}
 }
@@ -139,7 +134,8 @@ void CellManager::apply_birth_requests()
 
 		CellBodyPair pair = create_cell(parent_body->position_, false);
 		if (!pair.is_valid())
-			return;
+			break;
+
 		Body* offspring_body = pair.body_ptr;
 		Cell* offspring = pair.cell_ptr;
 		
@@ -155,17 +151,18 @@ void CellManager::apply_birth_requests()
 		// this is because if the two new cells are too far apart when the spring is made, the spring will break immediately and the offspring will die before it can reproduce
 
 		
-		Spring* spring = all_springs_.emplace(true);
+		Spring* spring = all_springs_.emplace(true, true);
+		spring->reset();
 
-		spring->spring_const = 0.00000001f;
-		spring->amplitude = 0.f;
-		spring->damping = 0.9f;
+		spring->spring_const = 0.00005f;
+		spring->amplitude = 0.4f;
+		spring->damping = 0.0005;
 
 		spring->cell_A_id = parent_cell->id_;
 		spring->cell_B_id = offspring->id_;
 
 		const sf::Vector2f diff = parent_body->position_ - offspring_body->position_;
-		spring->rest_length = diff.length();
+		spring->rest_length = diff.length() * 3;
 	}
 
 	birth_requests.clear(); 
@@ -194,14 +191,24 @@ void CellManager::apply_connection_requests()
 	for (const ConnectionRequest& req : connection_requests)
 	{
 		Spring* new_spring = all_springs_.emplace(true, true);
+		new_spring->reset();
 		new_spring->cell_A_id = req.offspring_id;
 		new_spring->cell_B_id = req.connect_to_id;
 
-		if (req.spring_to_copy_index != -1)
-		{
-			Spring* parent_spring = all_springs_.at(req.spring_to_copy_index);
-			parent_spring->create_offspring(*new_spring);
-		}
+		Spring* parent_spring = all_springs_.at(req.spring_to_copy_index);
+		parent_spring->create_offspring(*new_spring);
+		
+		Cell* cell = all_cells_.at(parent_spring->cell_A_id);
+		Cell* other_cell = all_cells_.at(parent_spring->cell_B_id);
+
+		// reset the reproductive fields so we don't create multiple connection requests for the same cells
+		cell->connection_index = -1;
+		cell->offspring_index = -1;
+		cell->spring_to_copy_index = -1;
+
+		other_cell->connection_index = -1;
+		other_cell->offspring_index = -1;
+		other_cell->spring_to_copy_index = -1;
 	}
 
 	connection_requests.clear();

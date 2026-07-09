@@ -24,4 +24,9 @@ private:
 
     int m_mouse_intensity_ = 1;
     float m_mouse_radius_    = 100.f;
+
+    float m_spring_breaking_force_ = 0.f;
+    float m_spring_breaking_length_ = 0.f;
+    float m_spring_damage_threshold_ = 0.f;
+    float m_spring_work_const_ = 0.f;
 };

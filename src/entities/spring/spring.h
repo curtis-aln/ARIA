@@ -10,6 +10,12 @@ struct SpringResult { float work_done; float force_magnitude; bool broken; };
 
 struct Spring : SpringGenome, SpringSettings
 {
+	// These paramaters determine the organics of the spring
+	inline static float SPRING_BREAK_FORCE = 0.f;
+	inline static float SPRING_BREAK_LENGTH = 0.f;
+	inline static float SPRING_DAMAGE_THRESH = 0.f;
+	inline static float SPRING_WORK_CONST = 0.f;
+
 private:
 	bool broken = false;
 
@@ -84,10 +90,9 @@ public:
 
 		current_length = (pos_b - pos_a).length();
 
-		if (current_length > breaking_length)
+		if (current_length > SPRING_BREAK_LENGTH)
 		{
-			broken = true;
-			return;
+			break_spring();
 		}
 
 		// finding the rest length of the spring
@@ -110,34 +115,30 @@ public:
 
 		// we can calculate the amount of energy this contraction / extension took
 		work_done = std::abs(spring_force) * std::abs(current_length - rest_length);
-		work_done *= spring_work_const;
+		work_done *= SPRING_WORK_CONST;
 
 		const float force_magnitude = std::abs(total_force);
 
 
 		// Stress: 0 = relaxed, 1 = at breaking point
-		stress = force_magnitude / spring_break_force;
+		stress = force_magnitude / SPRING_BREAK_FORCE;
 
 		// Force-based break (complements your existing length-based break)
-		if (force_magnitude > spring_break_force)
+		if (force_magnitude > SPRING_BREAK_FORCE)
 		{
-			//broken = true;
-			return;
+			break_spring();
 		}
 
 	}
 
 	void update_organics(Cell& cell_a, Cell& cell_b)
 	{
-		if (stress > spring_damage_threshold)
+		if (stress > SPRING_DAMAGE_THRESH)
 		{
-			float excess = stress - spring_damage_threshold;
+			float excess = stress - SPRING_DAMAGE_THRESH;
 			cell_a.integrity -= excess;
 			cell_b.integrity -= excess;
 		}
-
-		if (!cell_a.is_alive() || !cell_b.is_alive())
-			return;
 
 		handle_reproduction(cell_a, cell_b);
 

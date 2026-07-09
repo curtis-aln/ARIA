@@ -30,7 +30,7 @@ struct HardConstants
     inline static float     remove_spring_chance = 0.03f;
     inline static uint8_t   outer_transparency = 200;
     inline static uint8_t   inner_transparency = 100;
-    inline static float     colour_mutation_range = 0.001f;
+    inline static float     colour_mutation_range = 0.025f;
 };
 
 struct CellGenome : GenomeBase, HardConstants
@@ -66,6 +66,7 @@ struct CellGenome : GenomeBase, HardConstants
         range = range > 0.f ? range : mutation_range;
 
         const auto& C = CellGeneticConstraints{};
+
         radius = maybe_mutate(radius, C.radius, rate, range);
         amplitude = maybe_mutate(amplitude, C.amplitude, rate, range);
         frequency = maybe_mutate(frequency, C.frequency, rate, range);

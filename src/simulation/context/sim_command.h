@@ -61,6 +61,12 @@ enum class CommandType
     SetSpringOffset,
     SetSpringVerticalShift,
 
+    // Global Natural Selection Parameters
+    SetSpringBreakingForce,
+    SetSpringBreakingLength,
+    SetSpringDamageThreshold,
+    SetSpringWorkConst
+
 };
 
 struct SpawnParams

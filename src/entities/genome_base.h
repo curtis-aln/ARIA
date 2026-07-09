@@ -5,7 +5,7 @@
 // Behaviour shared by every genome type
 struct GenomeBase
 {
-    float mutation_rate = 0.2f;
+    float mutation_rate = 0.8f;
     float mutation_range = 0.2f;
 
     static constexpr float mutation_rate_rate = 0.1f;

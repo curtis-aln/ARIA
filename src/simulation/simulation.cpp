@@ -105,6 +105,20 @@ void Simulation::resolve_modifications()
 				m_world_.get_statistics().mouse_mode = cmd.int_val;
 				break;
 
+            // Spring Natual Selection Modifier
+            case CommandType::SetSpringBreakingForce:
+                Spring::SPRING_BREAK_FORCE = cmd.float_val;
+                break;
+            case CommandType::SetSpringBreakingLength:
+                Spring::SPRING_BREAK_LENGTH = cmd.float_val;
+                break;
+            case CommandType::SetSpringDamageThreshold:
+                Spring::SPRING_DAMAGE_THRESH = cmd.float_val;
+                break;
+            case CommandType::SetSpringWorkConst:
+                Spring::SPRING_WORK_CONST = cmd.float_val;
+                break;
+
             //case CommandType::SetRadius:
             //    if (selected_protozoa)
             //        selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;

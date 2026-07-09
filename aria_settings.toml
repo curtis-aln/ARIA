@@ -30,7 +30,7 @@ cell_max_capacity           = 14
 [cell_manager]
 max_protozoa                = 70000     
 initial_protozoa            = 8000     
-auto_reset_on_extinction    = true    
+auto_reset_on_extinction    = true
 
 # ── Cell ─────────────────────────────────────────────────────────────────
 [cell]
@@ -41,7 +41,7 @@ wander_threshold             = 600.0
 reproductive_cooldown        = 500
 digestive_time                = 100
 initial_energy                = 70.0
-breaking_length                = 400.0
+breaking_length                = 325.0
 maximum_extension               = 250.0
 spring_work_const                = 0.00001
 
