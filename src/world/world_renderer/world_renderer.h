@@ -42,6 +42,8 @@ class WorldRenderer : public WorldSettings
 
 	SpatialGridRenderer cell_grid_renderer_{ collision_resolver_->get_grid() };
 
+
+
 public:
 	// Constructor
 	WorldRenderer(sf::RenderWindow* window, FoodManager* food_manager, CollisionResolver* collision_resolver, sf::FloatRect& bounds_rect, WorldBorder& circular_bounds)

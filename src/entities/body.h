@@ -32,4 +32,9 @@ struct Body
 		velocity_ *= 0.99f;
 		position_ += velocity_;
 	}
+
+	void reset()
+	{
+		velocity_ = { 0.f, 0.f };
+	}
 };

@@ -268,6 +268,9 @@ CellBodyPair CellManager::create_cell(const sf::Vector2f& position, bool random_
 	// resetting the cell just incase it isnt brand new
 	cell->recreate();
 
+	// resetting the body just incase it isnt brand new
+	body->reset();
+
 	// connecting the two
 	cell->body_id_ = body->id_;
 	body->position_ = position;

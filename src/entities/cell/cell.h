@@ -48,6 +48,9 @@ public:
 	int32_t connection_index = -1; // tells the protozoa manager what to connect offspring index to
 	int32_t spring_to_copy_index = -1; // tells the protozoa manager which spring to copy 
 
+	uint16_t frames_since_offspring_pending_ = 0;
+
+
 	Cell(const uint32_t _id = 0)
 	{
 		body_id_ = _id;

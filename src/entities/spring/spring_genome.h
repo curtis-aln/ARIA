@@ -69,6 +69,7 @@ struct SpringGenome : GenomeBase
         frequency = parent.frequency;
         offset = parent.offset;
         vertical_shift = parent.vertical_shift;
+
         spring_const = parent.spring_const;
         damping = parent.damping;
 

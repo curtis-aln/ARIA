@@ -61,6 +61,7 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 	Spring* spring = create_spring(seed_cell->id_, pair.cell_ptr->id_);
 	if (spring == nullptr)
 		return false;
+	spring->randomize();
 
 	if (recursion_depth < max_recursion_depth)
 	{
@@ -89,25 +90,36 @@ bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_de
 // ─────────────────────────────────────────────────────────────────────────────
 void CellManager::collect_reproduction_requests()
 {
-	// for all the cells that want to reproduce
+	constexpr uint16_t OFFSPRING_CONNECTION_TIMEOUT = 100; // frames
+
 	for (Cell* cell : all_cells_)
 	{
-		if (cell->can_reproduce())
+		if (cell->should_reproduce())
 		{
-			// add this request to the list of birth requests, we will handle it later in apply_birth_requests()
 			cell->turn_off_reproduction();
 			birth_requests.push_back({ cell->id_ });
 		}
 
-		// if both the offspring index and the spring to copy index are set, we can create a connection request
+		// Abandon an offspring link that's been waiting too long for its
+		// sibling to arrive. Guard on spring_to_copy_index < 0 so we never
+		// cancel a connection that resolved on THIS tick.
+		if (cell->offspring_index >= 0
+			&& cell->spring_to_copy_index < 0
+			&& cell->frames_since_offspring_pending_ > OFFSPRING_CONNECTION_TIMEOUT)
+		{
+			cell->offspring_index = -1;
+			cell->connection_index = -1;
+			cell->spring_to_copy_index = -1;
+			cell->frames_since_offspring_pending_ = 0;
+			continue;
+		}
+
 		if (cell->spring_to_copy_index >= 0)
 		{
-			// requesting a connection between the offspring and the other cell, we will handle it later in apply_connection_requests()
 			connection_requests.push_back(ConnectionRequest{
 				cell->offspring_index,
 				cell->connection_index,
-				cell->spring_to_copy_index});
-
+				cell->spring_to_copy_index });
 		}
 	}
 }

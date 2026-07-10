@@ -57,6 +57,10 @@ public:
 		damping_force = 0.f;
 		ratio = 0.f;
 
+		frequency = 0.f;
+		offset = 0.f;
+		vertical_shift = 1.f;
+		amplitude = 0.f;
 	}
 
 	void break_spring()

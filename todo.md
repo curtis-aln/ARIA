@@ -104,10 +104,14 @@ ONE HUNDRED BUG FIXES
 
 Today
 ------
-(1) add a slider to control spring_break_force
-(2) add a slider to control spring_breaking Length
-(3) add a slider to control spring_damage_threshold
-(4) add a slider to control spring_work_const
+Cell's Dead and should remove should be standerdised
+Cells have 3 modes
+Alive -> Decaying -> Dead
+- All Functions work like normal on alive
+- When a cell's integrity reaches 0, it enters the decaying state
+- Decaying cells still exist in the world but have a lot of friction, and only lose integrity. no other function
+- When a cell's integrity reaches zero it is dead. which can be queried by is_dead()
+
 
 - There are no evolutionary parameters for Reproduction
 - There is no way for 2 celld organisms to add a cell or connection
@@ -164,9 +168,17 @@ The Pheromones Update
 
 
 ---------------------------------------------------------
+Pre update todo:
+- Fix the spawning bug where child cells spawn very far away
+- Add missing cell debug features
+
 New evolutionary Parameters
 - Disconnect chance:
 	- A value between 0 and 1 which is the chance a temparary spring disconnects every frame
+- with a new cell, there is an add_cell_chance chance that it creates a cell connected to it.
+  This new connection has little to no friction, and the spring influence is very small. This is to reduce the chance of the addition ruining the organisms function
+- with a new cell (age < 30), there is a chance that it will create a new spring connection to a nearby cell under the condition that both cells dont already have a connection,
+  and they are both freshly born
 
 
 ###### Stomach System

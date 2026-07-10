@@ -12,12 +12,12 @@ void Cell::recreate()
 	frames_alive_ = 0;
 	integrity = 100;
 	offspring_count = 0;
+	frames_since_offspring_pending_ = 0;
 
 	reproduce = false;
 	offspring_index = -1;
 	connection_index = -1;
 	spring_to_copy_index = -1;
-	energy = initial_energy;
 
 	dead = false;
 	immortal = false;
@@ -97,11 +97,10 @@ void Cell::turn_off_reproduction()
 [[nodiscard]] sf::Vector2f  Cell::get_pos_nearby(const Body* body, const float range) const
 {
 	// Range in terms of radii
-	const sf::FloatRect spawn_area = {
-	{body->position_.x - radius * range, body->position_.y - radius * range},
-	{radius * range * 2 , radius * range * 2}
-	};
-	return Random::rand_pos_in_rect(spawn_area);
+	return Random::rand_pos_in_rect(sf::FloatRect{
+		{body->position_.x - radius * range, body->position_.y - radius * range},
+		{radius * range * 2 , radius * range * 2}
+	});
 }
 
 [[nodiscard]] float  Cell::calculate_friction() const
@@ -119,6 +118,11 @@ void  Cell::update_statistics()
 	time_since_last_ate_++;
 	frames_alive_++;
 	time_since_last_reproduced_++;
+
+	if (offspring_index >= 0)
+		frames_since_offspring_pending_++;
+	else
+		frames_since_offspring_pending_ = 0;
 }
 
 

@@ -25,9 +25,7 @@ struct CellInitialSpawnRanges
 struct HardConstants
 {
     inline static float     add_cell_chance = 0.03f;
-    inline static float     remove_cell_chance = 0.03f;
     inline static float     add_spring_chance = 0.03f;
-    inline static float     remove_spring_chance = 0.03f;
     inline static uint8_t   outer_transparency = 200;
     inline static uint8_t   inner_transparency = 100;
     inline static float     colour_mutation_range = 0.025f;
