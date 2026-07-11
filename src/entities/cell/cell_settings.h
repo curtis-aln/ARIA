@@ -3,10 +3,13 @@
 struct CellSettings
 {
 	inline static float integrity = 100.f;
+
 	inline static float integrity_conversion_rate = 0.05f;
+	inline static float nutrients_conversion_rate = .145f;
+
 	inline static float offspring_energy_cost = 100.f;
 	inline static float reproduce_energy_thresh = 200.f;
-	inline static float conversion_rate = 2.45f;
+	
 
 	inline static float bite_amount = 15.f;
 

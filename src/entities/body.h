@@ -29,7 +29,6 @@ struct Body
 
 	void update_physics()
 	{
-		velocity_ *= 0.99f;
 		position_ += velocity_;
 	}
 

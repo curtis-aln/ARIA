@@ -146,7 +146,7 @@ public:
 
 		handle_reproduction(cell_a, cell_b);
 
-		transfer_energy(cell_a, cell_b);
+		transfer_nutrients(cell_a, cell_b);
 
 		cell_a.energy -= work_done / 2.f; // Eventually springs will be their own organic systems with energy
 		cell_b.energy -= work_done / 2.f;
@@ -164,11 +164,15 @@ private:
 		}
 	}
 
-	void transfer_energy(Cell& cell_a, Cell& cell_b)
+	void transfer_nutrients(Cell& cell_a, Cell& cell_b)
 	{
-		const float transfer = std::copysign(energy_share_rate, cell_b.energy - cell_a.energy);
-		cell_a.energy += transfer;
-		cell_b.energy -= transfer;
+		// you cant transfer nutrients to a cell which is decaying
+		if (!cell_a.is_alive() || !cell_b.is_alive())
+			return;
+
+		const float transfer = std::copysign(nutrient_transfer_rate, cell_b.nutrients_ - cell_a.nutrients_);
+		cell_a.nutrients_ += transfer;
+		cell_b.nutrients_ -= transfer;
 	}
 
 	float calculate_rest_length(const int internal_clock)

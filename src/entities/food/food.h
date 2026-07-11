@@ -53,7 +53,7 @@ struct Food : FoodManagerSettings
 		if (Random::rand01_float() < vibrate_freq)
 			vibrate_food(body, vibration_strength);
 
-		//body->velocity_ *= friction;
+		body->velocity_ *= friction;
 	}
 
 	bool is_food_dead() const

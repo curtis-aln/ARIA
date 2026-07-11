@@ -54,7 +54,8 @@ void Cell::create_offspring(Cell* child, Body* parent_body, Body* child_body, co
 	offspring_count++;
 	child->generation++;
 
-	energy -= offspring_energy_cost;
+	energy /= 2;
+	child->energy /= 2;
 
 	child->copy_genetics(*this);
 
@@ -126,16 +127,18 @@ void  Cell::update_statistics()
 }
 
 
-void Cell::update_organics(const Body* body)
+void Cell::update_organics(Body* body)
 {
 	if (dead)
 	{
 		sinwave_current_friction_ = 0.6f;
 		integrity -= integrity_drain_rate;
+		body->velocity_ *= sinwave_current_friction_;
 		return;
 	}
 
 	sinwave_current_friction_ = calculate_friction();
+	body->velocity_ *= sinwave_current_friction_;
 
 	// 1. Passive decay — base cost of being alive
 	energy -= energy_decay_rate;
@@ -168,7 +171,7 @@ void Cell::process_nutrients()
 		return;
 
 	// Convert a capped batch per tick — don't convert more than we have
-	const float converted = std::min(nutrients_, conversion_rate);
+	const float converted = std::min(nutrients_, nutrients_conversion_rate);
 	energy += converted;
 	nutrients_ -= converted;
 }

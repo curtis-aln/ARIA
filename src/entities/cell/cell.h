@@ -84,7 +84,7 @@ public:
 
 	void update_statistics();
 
-	void update_organics(const Body* body);
+	void update_organics(Body* body);
 
 	void process_nutrients();
 

@@ -758,7 +758,7 @@ void OrganismTab::draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap)
     ImGui::TextDisabled("Conversion rates  (per frame, per cell)");
     ImGui::Separator();
     ImGui::Text("Energy decay             %.5f", CellSettings::energy_decay_rate);
-    ImGui::Text("Nutrients  ->  Energy    %.5f", CellSettings::conversion_rate);
+    ImGui::Text("Nutrients  ->  Energy    %.5f", CellSettings::nutrients_conversion_rate);
     ImGui::Text("Energy     ->  Integrity %.5f", CellSettings::integrity_conversion_rate);
     ImGui::Text("Energy share (springs)   %.5f", SpringSettings::energy_share_rate);
     ImGui::Text("Spring work cost         %.5f", SpringSettings::spring_work_const);

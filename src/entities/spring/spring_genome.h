@@ -10,6 +10,7 @@ struct SpringGeneticConstraints
     inline static Range vertical_shift = { -0.5f,        0.5f };
     inline static Range spring_const = { 0.f,          1.f };
     inline static Range damping = { 0.f,          1.f };
+    inline static Range nutrient_transfer_rate = { -1.f,          1.f };
 };
 
 struct SpringInitialSpawnRanges
@@ -20,6 +21,7 @@ struct SpringInitialSpawnRanges
     inline static Range vertical_shift = { 0.7f,          0.7f };
     inline static Range spring_const = { 0.1f, 0.1f };
     inline static Range damping = { 0.4f,0.8f };
+    inline static Range nutrient_transfer_rate = { -0.1f, 0.5f };
 };
 
 struct SpringGenome : GenomeBase
@@ -28,6 +30,8 @@ struct SpringGenome : GenomeBase
     float frequency = Random::rand_range(SpringInitialSpawnRanges::frequency.min, SpringInitialSpawnRanges::frequency.max);
     float offset = Random::rand_range(SpringInitialSpawnRanges::offset.min, SpringInitialSpawnRanges::offset.max);
     float vertical_shift = Random::rand_range(SpringInitialSpawnRanges::vertical_shift.min, SpringInitialSpawnRanges::vertical_shift.max);
+    
+    float nutrient_transfer_rate = Random::rand_range(SpringInitialSpawnRanges::nutrient_transfer_rate.min, SpringInitialSpawnRanges::nutrient_transfer_rate.max);
 
     float spring_const = 0.05f;
     float damping = 0.6f;
@@ -43,6 +47,8 @@ struct SpringGenome : GenomeBase
         frequency = Random::rand_range(SpringInitialSpawnRanges::frequency.min, SpringInitialSpawnRanges::frequency.max);
         offset = Random::rand_range(SpringInitialSpawnRanges::offset.min, SpringInitialSpawnRanges::offset.max);
         vertical_shift = Random::rand_range(SpringInitialSpawnRanges::vertical_shift.min, SpringInitialSpawnRanges::vertical_shift.max);
+
+		nutrient_transfer_rate = Random::rand_range(SpringInitialSpawnRanges::nutrient_transfer_rate.min, SpringInitialSpawnRanges::nutrient_transfer_rate.max);
     }
 
     void mutate(float rate = 0.f, float range = 0.f)
@@ -56,6 +62,8 @@ struct SpringGenome : GenomeBase
         frequency = maybe_mutate(frequency, C.frequency, rate, range);
         offset = maybe_mutate(offset, C.offset, rate, range);
         vertical_shift = maybe_mutate(vertical_shift, C.vertical_shift, rate, range);
+
+		nutrient_transfer_rate = maybe_mutate(nutrient_transfer_rate, C.nutrient_transfer_rate, rate, range);
 
         spring_const = maybe_mutate(spring_const, C.spring_const, rate, range);
         damping = maybe_mutate(damping, C.damping, rate, range);
@@ -72,6 +80,8 @@ struct SpringGenome : GenomeBase
 
         spring_const = parent.spring_const;
         damping = parent.damping;
+
+		nutrient_transfer_rate = parent.nutrient_transfer_rate;
 
         mutation_rate = parent.mutation_rate;
         mutation_range = parent.mutation_range;

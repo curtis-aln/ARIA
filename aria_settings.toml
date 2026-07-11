@@ -61,7 +61,7 @@ update_freq                    = 4
 
 # physics
 food_radius                  = 60.0
-friction                      = 0.78
+friction                      = 0.95
 vibration_strength             = 3.0
 
 # color / fade

@@ -158,9 +158,12 @@ void World::update_position_container_optimized(SimSnapshot& write_snapshot)
 		Body* body = bodies_.at(cell->body_id_);
 		if (!visible_bounds.contains(body->position_))
 			continue;
+
+		sf::Color color_inner = !cell->is_alive() ? sf::Color(60, 60, 60, 180) : cell->get_inner_color();
+		sf::Color color_outer = !cell->is_alive() ? sf::Color(90, 90, 90, 160) : cell->get_outer_color();
 		
-		rend_data.outer_colors.push_back(cell->get_outer_color());
-		rend_data.inner_colors.push_back(cell->get_inner_color());
+		rend_data.outer_colors.push_back(color_outer);
+		rend_data.inner_colors.push_back(color_inner);
 		rend_data.positions.push_back(body->position_);
 		rend_data.velocities.push_back(body->velocity_);
 		rend_data.radii.push_back(cell->radius);
