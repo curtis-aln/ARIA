@@ -36,17 +36,11 @@ void GridTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     ImGui::Spacing();
     if (ImGui::Button("Apply Cell Grid ##grid", { -1.f, 0.f }))
-    {
-        SimCommand cmd{ CommandType::SetCellGridResolution };
-        cmd.int_val = res;
-        ctx.push(cmd);
-    }
+        ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetCellGridResolution, .int_val = res });
+    
     if (ImGui::Button("Apply Food Grid ##grid", { -1.f, 0.f }))
-    {
-        SimCommand cmd{ CommandType::SetFoodGridResolution };
-		cmd.int_val = res;
-        ctx.push(cmd);
-    }
+        ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetFoodGridResolution, .int_val = res });
+    
 
     ImGui::EndChild();
 }

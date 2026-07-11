@@ -49,12 +49,7 @@ void TaggedTab::draw_list(ImGuiContext& ctx, const SimSnapshot& snapshot)
             ImGui::Text("Off %-3d", p.offspring_count); ImGui::SameLine(0, 8);
             ImGui::Text("Gen %.0f", p.average_generation);
             ImGui::SameLine(0, 8);
-            if (ImGui::SmallButton("Go##tagged"))
-            {
-                SimCommand cmd{ CommandType::NavToProtozoa };
-				cmd.int_val = id;
-                ctx.push(cmd);
-            }
+            
         }
         else
         {

@@ -74,14 +74,19 @@ struct WorldStatistics
 	float births_per_hundered_frames = 0.f;
 	float deaths_per_hundered_frames = 0.f;
 	float infant_mortality_rate = 0.f;
-	float longest_lived_ever = 0.f;
+
+    int   total_deaths = 0;
+    int   infant_deaths = 0;
+    int deaths_this_window = 0;
+    int births_this_window = 0;
+
+    uint16_t longest_lived_ever = 0;
 
     float frames_per_generation = -1.f; // negative = undefined
     float tracked_generation = 0.f;
     float frames_since_last_gen_change = 0.f;
 
     int iterations_ = 0;
-
 
     int   mouse_mode = 0;      // 0 = Add, 1 = Remove
     int mouse_intensity = 1;

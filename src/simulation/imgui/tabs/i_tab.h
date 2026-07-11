@@ -18,7 +18,7 @@ struct ITab
         {
             WorldToggles new_toggles = snap.toggles;
             new_toggles.*field = val;
-            ctx.push({ .type = CommandType::SetToggles, .toggles = new_toggles });
+            ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .toggles = new_toggles });
         }
         if (shortcut)
         {

@@ -23,7 +23,7 @@ void Simulation::handle_imGUI(const SimSnapshot& snap, float dt)
     m_control_panel_.draw(snap, ctx, dt);
 
     if (std::memcmp(&toggles_copy, &snap.toggles, sizeof(WorldToggles)) != 0)
-        ctx.push({ CommandType::SetToggles, toggles_copy });
+        ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .toggles = toggles_copy });
 
     if (toggles_copy.open_extinction_window)
         ImGui::OpenPopup("New Simulation");

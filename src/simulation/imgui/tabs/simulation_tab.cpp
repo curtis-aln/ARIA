@@ -41,7 +41,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     const float bw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
     if (ImGui::Button(snap.toggles.paused ? "Resume [Spc]" : "Pause  [Spc]", { bw, 0.f }))
     {
-		SimCommand cmd{ CommandType::SetToggles };
+		SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .toggles = ctx.toggles };
 		ctx.toggles.paused = !snap.toggles.paused;
 		ctx.push(cmd);
     }
@@ -49,7 +49,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::SameLine();
     if (ImGui::Button("Step [O]", { -1.f, 0.f }))
     {
-		SimCommand cmd{ CommandType::SetToggles };
+		SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .toggles = ctx.toggles };
 		ctx.toggles.m_tick_frame_time = true;
 		ctx.toggles.paused = true; // stepping implies pausing
 		ctx.push(cmd);
@@ -69,8 +69,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
         if (ImGui::SliderFloat("##updating fps", &fps_val, 30.f, kSliderMax, fmt))
         {
-            SimCommand cmd{ CommandType::SetUpdatingFrameRate };
-            cmd.float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val;
+            SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetUpdatingFrameRate, .float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val };
             ctx.push(cmd);
         }
     }
@@ -88,8 +87,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
         if (ImGui::SliderFloat("##rendering fps", &fps_val, 30.f, kSliderMax, fmt))
         {
-            SimCommand cmd{ CommandType::SetRenderingFrameRate };
-            cmd.float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val;
+            SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetRenderingFrameRate, .float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val };
             ctx.push(cmd);
         }
     }
@@ -97,7 +95,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::Spacing();
     if (ImGui::Button("Reset Simulation", { -1.f, 0.f }))
     {
-		SimCommand cmd{ CommandType::ResetSimulation };
+		SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::ResetSimulation };
 		ctx.push(cmd);
     }
 
@@ -123,8 +121,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
             if (ImGui::Button(label, { last_in_row ? -1.f : hw, 0.f }))
             {
                 m_mouse_mode_ = mode;
-                SimCommand cmd{ CommandType::SetMouseMode };
-                cmd.int_val = mode;
+                SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetMouseMode, .int_val = mode };
                 ctx.push(cmd);
             }
 
@@ -150,7 +147,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     if (ImGui::Checkbox("Cells##shared", &m_cells_))
     {
-        SimCommand cmd{ CommandType::SetToggles };
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .toggles = ctx.toggles };
         ctx.toggles.mouse_add_cells = m_cells_;
         ctx.toggles.mouse_rem_cells = m_cells_;
         ctx.push(cmd);
@@ -158,7 +155,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::SameLine();
     if (ImGui::Checkbox("Food##shared", &m_food_))
     {
-        SimCommand cmd{ CommandType::SetToggles };
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .toggles = ctx.toggles };
         ctx.toggles.mouse_add_food = m_food_;
         ctx.toggles.mouse_rem_food = m_food_;
         ctx.push(cmd);
@@ -171,8 +168,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::SetNextItemWidth(-1.f);
     if (ImGui::SliderInt("##intensity", &m_mouse_intensity_, 1, 25, "Intensity %d%"))
     {
-        SimCommand cmd{ CommandType::SetMouseIntensity };
-        cmd.int_val = m_mouse_intensity_;
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetMouseIntensity, .int_val = m_mouse_intensity_ };
         ctx.push(cmd);
     }
 
@@ -180,8 +176,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_mouse_radius_ = snap.stats.mouse_radius; // sync with sim state
     if (ImGui::SliderFloat("##radius", &m_mouse_radius_, 200.f, 10000.f, "Radius %.0f"))
     {
-        SimCommand cmd{ CommandType::SetInfluenceRadius };
-        cmd.float_val = m_mouse_radius_;
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetInfluenceRadius, .float_val = m_mouse_radius_ };
         ctx.push(cmd);
     }
 
@@ -190,7 +185,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_show_influence_radius_ = snap.toggles.show_influence_radius; // sync with sim state
     if (ImGui::Checkbox("Show Influence Radius##other", &m_show_influence_radius_))
     {
-        SimCommand cmd{ CommandType::SetToggles };
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .toggles = ctx.toggles };
         ctx.toggles.show_influence_radius = m_show_influence_radius_;
         ctx.push(cmd);
     }
@@ -213,8 +208,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_breaking_force_ = snap.stats.spring_breaking_force;
     if (ImGui::SliderFloat("##breaking force", &m_spring_breaking_force_, 0.f, 30.f, "breaking force %.2f"))
     {
-        SimCommand cmd{ CommandType::SetSpringBreakingForce };
-        cmd.float_val = m_spring_breaking_force_;
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringBreakingForce, .float_val = m_spring_breaking_force_ };
         ctx.push(cmd);
     }
 
@@ -222,8 +216,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_breaking_length_ = snap.stats.spring_breaking_length;
     if (ImGui::SliderFloat("##breaking Length", &m_spring_breaking_length_, 0.f, 400.f, "breaking Length %.2f"))
     {
-        SimCommand cmd{ CommandType::SetSpringBreakingLength };
-        cmd.float_val = m_spring_breaking_length_;
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringBreakingLength, .float_val = m_spring_breaking_length_ };
         ctx.push(cmd);
     }
 
@@ -231,8 +224,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_damage_threshold_ = snap.stats.spring_damage_threshold;
     if (ImGui::SliderFloat("##Damage Threshold", &m_spring_damage_threshold_, 0.f, 1.f, "Damage Threshold %.2f"))
     {
-        SimCommand cmd{ CommandType::SetSpringDamageThreshold };
-        cmd.float_val = m_spring_damage_threshold_;
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringDamageThreshold, .float_val = m_spring_damage_threshold_ };
         ctx.push(cmd);
     }
 
@@ -240,11 +232,12 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_work_const_ = snap.stats.spring_work_const;
     if (ImGui::SliderFloat("##Spring Work Const", &m_spring_work_const_, 0.f, 0.001f, "Spring Work Const %.6f"))
     {
-        SimCommand cmd{ CommandType::SetSpringWorkConst };
-        cmd.float_val = m_spring_work_const_;
+        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringWorkConst, .float_val = m_spring_work_const_ };
         ctx.push(cmd);
     }
-    
+
+	ImGui::Separator();
+    toggle(snap, ctx, "Toggle Collisions", &WorldToggles::toggle_collisions, "C");
 
     ImGui::EndChild();
     ImGui::SameLine();

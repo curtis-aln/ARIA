@@ -104,7 +104,6 @@ ONE HUNDRED BUG FIXES
 
 Today
 ------
-Cell's Dead and should remove should be standerdised
 Cells have 3 modes
 Alive -> Decaying -> Dead
 - All Functions work like normal on alive
@@ -125,12 +124,12 @@ Alive -> Decaying -> Dead
 - births per 100 frames isnt calculated
 - deaths per 100 frames isnt calculated
 - Infant mortality isnt calculated
-- Generation doesnt work
+[Done] Generation doesnt work
 - Avg cells and Avg springs isnt calculated
 - Energy ratio is not calculated
 - Highlighted cells and Highlighted food isnt live
 - World Resize doesnt work
-- Toggle collisions doesnt work and should be moved to world section in simulation tab
+[Done] Toggle collisions doesnt work and should be moved to world section in simulation tab
 - Try drawing the connections inbetween the first and second layer of the circles
 - Line graph blows up
 - The whole Tagged system doesnt work
@@ -148,6 +147,7 @@ Alive -> Decaying -> Dead
 - Its hard to click on a cell, there should be an invisible click hitbox to make it easier
 - Remove the redundant energy bar in the organism debugger
 - give the energy subtab better names
+- make SetMouseMode an Enum
 - Feed energy / feed nutrients doesnt work
 - No way to select between feed to one cell or whole organism
 - Force reproduce and Force Die do not work, and you cant choose between single cell and whole organism

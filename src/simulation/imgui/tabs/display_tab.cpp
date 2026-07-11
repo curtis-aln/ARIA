@@ -34,7 +34,7 @@ void DisplayTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	toggle(snap, ctx, "Show Connections", &WorldToggles::show_connections, "C");
 	toggle(snap, ctx, "Skeleton Mode", &WorldToggles::skeleton_mode, "K");
 	toggle(snap, ctx, "Bounding Boxes", &WorldToggles::show_bounding_boxes, "B");
-	toggle(snap, ctx, "Toggle Collisions", &WorldToggles::toggle_collisions, "C");
+	
 
     ImGui::EndChild();
     ImGui::SameLine();

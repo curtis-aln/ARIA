@@ -45,6 +45,9 @@ void World::update_entities()
 	// filling the containers that go to the renderer and to the spatial grid
 	bound_bodies();
 
+	if (!toggles.toggle_collisions)
+		return;
+
 	collision_resolver_.add_particles_to_grid();
 	collision_resolver_.run_collision_detection();
 	collision_resolver_.handle_collision_resolutions();

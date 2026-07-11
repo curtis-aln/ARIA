@@ -4,94 +4,86 @@
 #include <mutex>
 #include <queue>
 
+enum class CommandSection
+{
+	SimulationEvent,  // Events related to simulation settings and controls
+	WorldEvent,       // Events related to world settings and controls
+	CellManagerEvent, // Events related to cell management (protozoa)
+	FoodManagerEvent  // Events related to food management
+};
+
 enum class CommandType
 {
-    // ── Toggle state (whole WorldToggles struct carried in payload) ───────
-    SetToggles,
+    // SIMULATION EVENT  ──────────────────────────────────────────────────
+    SetUpdatingFrameRate,    // Sets the frame rate for the updating thread
+	SetRenderingFrameRate,   // Sets the frame rate for the rendering thread
+	SetMouseMode,            // The mouse mode (add, remove, attract, repel)
+    SetSimulationSpeed,      // the speed multiplier slider
 
-    // ── One-shot actions ──────────────────────────────────────────────────
-    ResetSimulation,        // open extinction popup confirmed
-    ClearAllFood,
-    ClearAllProtozoa,
-    NavToProtozoa,
+    // WORLD EVENT  ──────────────────────────────────────────────────
+    SetWorldToggles,         // sets the world toggles
+	ResetSimulation,         // resets the simulation to its initial state
 
-    SetUpdatingFrameRate,
-    SetRenderingFrameRate,
+    SetInfluenceRadius,      // set the influence radius of the mouse tool
+    SetMouseIntensity,       // set the intensity of the mouse tool
 
-    SetMouseMode,
-	SetInfluenceRadius,       // set the influence radius of the mouse tool
-	SetMouseIntensity,        // set the intensity of the mouse tool
-
-    // ── Spawn ─────────────────────────────────────────────────────────────
-    SpawnRandom,            // spawn N random organisms
-    SpawnFromFile,          // stub
-
-    // ── Grid ──────────────────────────────────────────────────────────────
-    SetCellGridResolution,      // apply new cell grid resolution
+    SetCellGridResolution,   // apply new cell grid resolution
     SetFoodGridResolution,
 
-    // ── World values (not in WorldToggles) ───────────────────────────────
-    SetSimulationSpeed,     // the speed multiplier slider
-    SetWorldRadius,         // world resize stub
+    SetWorldRadius,          // world resize stub
 
-	// ── Cell-specific (payload identifies cell and new values) ─────────────
-    SetRadius,
-	SetAmplitude,
-	SetFrequency,
-	SetOffset,
-    SetVerticalShift,
 
-    // Protozoa
-	MutateProtozoa,         // mutate a specific protozoa (payload identifies protozoa and mutation parameters)
-	AddCell,
-	RemoveCell,           
-	AddSpring,	
-	RemoveSpring,
-	InjectProtozoa,        // inject a protozoa with specific genome parameters
-    MakeImmortal,
-	ForceReproduce,
-	KillProtozoa,
-	CloneProtozoa,         // spawn a mutated clone of the selected protozoa
+    // CELL MANAGER EVENT  ──────────────────────────────────────────────────
+	ClearAllProtozoa,       // clears all protozoa from the simulation
+
+    SetRadius,              // set radius of selected cell
+	SetAmplitude,           // set amplitude of selected cell
+	SetFrequency,           // set frequency of selected cell
+	SetOffset,              // set offset of selected cell
+	SetVerticalShift,       // set vertical shift of selected cell
+
+    MutateProtozoa,         // mutate a specific protozoa (payload identifies protozoa and mutation parameters)
+	AddCell,                // add a new cell to the selected protozoa
+	RemoveCell,             // remove a cell from the selected protozoa
+	AddSpring,              // add a spring between two cells of the selected protozoa
+	RemoveSpring,           // remove a spring between two cells of the selected protozoa
+    InjectProtozoa,         // inject a protozoa with Nutrients
+	MakeImmortal,           // make the selected protozoa immortal (no death by age)
+	ForceReproduce,         // force the selected protozoa to reproduce
+	KillProtozoa,           // kill the selected protozoa (remove it from the simulation)
+    CloneProtozoa,          // spawn a clone of the selected protozoa
 
     // Springs
-    SetSpringConst,
-    SetDampingConst,
-    SetSpringAmplitude,
-    SetSpringFrequency,
-    SetSpringOffset,
-    SetSpringVerticalShift,
+	SetSpringConst,         // set the spring constant of a specific spring
+	SetDampingConst,        // set the damping constant of a specific spring
+	SetSpringAmplitude,     // set the spring amplitude of a specific spring
+	SetSpringFrequency,     // set the spring frequency of a specific spring
+	SetSpringOffset,        // set the spring offset of a specific spring
+	SetSpringVerticalShift, // set the spring vertical shift of a specific spring
 
-    // Global Natural Selection Parameters
-    SetSpringBreakingForce,
-    SetSpringBreakingLength,
-    SetSpringDamageThreshold,
-    SetSpringWorkConst
+	SetSpringBreakingForce, // set the spring breaking force of a specific spring
+	SetSpringBreakingLength,   // set the spring breaking length of a specific spring
+	SetSpringDamageThreshold,  // set the spring damage threshold of a specific spring
+	SetSpringWorkConst,        // set the spring work constant of a specific spring
 
+    // FOOD MANAGER EVENT  ──────────────────────────────────────────────────
+	ClearAllFood, // clears all food from the simulation
 };
 
-struct SpawnParams
-{
-    int   count = 10;
-    bool  mutate = false;
-    float mut_rate = 0.3f;
-    float mut_range = 0.3f;
-};
-
+// Parameters for the MutateProtozoa command
 struct MutateParams
 {
     float mut_rate = 0.3f;
     float mut_range = 0.3f;
 };
 
-
 // Only one of these is meaningful per command — think of it like a union but without the hassle
 struct SimCommand
 {
+    CommandSection section;
 	CommandType  type; // identifies which of the following fields to read
     
-
-    WorldToggles toggles{};     // for SetToggles
-    SpawnParams  spawn{};       // for SpawnRandom
+    WorldToggles toggles{};
     MutateParams mutate{};
 
     float        float_val = 0;
@@ -112,17 +104,5 @@ struct ImGuiContext
     {
         std::lock_guard<std::mutex> lock(cmd_mutex);
         commands.push(std::move(cmd));
-    }
-
-    void test()
-    {
-        // adding a random simcommand to the imgui context to test it
-		SimCommand cmd;
-		cmd.type = CommandType::SpawnRandom;
-		cmd.spawn.count = 5;
-		cmd.spawn.mutate = true;
-		cmd.spawn.mut_rate = 0.5f;
-		cmd.spawn.mut_range = 0.5f;
-		push(cmd);
     }
 };

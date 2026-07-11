@@ -75,7 +75,7 @@ void Simulation::resolve_modifications()
             const SimCommand& cmd = m_commands.front();
             switch (cmd.type)
             {
-			case CommandType::SetToggles:
+			case CommandType::SetWorldToggles:
 				m_world_.toggles = cmd.toggles;
 				break;
 
@@ -204,11 +204,6 @@ void Simulation::resolve_modifications()
                 //{
                 //    m_world_.create_offspring(selected_protozoa, false);
                 //}
-                break;
-
-    
-            case CommandType::NavToProtozoa:
-                //m_world_.selected_protozoa_ = m_world_.all_protozoa_.at(cmd.int_val);
                 break;
 
             case CommandType::SetSpringAmplitude:

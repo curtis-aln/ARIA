@@ -71,10 +71,10 @@ void CellManager::fill_statistics(WorldStatistics& stats)
 	stats.infant_mortality_rate = infant_mortality_rate_;
 	stats.average_lifetime = average_lifetime_;
 
-	//stats.total_deaths = total_deaths_;
-	//stats.infant_deaths = infant_deaths_;
-	//stats.deaths_this_window = deaths_this_window_;
-	//stats.births_this_window = births_this_window_;
+	stats.total_deaths = total_deaths_;
+	stats.infant_deaths = infant_deaths_;
+	stats.deaths_this_window = deaths_this_window_;
+	stats.births_this_window = births_this_window_;
 
 	// Updating death and birth rates per hundred frames
 	if (stats.iterations_ % survival_rate_window_size_ == 0)
@@ -98,6 +98,7 @@ void CellManager::fill_statistics(WorldStatistics& stats)
 	stats.average_mutation_rate = 0.f;
 	stats.average_mutation_range = 0.f;
 	stats.average_energy = 0.f;
+	stats.average_generation = 0.f;
 
 	// collecting data
 	for (Cell* cell : all_cells_)
@@ -106,6 +107,7 @@ void CellManager::fill_statistics(WorldStatistics& stats)
 		stats.average_mutation_range += cell->mutation_range;
 		stats.average_offspring_count += cell->offspring_count;
 		stats.average_energy += cell->energy;
+		stats.average_generation += cell->generation;
 
 		stats.highest_generation_ever = std::max(cell->generation, stats.highest_generation_ever);
 		stats.most_offspring_ever = std::max(static_cast<int>(cell->offspring_count), stats.most_offspring_ever);
@@ -116,4 +118,5 @@ void CellManager::fill_statistics(WorldStatistics& stats)
 	stats.average_mutation_rate /= count;
 	stats.average_mutation_range /= count;
 	stats.average_energy /= count;
+	stats.average_generation /= count;
 }

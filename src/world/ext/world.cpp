@@ -137,6 +137,7 @@ void World::unload_render_data(SimSnapshot& snapshot)
 void World::fill_snapshot(SimSnapshot& snapshot)
 {
     /* Data that goes to both the renderer and the ImGUI panels */
+	cell_manager_.fill_statistics(statistics_); // protozoa statistics
 
     snapshot.stats = get_statistics(); // simulation statistics
     snapshot.toggles = toggles;
