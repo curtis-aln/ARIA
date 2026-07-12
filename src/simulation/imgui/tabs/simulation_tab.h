@@ -29,4 +29,9 @@ private:
     float m_spring_breaking_length_ = 0.f;
     float m_spring_damage_threshold_ = 0.f;
     float m_spring_work_const_ = 0.f;
+
+    int   m_camera_lock_ = 0;
+    float m_zoom_slider_ = 1.f;
+    float m_camera_friction_ = 0.98f;
+    float m_ui_scale_ = 100.f;
 };

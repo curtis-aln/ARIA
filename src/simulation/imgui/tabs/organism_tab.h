@@ -18,8 +18,8 @@ private:
     int   m_feed_mode_ = 0;     // 0 = energy,  1 = nutrients
     float m_feed_amount_ = 50.f;
 
+    void draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
     static void draw_no_selection();
-    static void draw_overview(const OrganismTracker& protozoa);
     void draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracker& protozoa);
     void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel);
     void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);

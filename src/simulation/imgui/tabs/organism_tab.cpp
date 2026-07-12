@@ -91,7 +91,7 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     // The panel showing information about the protozoa as a whole
     ImGui::BeginChild("OV_panel", { 240.f, -1.f }, false);
-    draw_overview(protozoa);
+    draw_overview(snap, ctx, protozoa);
     ImGui::EndChild();
 
     ImGui::SameLine();
@@ -129,7 +129,7 @@ void OrganismTab::draw_no_selection()
 // ─────────────────────────────────────────────────────────────────────────────
 //  Overview panel
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_overview(const OrganismTracker& protozoa)
+void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa)
 {
 
 
@@ -140,6 +140,10 @@ void OrganismTab::draw_overview(const OrganismTracker& protozoa)
     ImGui::Text("Age     %u", protozoa.frames_alive);
     ImGui::Text("Cells   %d", protozoa.cell_count);
     ImGui::Text("Springs %d", protozoa.spring_count);
+
+    ImGui::Spacing();
+    ImGui::TextDisabled("Misc");
+    ImGui::Text("Spring Work %.3f", protozoa.spring_total_work_done);
     ImGui::NextColumn();
 
     ImGui::TextDisabled("Locomotion");
@@ -150,41 +154,30 @@ void OrganismTab::draw_overview(const OrganismTracker& protozoa)
     ImGui::TextDisabled("Offspring");
     ImGui::Text("Count %d", protozoa.offspring_count);
     ImGui::Text("Food  %u", protozoa.total_food_eaten);
+    
 
     ImGui::Columns(1);
     ImGui::Spacing();
 
     // ── Energy ───────────────────────────────────────────────────────────
-    ImGui::TextDisabled("Energy");
     const float energy_f = std::clamp(protozoa.total_energy / protozoa.max_energy, 0.f, 1.f);
     char energy_lbl[32];
-    snprintf(energy_lbl, sizeof(energy_lbl), "%.0f / %.0f", protozoa.total_energy, protozoa.max_energy);
-    colored_progress(energy_f, fraction_color(energy_f), energy_lbl);
-    ImGui::Text("Spring Work %.3f", protozoa.spring_total_work_done);
+    snprintf(energy_lbl, sizeof(energy_lbl), "Energy %.0f / %.0f", protozoa.total_energy, protozoa.max_energy);
+    colored_progress(energy_f, fraction_color(energy_f), energy_lbl, {-1, 15});
 
     // ── Nutrients ───────
     ImGui::Spacing();
-    ImGui::TextDisabled("Nutrients");
     const float nutrients_f = std::clamp(protozoa.total_nutrients / protozoa.max_nutrients, 0.f, 1.f);
     char nutrients_lbl[32];
-    snprintf(energy_lbl, sizeof(nutrients_lbl), "%.0f / %.0f", protozoa.total_nutrients, protozoa.max_nutrients);
-    colored_progress(nutrients_f, nutrients_bar_col, nutrients_lbl);
+    snprintf(nutrients_lbl, sizeof(nutrients_lbl), "Nutrients %.0f / %.0f", protozoa.total_nutrients, protozoa.max_nutrients);
+    colored_progress(nutrients_f, nutrients_bar_col, nutrients_lbl, {-1, 15});
 
-
-    // ── Repro cooldown: counts down to zero, stays at zero when ready ─────
+    // ── Debug Overlays ────────────────────────────────────────────────────────
     ImGui::Spacing();
-    ImGui::TextDisabled("Reproduction cooldown");
-    const float cooldown = protozoa.reproduction_cooldown;
-    const float elapsed = protozoa.time_since_last_reproduced;
-    const float remaining_f = std::clamp(1.f - elapsed / cooldown, 0.f, 1.f);
-    char repro_lbl[24];
-    snprintf(repro_lbl, sizeof(repro_lbl), "%.0f", remaining_f * cooldown);
-    colored_progress(remaining_f, { 0.6f, 0.4f, 0.7f, 1.f },
-        remaining_f <= 0.f ? "Ready" : repro_lbl);
+    ImGui::Separator();
 
-    ImGui::Text("%d cells ready to reproduce (%.1f%%)",
-        protozoa.cells_ready_to_reproduce,
-        protozoa.ready_to_reproduce_percentage);
+	toggle(snap, ctx,"Debug Mode", &WorldToggles::debug_mode, "D");
+    toggle(snap, ctx, "Bounding Boxes", &WorldToggles::show_bounding_boxes, "B");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

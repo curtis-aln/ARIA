@@ -93,7 +93,7 @@ add_executable(ProjectARIA
     src/simulation/imgui/control_panel.cpp
     src/simulation/imgui/imgui_handling.cpp
     src/simulation/imgui/helpers/toast_system.cpp
-    src/simulation/imgui/tabs/display_tab.cpp
+    
     src/simulation/imgui/tabs/graphs_tab.cpp
     src/simulation/imgui/tabs/grid_tab.cpp
     src/simulation/imgui/tabs/organism_tab.cpp

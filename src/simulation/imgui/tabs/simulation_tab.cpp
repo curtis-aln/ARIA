@@ -99,7 +99,23 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		ctx.push(cmd);
     }
 
+    ImGui::TextDisabled("UI & Camera");
     ImGui::Separator();
+
+    toggle(snap, ctx, "Hide Panels", &WorldToggles::hide_panels, "Q");
+
+    ImGui::SetNextItemWidth(-1.f);
+    if (ImGui::SliderFloat("##uiscale", &m_ui_scale_, 50.f, 200.f, "UI Scale %.0f%%"))
+        ImGui::GetIO().FontGlobalScale = m_ui_scale_ / 100.f;
+
+    ImGui::SetNextItemWidth(-1.f);
+    ImGui::SliderFloat("##zoom", &m_zoom_slider_, 0.1f, 5.f, "Zoom %.2fx");
+
+    ImGui::Spacing();
+
+    ImGui::SetNextItemWidth(-1.f);
+    ImGui::SliderFloat("##camfriction", &m_camera_friction_, 0.f, 1.f, "Camera Friction %.2f"); // controling the friction of the camera movement (depricated)
+
     ImGui::EndChild();
     ImGui::SameLine();
 
@@ -237,20 +253,30 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     }
 
 	ImGui::Separator();
+    ImGui::TextDisabled("Toggles");
     toggle(snap, ctx, "Toggle Collisions", &WorldToggles::toggle_collisions, "C");
+    toggle(snap, ctx, "Enable Rendering", &WorldToggles::m_rendering_, "R");
+    toggle(snap, ctx, "Simple Mode", &WorldToggles::simple_mode, "S");
+    toggle(snap, ctx, "Debug Mode", &WorldToggles::debug_mode, "D");
+    toggle(snap, ctx, "Cell Grid", &WorldToggles::draw_cell_grid, "G");
+    toggle(snap, ctx, "Food Grid", &WorldToggles::draw_food_grid, "F");
+    toggle(snap, ctx, "Track Statistics", &WorldToggles::track_statistics, "T");
 
     ImGui::EndChild();
     ImGui::SameLine();
 
-    // ── Save / Load + Keybinds ────────────────────────────────────────────────
     ImGui::BeginChild("SIM_io", { -1.f, ch }, true);
+    // ── Save / Load + Keybinds ────────────────────────────────────────────────
+    /*
+    
     ImGui::TextDisabled("Save / Load");
     ImGui::Separator();
 
-    if (ImGui::Button("Save World", { -1.f, 0.f })) { /* TODO */ }
-    if (ImGui::Button("Load World", { -1.f, 0.f })) { /* TODO */ }
-    if (ImGui::Button("Save Settings JSON", { -1.f, 0.f })) { /* TODO */ }
-    if (ImGui::Button("Load Settings JSON", { -1.f, 0.f })) { /* TODO */ }
+    if (ImGui::Button("Save World", { -1.f, 0.f })) {  }
+    if (ImGui::Button("Load World", { -1.f, 0.f })) {  }
+    if (ImGui::Button("Save Settings JSON", { -1.f, 0.f })) {  }
+    if (ImGui::Button("Load Settings JSON", { -1.f, 0.f })) {  }
+    */
 
     ImGui::Spacing();
     ImGui::TextDisabled("Keybinds");
