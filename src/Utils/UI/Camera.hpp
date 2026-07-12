@@ -28,6 +28,10 @@ private:
 
     bool m_is_panning_ = false;
 
+    sf::Vector2f m_zoom_anchor_{};
+    bool m_zoom_anchor_is_mouse_ = true;
+    bool m_zoom_has_anchor_ = false;
+
 public:
 	float get_current_zoom() const { return m_current_zoom_; }
 
@@ -69,6 +73,7 @@ public:
 
     void zoom(const float scroll_delta)
     {
+        m_zoom_anchor_is_mouse_ = true;
         if (scroll_delta > 0)
             m_target_zoom_ *= (1.0f + m_zoom_strength_);
         else
@@ -100,18 +105,61 @@ public:
         m_window_->setView(m_view_);
     }
 
+    // smoothly sets zoom to an absolute level.
+    // if 'center' is given, the view also smoothly pans so that world point
+    // becomes the new view center. if omitted, current center is left alone.
+    void set_zoom(const float zoom_level, const sf::Vector2f center = { 0.f, 0.f })
+    {
+        m_target_zoom_ = zoom_level;
+        m_zoom_anchor_is_mouse_ = false;
+
+        if (center != sf::Vector2f{ 0.f, 0.f })
+        {
+            m_zoom_anchor_ = center;
+            m_zoom_has_anchor_ = true;
+        }
+        else
+        {
+            m_zoom_has_anchor_ = false;
+        }
+    }
+
 private:
     void smooth_zoom(const float dt)
     {
-        if (std::abs(m_current_zoom_ - m_target_zoom_) < 0.0001f)
+        const bool zoom_settled = std::abs(m_current_zoom_ - m_target_zoom_) < 0.0001f;
+        const bool anchor_active = m_zoom_has_anchor_ && !m_zoom_anchor_is_mouse_;
+
+        if (zoom_settled && !anchor_active)
             return;
 
-        const sf::Vector2f before = get_world_mouse_pos();
+        if (m_zoom_anchor_is_mouse_)
+        {
+            if (zoom_settled) return;
 
-        m_current_zoom_ += (m_target_zoom_ - m_current_zoom_) * m_smooth_zoom_speed_ * dt;
-        m_view_.setSize(sf::Vector2f(m_window_->getSize()) / m_current_zoom_);
+            const sf::Vector2f before = get_world_mouse_pos();
+            m_current_zoom_ += (m_target_zoom_ - m_current_zoom_) * m_smooth_zoom_speed_ * dt;
+            m_view_.setSize(sf::Vector2f(m_window_->getSize()) / m_current_zoom_);
+            const sf::Vector2f after = get_world_mouse_pos();
+            m_view_.move(before - after);
+            return;
+        }
 
-        const sf::Vector2f after = get_world_mouse_pos();
-        m_view_.move(before - after);
+        if (!zoom_settled)
+        {
+            m_current_zoom_ += (m_target_zoom_ - m_current_zoom_) * m_smooth_zoom_speed_ * dt;
+            m_view_.setSize(sf::Vector2f(m_window_->getSize()) / m_current_zoom_);
+        }
+
+        if (anchor_active)
+        {
+            const sf::Vector2f current_center = m_view_.getCenter();
+            const sf::Vector2f new_center = current_center + (m_zoom_anchor_ - current_center) * m_smooth_zoom_speed_ * dt;
+            m_view_.setCenter(new_center);
+
+            if (const sf::Vector2f diff = m_zoom_anchor_ - new_center;
+                std::abs(diff.x) < 0.5f && std::abs(diff.y) < 0.5f)
+                m_zoom_has_anchor_ = false;
+        }
     }
 };

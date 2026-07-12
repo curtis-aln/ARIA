@@ -68,7 +68,7 @@ void GraphsTab::draw_shared_toolbar(const SimSnapshot& snap)
     const float live_x = snap.stats.iterations_;
 
     ImGui::SetNextItemWidth(300.f);
-    ImGui::SliderFloat("Window (s)##g", &m_scroll_window_, 150.f, 4500.f, "%.0fs");
+    ImGui::SliderFloat("Window (s)##g", &m_scroll_window_, 150.f, 25000.f, "%.0fs");
     ImGui::SameLine(0, 16);
 
     if (m_recording_)

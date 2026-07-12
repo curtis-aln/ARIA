@@ -118,6 +118,11 @@ void Simulation::resolve_modifications()
             case CommandType::SetSpringWorkConst:
                 Spring::SPRING_WORK_CONST = cmd.float_val;
                 break;
+                
+			case CommandType::SetZoomLevel:
+				camera_.set_zoom(cmd.float_val, 
+                    camera_.window_pos_to_world_pos(sf::Vector2f{ (float)(videoMode.size.x/2u), (float)(videoMode.size.y/2u) }));
+				break;
 
             //case CommandType::SetRadius:
             //    if (selected_protozoa)

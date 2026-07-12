@@ -109,8 +109,15 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         ImGui::GetIO().FontGlobalScale = m_ui_scale_ / 100.f;
 
     ImGui::SetNextItemWidth(-1.f);
-    ImGui::SliderFloat("##zoom", &m_zoom_slider_, 0.1f, 5.f, "Zoom %.2fx");
-
+    m_zoom_slider_ = snap.sim_state.camera_zoom; // sync with sim state
+    if (ImGui::SliderFloat("##zoom", &m_zoom_slider_, 0.0025f, 11.f, "Zoom %.3fx", ImGuiSliderFlags_Logarithmic))
+    {
+        SimCommand cmd{
+            .section = CommandSection::WorldEvent,
+            .type = CommandType::SetZoomLevel,
+            .float_val = m_zoom_slider_ };
+        ctx.push(cmd);
+    }
     ImGui::Spacing();
 
     ImGui::SetNextItemWidth(-1.f);
@@ -182,6 +189,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     // ── Intensity and radius sliders ──────────────────────────────────────────────
     ImGui::SetNextItemWidth(-1.f);
+	m_mouse_intensity_ = snap.stats.mouse_intensity; // sync with sim state
     if (ImGui::SliderInt("##intensity", &m_mouse_intensity_, 1, 25, "Intensity %d%"))
     {
         SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetMouseIntensity, .int_val = m_mouse_intensity_ };
