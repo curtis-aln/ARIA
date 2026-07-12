@@ -10,9 +10,21 @@ public:
 
 private:
     // ── Shared toolbar state ──────────────────────────────────────────────
-    float m_scroll_window_ = 160.f;
+    
+    static constexpr float k_scroll_window_min = 900.f;      // ~15s @ 60fps
+    static constexpr float k_scroll_window_max = 1000000.f; 
+    float m_scroll_window_ = 9000.f;                        
     bool  m_recording_ = false;
     float m_record_start_ = 0.f;
+
+    // Population plot constants
+    static constexpr float k_extinction_threshold = 10.f; // count below which the sim is "extinct"
+
+    // Event marker mouse hit-test tolerance, as a FRACTION of the visible
+    // window width rather than an absolute frame count — an absolute value
+    // is meaningless once the window can span anywhere from ~900 to 1.5M
+    // frames (0.8 *frames* of tolerance is un-hittable at wide zoom levels).
+    static constexpr float k_event_hit_tolerance_frac = 0.003f;
 
     // Freeze the X window while the user hovers so they can inspect values.
     bool  m_hover_paused_ = false;
@@ -55,11 +67,4 @@ private:
     void draw_record_region(float x_max, float y_top);
     void draw_generations_tab(const SimSnapshot& snapshot);
     void draw_misc_tab(const SimSnapshot& snapshot);
-
-    // Compute the [min, max] of `data` for entries whose matching time falls
-    // within [x_min, x_max].  Returns false if no visible data exists.
-    static bool visible_range(const std::vector<float>& times,
-        const std::vector<float>& data,
-        float x_min, float x_max,
-        float& out_lo, float& out_hi);
 };

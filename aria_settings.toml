@@ -28,8 +28,8 @@ cell_max_capacity           = 14
 
 # ── Cell Manager ─────────────────────────────────────────────────────────
 [cell_manager]
-max_protozoa                = 70000     
-initial_protozoa            = 8000     
+max_protozoa                = 7000     
+initial_protozoa            = 800     
 auto_reset_on_extinction    = true
 
 # ── Cell ─────────────────────────────────────────────────────────────────

@@ -19,32 +19,6 @@ void GraphsTab::BandCache::refresh(const PopulationHistory& h, const bool need_p
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Visible-range helper
-// ─────────────────────────────────────────────────────────────────────────────
-bool GraphsTab::visible_range(const std::vector<float>& times,
-    const std::vector<float>& data,
-    const float x_min, const float x_max,
-    float& out_lo, float& out_hi)
-{
-    out_lo = FLT_MAX;
-    out_hi = -FLT_MAX;
-    const int n = static_cast<int>(std::min(times.size(), data.size()));
-    for (int i = 0; i < n; ++i)
-    {
-        if (times[i] < x_min || times[i] > x_max) continue;
-        out_lo = std::min(out_lo, data[i]);
-        out_hi = std::max(out_hi, data[i]);
-    }
-    if (out_lo == FLT_MAX) return false;
-
-    // Pad so the line doesn't kiss the axis edges.
-    const float pad = std::max((out_hi - out_lo) * 0.12f, 0.01f);
-    out_lo -= pad;
-    out_hi += pad;
-    return true;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  Top-level
 // ─────────────────────────────────────────────────────────────────────────────
 void GraphsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
@@ -64,11 +38,12 @@ void GraphsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 // ─────────────────────────────────────────────────────────────────────────────
 void GraphsTab::draw_shared_toolbar(const SimSnapshot& snap)
 {
-	const PopulationHistory& history = snap.history;
-    const float live_x = snap.stats.iterations_;
+    const PopulationHistory& history = snap.history;
+    const float live_x = static_cast<float>(history.current_frame());
 
-    ImGui::SetNextItemWidth(300.f);
-    ImGui::SliderFloat("Window (s)##g", &m_scroll_window_, 150.f, 25000.f, "%.0fs");
+    ImGui::SetNextItemWidth(400.f);
+    ImGui::SliderFloat("Window (frames)##g", &m_scroll_window_,
+        k_scroll_window_min, k_scroll_window_max, "%.0f");
     ImGui::SameLine(0, 16);
 
     if (m_recording_)
@@ -98,13 +73,13 @@ void GraphsTab::draw_shared_toolbar(const SimSnapshot& snap)
 // ─────────────────────────────────────────────────────────────────────────────
 void GraphsTab::draw_population_tab(const SimSnapshot& snap)
 {
-	const PopulationHistory& history = snap.history;
+    const PopulationHistory& history = snap.history;
     ImGui::Checkbox("Protozoa", &m_show_protozoa_); ImGui::SameLine(0, 12);
     ImGui::Checkbox("Food", &m_show_food_);     ImGui::SameLine(0, 12);
     ImGui::Checkbox("Total", &m_show_total_);    ImGui::SameLine(0, 12);
     ImGui::Checkbox("Bands", &m_show_bands_);
 
-    const float live_x = snap.stats.iterations_;
+    const float live_x = static_cast<float>(history.current_frame());
     const float x_max = m_hover_paused_ ? m_paused_x_max_ : live_x;
     const float x_min = x_max - m_scroll_window_;
 
@@ -117,61 +92,65 @@ void GraphsTab::draw_population_tab(const SimSnapshot& snap)
 
     if (!ImPlot::BeginPlot("##pop", { -1.f, -1.f }, pf)) return;
 
-    ImPlot::SetupAxes("Time (s)", "Count", ImPlotAxisFlags_None, yf);
+    ImPlot::SetupAxes("Frame", "Count", ImPlotAxisFlags_None, yf);
     ImPlot::SetupAxisLimits(ImAxis_X1, x_min, x_max, ImGuiCond_Always);
 
-    const int n = static_cast<int>(history.size());
+    // Only the visible slice ever gets handed to ImPlot — vertex count is
+    // now bounded by the scroll window, not by total sim runtime.
+    size_t begin = 0, count = 0;
+    history.window_bounds(x_min, x_max, begin, count);
+    const int n = static_cast<int>(count);
+
     if (n > 0)
     {
-        const float* t = history.time.data();
+        const float* t = history.time.data() + begin;
 
         if (m_show_bands_ && m_band_cache_.valid_for_n == history.size())
         {
             if (m_show_protozoa_ && !m_band_cache_.plo.empty())
             {
                 ImPlot::SetNextFillStyle({ 0.3f, 0.6f, 1.f, 1.f }, 0.15f);
-                ImPlot::PlotShaded("##pb", t, m_band_cache_.plo.data(),
-                    m_band_cache_.phi.data(), n);
+                ImPlot::PlotShaded("##pb", t, m_band_cache_.plo.data() + begin,
+                    m_band_cache_.phi.data() + begin, n);
             }
             if (m_show_food_ && !m_band_cache_.flo.empty())
             {
                 ImPlot::SetNextFillStyle({ 0.3f, 1.f, 0.4f, 1.f }, 0.12f);
-                ImPlot::PlotShaded("##fb", t, m_band_cache_.flo.data(),
-                    m_band_cache_.fhi.data(), n);
+                ImPlot::PlotShaded("##fb", t, m_band_cache_.flo.data() + begin,
+                    m_band_cache_.fhi.data() + begin, n);
             }
         }
 
         if (m_show_protozoa_)
         {
             ImPlot::SetNextLineStyle({ 0.3f, 0.6f, 1.f, 1.f });
-            ImPlot::PlotLine("Protozoa", t, history.protozoa.data(), n);
+            ImPlot::PlotLine("Protozoa", t, history.protozoa.data() + begin, n);
         }
         if (m_show_food_)
         {
             ImPlot::SetNextLineStyle({ 0.3f, 1.f, 0.4f, 1.f });
-            ImPlot::PlotLine("Food", t, history.food.data(), n);
+            ImPlot::PlotLine("Food", t, history.food.data() + begin, n);
         }
         if (m_show_total_)
         {
             ImPlot::SetNextLineStyle({ 0.65f, 0.65f, 0.65f, 1.f });
-            ImPlot::PlotLine("Total", t, history.total.data(), n);
+            ImPlot::PlotLine("Total", t, history.total.data() + begin, n);
         }
 
         // Extinction threshold line
         {
             ImPlot::SetNextLineStyle({ 1.f, 0.25f, 0.25f, 0.8f }, 1.f);
             const float tx[2] = { t[0], t[n - 1] };
-            const float ty[2] = { 10.f, 10.f };
+            const float ty[2] = { k_extinction_threshold, k_extinction_threshold };
             ImPlot::PlotLine("##ext", tx, ty, 2);
         }
 
-        // Use the visible-window max for event marker height so they don't
-        // blow up the Y axis when hover-paused on historical low-count periods.
-        float y_top = 0.f;
+        // Visible-window max, for event marker height, so they don't blow up
+        // the Y axis when hover-paused on historical low-count periods.
+        float y_top = k_extinction_threshold; // never shorter than the extinction line
+        const float* total_slice = history.total.data() + begin;
         for (int i = 0; i < n; ++i)
-            if (history.time[i] >= x_min && history.time[i] <= x_max)
-                y_top = std::max(y_top, history.total[i]);
-        y_top = std::max(y_top, 10.f); // never shorter than the extinction line
+            y_top = std::max(y_top, total_slice[i]);
 
         draw_event_markers(snap, x_min, x_max, y_top);
         if (m_recording_ && m_record_start_ >= x_min)
@@ -195,6 +174,7 @@ void GraphsTab::draw_population_tab(const SimSnapshot& snap)
 void GraphsTab::draw_event_markers(const SimSnapshot& snap, const float x_min, const float x_max, const float y_top)
 {
     const PopulationHistory& history = snap.history;
+    const float tolerance = (x_max - x_min) * k_event_hit_tolerance_frac;
     for (const auto& ev : history.events)
     {
         if (ev.time < x_min || ev.time > x_max) continue;
@@ -206,8 +186,8 @@ void GraphsTab::draw_event_markers(const SimSnapshot& snap, const float x_min, c
         if (ImPlot::IsPlotHovered())
         {
             const ImPlotPoint mp = ImPlot::GetPlotMousePos();
-            if (std::abs(static_cast<float>(mp.x) - ev.time) < 0.8f)
-                ImGui::SetTooltip("%s @ %.1fs", ev.label.c_str(), ev.time);
+            if (std::abs(static_cast<float>(mp.x) - ev.time) < tolerance)
+                ImGui::SetTooltip("%s @ frame %.0f", ev.label.c_str(), ev.time);
         }
     }
 }
@@ -285,25 +265,37 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
     ImGui::SameLine();
     ImGui::TextDisabled("(or double-click plot)");
 
-    // Guard: need matching time and misc series
+    // Guard: need matching time and misc series (these now stay aligned
+    // automatically since PopulationHistory::push() writes both together).
     const MiscSeries& ms = history.misc;
-    const int         n = static_cast<int>(std::min(history.time.size(), ms.size()));
-    if (n == 0)
+    if (history.size() == 0 || ms.size() == 0)
     {
         ImGui::TextDisabled("No misc data — enable Track Stats and wait.");
         return;
     }
 
-    const float live_x = snap.stats.iterations_;
+    const float live_x = static_cast<float>(history.current_frame());
     const float x_max = m_hover_paused_ ? m_paused_x_max_ : live_x;
     const float x_min = x_max - m_scroll_window_;
-    const float* t = history.time.data();
+
+    // Only the visible slice ever gets handed to ImPlot, same as the
+    // population tab — bounds vertex count regardless of sim runtime.
+    size_t begin = 0, count = 0;
+    history.window_bounds(x_min, x_max, begin, count);
+    const int n = static_cast<int>(count);
+    if (n == 0)
+    {
+        ImGui::TextDisabled("Nothing in the visible window yet.");
+        return;
+    }
+    const float* t = history.time.data() + begin;
 
     // Determine which axes are actually in use this frame.
     const bool any_y1 = m_show_mut_rate_ || m_show_mut_range_;
     const bool any_y2 = m_show_offspring_ || m_show_lifetime_ ||
         m_show_avg_cells_ || m_show_avg_springs_ || m_show_avg_energy_;
 
+    // Min/max over just the windowed slice — no per-series full-array scan.
     auto compute_axis_range = [&](const std::vector<const std::vector<float>*>& series,
         float& lo, float& hi)
         {
@@ -313,12 +305,10 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
             for (const auto* s : series)
             {
                 if (!s) continue; // safety
-
-                float slo, shi;
-                if (visible_range(history.time, *s, x_min, x_max, slo, shi))
+                for (int i = 0; i < n; ++i)
                 {
-                    lo = std::min(lo, slo);
-                    hi = std::max(hi, shi);
+                    lo = std::min(lo, (*s)[begin + i]);
+                    hi = std::max(hi, (*s)[begin + i]);
                 }
             }
 
@@ -326,6 +316,13 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
             {
                 lo = 0.f;
                 hi = 1.f;
+            }
+            else
+            {
+                // Pad so the line doesn't kiss the axis edges.
+                const float pad = std::max((hi - lo) * 0.12f, 0.01f);
+                lo -= pad;
+                hi += pad;
             }
         };
 
@@ -336,7 +333,7 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
         std::vector<const std::vector<float>*> active_y1;
         if (m_show_mut_rate_)  active_y1.push_back(&ms.mut_rate);
         if (m_show_mut_range_) active_y1.push_back(&ms.mut_range);
-        
+
         compute_axis_range(active_y1, y1_lo, y1_hi);
     }
     if (any_y2)
@@ -387,13 +384,13 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
             ImPlot::PlotLine(name, t, data, n);
         };
 
-    if (m_show_mut_rate_)    plot_y1("Mut Rate", ms.mut_rate.data(), { 1.f,  0.5f, 0.2f, 1.f });
-    if (m_show_mut_range_)   plot_y1("Mut Range", ms.mut_range.data(), { 1.f,  0.8f, 0.2f, 1.f });
-    if (m_show_offspring_)   plot_y2("Offspring", ms.avg_offspring.data(), { 0.4f, 1.f,  0.6f, 1.f });
-    if (m_show_lifetime_)    plot_y2("Lifetime", ms.avg_lifetime.data(), { 0.6f, 0.4f, 1.f,  1.f });
-    if (m_show_avg_cells_)   plot_y2("Avg Cells", ms.avg_cells.data(), { 0.3f, 0.8f, 1.f,  1.f });
-    if (m_show_avg_springs_) plot_y2("Avg Springs", ms.avg_springs.data(), { 0.9f, 0.3f, 0.9f, 1.f });
-    if (m_show_avg_energy_)  plot_y2("Avg Energy", ms.avg_energy.data(), { 1.f,  0.9f, 0.3f, 1.f });
+    if (m_show_mut_rate_)    plot_y1("Mut Rate", ms.mut_rate.data() + begin, { 1.f,  0.5f, 0.2f, 1.f });
+    if (m_show_mut_range_)   plot_y1("Mut Range", ms.mut_range.data() + begin, { 1.f,  0.8f, 0.2f, 1.f });
+    if (m_show_offspring_)   plot_y2("Offspring", ms.avg_offspring.data() + begin, { 0.4f, 1.f,  0.6f, 1.f });
+    if (m_show_lifetime_)    plot_y2("Lifetime", ms.avg_lifetime.data() + begin, { 0.6f, 0.4f, 1.f,  1.f });
+    if (m_show_avg_cells_)   plot_y2("Avg Cells", ms.avg_cells.data() + begin, { 0.3f, 0.8f, 1.f,  1.f });
+    if (m_show_avg_springs_) plot_y2("Avg Springs", ms.avg_springs.data() + begin, { 0.9f, 0.3f, 0.9f, 1.f });
+    if (m_show_avg_energy_)  plot_y2("Avg Energy", ms.avg_energy.data() + begin, { 1.f,  0.9f, 0.3f, 1.f });
 
     ImPlot::EndPlot();
 }

@@ -55,6 +55,7 @@ void Simulation::update_one_frame()
   
     m_world_.update(snap); 
     fill_snapshot(snap);
+    update_line_graphs(snap);
 
 	m_sim_buffer_.publish(); // Publish the filled snapshot to make it available for rendering.
 
@@ -285,12 +286,9 @@ void Simulation::camera_follow_selected_protozoa()
 void Simulation::update_line_graphs(const SimSnapshot& snapshot)
 {
     m_history_.push(
-        snapshot.stats.iterations_,
         snapshot.stats.cell_count,
         snapshot.stats.food_count,
-        snapshot.stats.average_generation);
-
-    m_history_.push_misc(
+        snapshot.stats.average_generation,
         snapshot.stats.average_mutation_rate,
         snapshot.stats.average_mutation_range,
         snapshot.stats.average_offspring_count,
@@ -316,7 +314,6 @@ void Simulation::render()
         m_world_.render(snap, pos);
     }
 
-    update_line_graphs(snap);
     handle_imGUI(snap, dt);
 
     m_sim_buffer_.end_read();

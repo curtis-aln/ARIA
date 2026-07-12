@@ -4,6 +4,7 @@
 #include <fstream>
 #include <algorithm>
 #include <numeric>
+#include <cstdint>
 #include "imgui.h"
 
 struct PopulationEvent
@@ -53,13 +54,17 @@ struct MiscSeries
 // ── Main history ring ─────────────────────────────────────────────────────────
 struct PopulationHistory
 {
-    // Capacity before eviction triggers.  Eviction drops k_evict_chunk at once
-    // so the amortised cost per push is O(1) rather than O(n).
-    static constexpr size_t k_max_samples = 38192;
-    static constexpr size_t k_evict_chunk = 512;
-    static constexpr int    k_spike_delta = 20;   // protozoa Δ that creates an event
-    static constexpr float  k_event_cooldown = 50.f; // minimum seconds between auto-events
+    // ── Tunables — everything that shapes sampling/eviction lives here ────
+    static constexpr size_t k_max_samples = 38192; // samples kept before eviction
+    static constexpr size_t k_evict_chunk = 512;   // amortises erase cost to O(1)/push
+    static constexpr int    k_frame_stride = 30;    // record 1 sample every N sim frames
+    static constexpr int    k_spike_delta = 20;    // protozoa Δ that creates an event
+    static constexpr float  k_event_cooldown_frames = 3000.f; // min frames between auto-events
+    // ^ tune to taste: frames = seconds * your sim's tick rate, not wall-clock seconds.
 
+    // `time` holds the raw simulation frame number the sample was taken at.
+    // Everything in this struct is frame-indexed — there is no seconds unit
+    // anywhere in here, on purpose, so callers can't accidentally mix scales.
     std::vector<float> time = {};
     std::vector<float> protozoa = {};
     std::vector<float> food = {};
@@ -71,20 +76,33 @@ struct PopulationHistory
 
     // ── Mutation ─────────────────────────────────────────────────────────────
 
-    void push(float t, int p, int f, float gen)
+    // Call this once per simulation tick — every tick, unconditionally.
+    // PopulationHistory owns the sampling cadence internally (k_frame_stride)
+    // so callers never need their own throttle counter. Population and misc
+    // stats are pushed together in the same call so the two series can never
+    // drift out of index-alignment with each other or with `time`.
+    // Returns true if a sample was actually recorded this call.
+    bool push(int p, int f, float gen,
+        float mr, float mrng, float ao, float al, float ac, float asp, float ae)
     {
+        ++m_frame_counter_;
+        if (m_frame_counter_ % k_frame_stride != 0)
+            return false;
+
         if (time.size() >= k_max_samples)
             _evict();
 
-        const int  prev_p = protozoa.empty() ? p : static_cast<int>(protozoa.back());
-        const bool on_cooldown = !events.empty() && (t - events.back().time) < k_event_cooldown;
-        const int  delta = std::abs(p - prev_p);
+        const float t = static_cast<float>(m_frame_counter_);
+        const int   prev_p = protozoa.empty() ? p : static_cast<int>(protozoa.back());
+        const bool  on_cooldown = !events.empty() && (t - events.back().time) < k_event_cooldown_frames;
+        const int   delta = std::abs(p - prev_p);
 
         time.push_back(t);
         protozoa.push_back(static_cast<float>(p));
         food.push_back(static_cast<float>(f));
         total.push_back(static_cast<float>(p + f));
         avg_gen.push_back(gen);
+        misc.push(mr, mrng, ao, al, ac, asp, ae);
 
         if (!on_cooldown && delta > k_spike_delta)
         {
@@ -96,17 +114,31 @@ struct PopulationHistory
             : ImVec4{ 0.3f, 1.f, 0.5f, 1.f };
             events.push_back({ t, std::move(lbl), col });
         }
-    }
-
-    void push_misc(float mr, float mrng, float ao, float al, float ac, float asp, float ae)
-    {
-        misc.push(mr, mrng, ao, al, ac, asp, ae);
+        return true;
     }
 
     void add_manual_event(float t, std::string label,
         ImVec4 col = ImVec4{ 1.f, 0.8f, 0.2f, 1.f })
     {
         events.push_back({ t, std::move(label), col });
+    }
+
+    // Authoritative "now", in the same frame unit `time` is stored in. Use
+    // this for the live edge of the graph instead of a separately-tracked
+    // counter, so the visible window can never desync from the data.
+    uint64_t current_frame() const { return m_frame_counter_; }
+
+    // Returns the [begin, begin+count) slice of the sample arrays whose
+    // time falls within [x_min, x_max]. O(log n) via binary search since
+    // `time` is monotonically increasing. Callers should plot only this
+    // slice instead of the full history — otherwise vertex count grows
+    // without bound as the sim runs longer, regardless of what's on screen.
+    void window_bounds(float x_min, float x_max, size_t& begin, size_t& count) const
+    {
+        const auto lo = std::lower_bound(time.begin(), time.end(), x_min);
+        const auto hi = std::upper_bound(time.begin(), time.end(), x_max);
+        begin = static_cast<size_t>(lo - time.begin());
+        count = (hi > lo) ? static_cast<size_t>(hi - lo) : 0;
     }
 
     // ── Band helper ───────────────────────────────────────────────────────────
@@ -135,7 +167,7 @@ struct PopulationHistory
     void export_csv(const std::string& path) const
     {
         std::ofstream f(path);
-        f << "time,protozoa,food,total,avg_gen,"
+        f << "frame,protozoa,food,total,avg_gen,"
             "mut_rate,mut_range,avg_offspring,avg_lifetime,"
             "avg_cells,avg_springs,avg_energy\n";
 
@@ -156,6 +188,8 @@ struct PopulationHistory
     size_t size() const { return time.size(); }
 
 private:
+    uint64_t m_frame_counter_ = 0; // raw sim ticks seen; only every k_frame_stride'th is recorded
+
     // Drop k_evict_chunk elements from every series.  Amortises the O(n) erase
     // cost so the per-push amortised cost is O(1).
     void _evict()
