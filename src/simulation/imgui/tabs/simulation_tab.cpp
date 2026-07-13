@@ -69,7 +69,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
         if (ImGui::SliderFloat("##updating fps", &fps_val, 30.f, kSliderMax, fmt))
         {
-            SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetUpdatingFrameRate, .float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val };
+            SimCommand cmd{ .section = CommandSection::SimulationEvent, .type = CommandType::SetUpdatingFrameRate, .float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val };
             ctx.push(cmd);
         }
     }
@@ -87,7 +87,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
         if (ImGui::SliderFloat("##rendering fps", &fps_val, 30.f, kSliderMax, fmt))
         {
-            SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetRenderingFrameRate, .float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val };
+            SimCommand cmd{ .section = CommandSection::SimulationEvent, .type = CommandType::SetRenderingFrameRate, .float_val = (fps_val > kMaxThreshold) ? 0.f : fps_val };
             ctx.push(cmd);
         }
     }
@@ -113,7 +113,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::SliderFloat("##zoom", &m_zoom_slider_, 0.0025f, 11.f, "Zoom %.3fx", ImGuiSliderFlags_Logarithmic))
     {
         SimCommand cmd{
-            .section = CommandSection::WorldEvent,
+            .section = CommandSection::SimulationEvent,
             .type = CommandType::SetZoomLevel,
             .float_val = m_zoom_slider_ };
         ctx.push(cmd);
@@ -144,7 +144,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
             if (ImGui::Button(label, { last_in_row ? -1.f : hw, 0.f }))
             {
                 m_mouse_mode_ = mode;
-                SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetMouseMode, .int_val = mode };
+                SimCommand cmd{ .section = CommandSection::SimulationEvent, .type = CommandType::SetMouseMode, .int_val = mode };
                 ctx.push(cmd);
             }
 
@@ -232,7 +232,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_breaking_force_ = snap.cell_manager_stats.spring_breaking_force;
     if (ImGui::SliderFloat("##breaking force", &m_spring_breaking_force_, 0.f, 30.f, "breaking force %.2f"))
     {
-        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringBreakingForce, .float_val = m_spring_breaking_force_ };
+        SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringBreakingForce, .float_val = m_spring_breaking_force_ };
         ctx.push(cmd);
     }
 
@@ -240,7 +240,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_breaking_length_ = snap.cell_manager_stats.spring_breaking_length;
     if (ImGui::SliderFloat("##breaking Length", &m_spring_breaking_length_, 0.f, 400.f, "breaking Length %.2f"))
     {
-        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringBreakingLength, .float_val = m_spring_breaking_length_ };
+        SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringBreakingLength, .float_val = m_spring_breaking_length_ };
         ctx.push(cmd);
     }
 
@@ -248,7 +248,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_damage_threshold_ = snap.cell_manager_stats.spring_damage_threshold;
     if (ImGui::SliderFloat("##Damage Threshold", &m_spring_damage_threshold_, 0.f, 1.f, "Damage Threshold %.2f"))
     {
-        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringDamageThreshold, .float_val = m_spring_damage_threshold_ };
+        SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringDamageThreshold, .float_val = m_spring_damage_threshold_ };
         ctx.push(cmd);
     }
 
@@ -256,7 +256,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_work_const_ = snap.cell_manager_stats.spring_work_const;
     if (ImGui::SliderFloat("##Spring Work Const", &m_spring_work_const_, 0.f, 0.001f, "Spring Work Const %.6f"))
     {
-        SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringWorkConst, .float_val = m_spring_work_const_ };
+        SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringWorkConst, .float_val = m_spring_work_const_ };
         ctx.push(cmd);
     }
 

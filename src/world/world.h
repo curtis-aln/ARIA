@@ -81,6 +81,7 @@ public:
     // ── Render ───────────────────────────────────────────────────────────────
     void render(const SimSnapshot& snapshot, sf::Vector2f mouse_pos);
 
+    void handle_world_event(SimCommand& cmd);
     void reset_world();
 
 
@@ -124,6 +125,8 @@ private:
     void nearby_food_information(const OrganismTracker& protozoa) const;
 
     int check_mouse_press(const OrganismTracker& protozoa, sf::Vector2f mousePosition, bool tolerance_check) const;
+
+    
    
     void debug_sanity_checks();
 

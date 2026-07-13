@@ -128,3 +128,28 @@ void Simulation::handle_events()
 
 	camera_.update(rendering_clock_.get_delta_time());
 }
+
+void Simulation::handle_simulation_event(SimCommand& cmd)
+{
+	switch (cmd.type)
+	{
+	case CommandType::SetUpdatingFrameRate:
+		sim_state_.max_frame_rate_updating = cmd.float_val;
+		updating_clock_.set_target_fps(cmd.float_val);
+		break;
+
+	case CommandType::SetRenderingFrameRate:
+		sim_state_.max_frame_rate_rendering = cmd.float_val;
+		rendering_clock_.set_target_fps(cmd.float_val);
+		break;
+
+	case CommandType::SetMouseMode:
+		m_world_.get_statistics().mouse_mode = cmd.int_val;
+		break;
+
+	case CommandType::SetZoomLevel:
+		camera_.set_zoom(cmd.float_val,
+			camera_.window_pos_to_world_pos(sf::Vector2f{ (float)(videoMode.size.x / 2u), (float)(videoMode.size.y / 2u) }));
+		break;
+	}
+}

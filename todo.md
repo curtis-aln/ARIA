@@ -86,8 +86,6 @@ I could do with being able to modify the food nutrients Live
 - There is no way for 2 celld organisms to add a cell or connection
 - No way to see how many cells or food are in the circle
 - Background Grid doesnt Fade out
-- you can accidently click on protozoa when zoomed out
-- Protozoa Bounding Boxes are wrong
 - Peak Ever is ambiguous
 - Average lifetime isnt calculated
 - Longest Lifetime isnt calculated
@@ -100,7 +98,6 @@ I could do with being able to modify the food nutrients Live
 - Highlighted cells and Highlighted food isnt live
 - World Resize doesnt work
 [Done] Toggle collisions doesnt work and should be moved to world section in simulation tab
-- Try drawing the connections inbetween the first and second layer of the circles
 - Line graph blows up
 - The whole Tagged system doesnt work
 - The Tools Tab needs to be side by side
@@ -184,4 +181,4 @@ And Churn out:
 - delta length
 
 i can begin working on the movement system when i solve 15 bugs
-OOOOOOOOOOOOOOO
+XXOOOOOOOOOOOOO

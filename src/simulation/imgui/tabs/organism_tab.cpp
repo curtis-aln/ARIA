@@ -274,12 +274,13 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
     const float current_friction = c.calculate_friction();
 
     auto slider_float_cmd = [&](const char* label, float current, float min, float max,
-        const char* fmt, CommandType type)
+        const char* fmt, CommandSection section, CommandType type)
         {
             float val = current;
             if (ImGui::SliderFloat(label, &val, min, max, fmt))
             {
                 SimCommand cmd;
+				cmd.section = section;
                 cmd.type = type;
                 cmd.float_val = val;
 				cmd.cell_spring_idx = c.body_id_;
@@ -349,7 +350,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
     
     slider_float_cmd("##rad_c", c.radius,
         CellGeneticConstraints::radius.min, CellGeneticConstraints::radius.max,
-        "R = %.1f", CommandType::SetRadius);
+        "R = %.1f", CommandSection::CellManagerEvent, CommandType::SetRadius);
 
     ImGui::EndChild();
     ImGui::SameLine();
@@ -371,13 +372,13 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
 
     ImGui::Spacing();
     ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##cA", c.amplitude, CellGeneticConstraints::amplitude.min, CellGeneticConstraints::amplitude.max, "Amplitude = %.3f", CommandType::SetAmplitude);
+    slider_float_cmd("##cA", c.amplitude, CellGeneticConstraints::amplitude.min, CellGeneticConstraints::amplitude.max, "Amplitude = %.3f", CommandSection::CellManagerEvent, CommandType::SetAmplitude);
     ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cB", c.frequency, CellGeneticConstraints::frequency.min, CellGeneticConstraints::frequency.max, "Frequency = %.5f", CommandType::SetFrequency);
+	slider_float_cmd("##cB", c.frequency, CellGeneticConstraints::frequency.min, CellGeneticConstraints::frequency.max, "Frequency = %.5f", CommandSection::CellManagerEvent, CommandType::SetFrequency);
     ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cC", c.offset, CellGeneticConstraints::offset.min, CellGeneticConstraints::offset.max, "Phase     = %.3f", CommandType::SetOffset);
+	slider_float_cmd("##cC", c.offset, CellGeneticConstraints::offset.min, CellGeneticConstraints::offset.max, "Phase     = %.3f", CommandSection::CellManagerEvent, CommandType::SetOffset);
     ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cD", c.vertical_shift, CellGeneticConstraints::vertical_shift.min, CellGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetVerticalShift);
+	slider_float_cmd("##cD", c.vertical_shift, CellGeneticConstraints::vertical_shift.min, CellGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandSection::CellManagerEvent, CommandType::SetVerticalShift);
 
     ImGui::EndChild();
 }
@@ -388,7 +389,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
 void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s)
 {
     auto slider_float_cmd = [&](const char* label, float current, float min, float max,
-        const char* fmt, CommandType type)
+        const char* fmt, CommandSection section, CommandType type)
         {
             float val = current;
             if (ImGui::SliderFloat(label, &val, min, max, fmt))
@@ -450,12 +451,12 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
 
     slider_float_cmd("##sk", s.spring_const,
         0.f, SpringGeneticConstraints::spring_const.max,
-        "Spring constant = %.3f", CommandType::SetSpringConst);
+        "Spring constant = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringConst);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sd", s.damping,
         0.f, SpringGeneticConstraints::damping.max,
-        "Damping         = %.3f", CommandType::SetDampingConst);
+        "Damping         = %.3f", CommandSection::CellManagerEvent, CommandType::SetDampingConst);
 
     ImGui::EndChild();
     ImGui::SameLine();
@@ -479,22 +480,22 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sA", s.amplitude,
         0.f, SpringGeneticConstraints::amplitude.max,
-        "Amplitude = %.3f", CommandType::SetSpringAmplitude);
+        "Amplitude = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringAmplitude);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sB", s.frequency,
         -SpringGeneticConstraints::frequency.min, SpringGeneticConstraints::frequency.max,
-        "Frequency = %.5f", CommandType::SetSpringFrequency);
+        "Frequency = %.5f", CommandSection::CellManagerEvent, CommandType::SetSpringFrequency);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sC", s.offset,
         -SpringGeneticConstraints::offset.min, SpringGeneticConstraints::offset.max,
-        "Phase     = %.3f", CommandType::SetSpringOffset);
+        "Phase     = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringOffset);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd("##sD", s.vertical_shift,
         -SpringGeneticConstraints::vertical_shift.min, SpringGeneticConstraints::vertical_shift.max,
-        "Shift     = %.3f", CommandType::SetSpringVerticalShift);
+        "Shift     = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringVerticalShift);
 
     ImGui::EndChild();
 }
@@ -520,7 +521,7 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     ImGui::Spacing();
     if (ImGui::Button("Apply Mutation", { -1.f, 0.f }))
     {
-        SimCommand cmd{.type = CommandType::MutateProtozoa };
+        SimCommand cmd{.section = CommandSection::CellManagerEvent, .type = CommandType::MutateProtozoa };
         cmd.mutate = {.mut_rate = tun_rate, .mut_range = tun_range };
         ctx.push(cmd);
     }
@@ -545,7 +546,7 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     ImGui::SameLine();
     if (ImGui::Button("Inject##org"))
     {
-        SimCommand cmd{.type = CommandType::InjectProtozoa };
+        SimCommand cmd{.section = CommandSection::CellManagerEvent, .type = CommandType::InjectProtozoa };
         cmd.float_val = feed_energy;
         ctx.push(cmd);
     }
@@ -567,14 +568,14 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     }
     ImGui::Spacing();
     if (ImGui::Button("Force Reproduce##org", { -1.f, 0.f }))
-        ctx.push({.type = CommandType::ForceReproduce });
+        ctx.push({.section = CommandSection::CellManagerEvent, .type = CommandType::ForceReproduce });
 
     ImGui::Spacing();
     ImGui::PushStyleColor(ImGuiCol_Button, { 0.55f, 0.08f, 0.08f, 1.f });
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.75f, 0.15f, 0.15f, 1.f });
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 1.00f, 0.25f, 0.25f, 1.f });
     if (ConfirmButton::draw("Force Die##org", { -1.f, 0.f }))
-        ctx.push({.type = CommandType::KillProtozoa });
+        ctx.push({.section = CommandSection::CellManagerEvent, .type = CommandType::KillProtozoa });
     ImGui::PopStyleColor(3);
     ImGui::EndChild();
     ImGui::SameLine();
@@ -583,7 +584,7 @@ void OrganismTab::draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot&
     ImGui::BeginChild("TC_clone", { -1.f, ch }, true);
     ImGui::TextDisabled("Clone & File");
     ImGui::Separator();
-    if (ImGui::Button("Clone nearby##org", { -1.f, 0.f })) ctx.push({.type = CommandType::CloneProtozoa });
+    if (ImGui::Button("Clone nearby##org", { -1.f, 0.f })) ctx.push({.section = CommandSection::CellManagerEvent, .type = CommandType::CloneProtozoa });
     if (ImGui::Button("Save to file (stub)##org", { -1.f, 0.f })) {}
     if (ImGui::Button("Load & spawn from file (stub)##org", { -1.f, 0.f })) {}
 

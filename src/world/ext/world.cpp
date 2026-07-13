@@ -5,6 +5,7 @@
 #include "../../Utils/Graphics/CircleBatchRenderer.h"
 #include "../../entities/cell/cell_genome.h"
 #include "simulation/settings/settings.h"
+#include <simulation/context/sim_command.h>
 
 World::World(sf::RenderWindow* window) : m_window_(window)
 {
@@ -179,4 +180,37 @@ int World::check_mouse_press(const OrganismTracker& protozoa, const sf::Vector2f
     }
 
     return -1;
+}
+
+void World::handle_world_event(SimCommand& cmd)
+{
+    switch (cmd.type)
+    {
+        case CommandType::SetWorldToggles:
+            toggles = cmd.toggles;
+            break;
+
+        case CommandType::ResetSimulation:
+            reset_world();
+            break;
+
+        case CommandType::SetInfluenceRadius:
+            statistics_.mouse_radius = cmd.float_val;
+            break;
+
+        case CommandType::SetMouseIntensity:
+            statistics_.mouse_intensity = cmd.int_val;
+            break;
+
+        case CommandType::SetCellGridResolution:
+            //m_world_.get_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
+            //m_world_.update_spatial_renderers();
+            break;
+
+        case CommandType::SetFoodGridResolution:
+            //m_world_.get_food_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
+            //m_world_.update_spatial_renderers();
+            break;
+    }
+
 }

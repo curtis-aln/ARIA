@@ -293,3 +293,146 @@ void CellManager::influence_cell_velocities_in_radii(const sf::Vector2f& positio
 		body->velocity_ += direction * (float)intensity;
 	}
 }
+
+void CellManager::handle_cell_manager_event(SimCommand& cmd)
+{
+	switch (cmd.type)
+	{
+	// Spring Natual Selection Modifier
+	case CommandType::SetSpringBreakingForce:
+		Spring::SPRING_BREAK_FORCE = cmd.float_val;
+		break;
+	case CommandType::SetSpringBreakingLength:
+		Spring::SPRING_BREAK_LENGTH = cmd.float_val;
+		break;
+	case CommandType::SetSpringDamageThreshold:
+		Spring::SPRING_DAMAGE_THRESH = cmd.float_val;
+		break;
+	case CommandType::SetSpringWorkConst:
+		Spring::SPRING_WORK_CONST = cmd.float_val;
+		break;
+
+	case CommandType::SetRadius:
+		//    if (selected_protozoa)
+		//        selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;
+		    break;
+
+	case CommandType::SetAmplitude:
+	//    if (selected_protozoa)
+	//        selected_protozoa->get_cells()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+		break;
+
+	case CommandType::SetFrequency:
+		//if (selected_protozoa)
+		//    selected_protozoa->get_cells()[cmd.cell_spring_idx].frequency = cmd.float_val;
+		break;
+
+	case CommandType::SetVerticalShift:
+		//if (selected_protozoa)
+		//    selected_protozoa->get_cells()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
+		break;
+
+	case CommandType::SetOffset:
+		//if (selected_protozoa)
+		//    selected_protozoa->get_cells()[cmd.cell_spring_idx].offset = cmd.float_val;
+		break;
+
+	case CommandType::MutateProtozoa:
+		//if (selected_protozoa)
+	   //     selected_protozoa->mutate(cmd.mutate.mut_rate, cmd.mutate.mut_range);
+		break;
+
+	case CommandType::AddCell:
+		//if (selected_protozoa)
+		//    selected_protozoa->add_cell();
+		break;
+
+	case CommandType::RemoveCell:
+		//if (selected_protozoa)
+		//    selected_protozoa->remove_cell();
+		break;
+
+	case CommandType::AddSpring:
+		//if (selected_protozoa)
+		//    selected_protozoa->add_spring(); todo
+		break;
+
+	case CommandType::RemoveSpring:
+		//if (selected_protozoa)
+		//    selected_protozoa->remove_spring(); todo
+		break;
+
+	case CommandType::InjectProtozoa:
+		//if (selected_protozoa)
+		//    m_world_.inject_protozoa(selected_protozoa, cmd.float_val);
+		break;
+
+	case CommandType::KillProtozoa:
+		//if (selected_protozoa)
+		//    selected_protozoa->kill(); // todo
+		break;
+
+	case CommandType::ForceReproduce:
+		//if (selected_protozoa) // todo
+		//    selected_protozoa->force_reproduce();
+		break;
+
+	case CommandType::MakeImmortal:
+		//if (selected_protozoa) // todo
+		//    selected_protozoa->immortal = cmd.bool_val;
+		break;
+
+	case CommandType::CloneProtozoa:
+		//if (selected_protozoa)
+		//{
+		//    m_world_.create_offspring(selected_protozoa, false);
+		//}
+		break;
+
+	case CommandType::SetSpringAmplitude:
+		//if (selected_protozoa)
+		//{
+		//    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
+		//}
+		break;
+
+	case CommandType::SetSpringFrequency:
+		//if (selected_protozoa)
+		//{
+		//    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
+		//}
+		break;
+
+	case CommandType::SetSpringOffset:
+		//if (selected_protozoa)
+		//{
+		//    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
+		//}
+		//break;
+			//m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
+		//}
+		break;
+
+	case CommandType::SetSpringVerticalShift:
+		//if (selected_protozoa)
+		//{
+			//m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
+		//}
+		break;
+
+	case CommandType::SetDampingConst:
+		//if (selected_protozoa)
+		//{
+		   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].damping = cmd.float_val;
+		//}
+		break;
+
+	case CommandType::SetSpringConst:
+		//if (selected_protozoa)
+		//{
+		   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
+		//}
+		break;
+
+	}
+}

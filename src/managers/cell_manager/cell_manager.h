@@ -15,6 +15,9 @@
 #include "organism_tracker.h"
 #include "../../simulation/context/sim_snapshot.h"
 
+#include <simulation/context/sim_command.h>
+
+
 struct CellBodyPair
 {
 	Cell* cell_ptr;
@@ -124,6 +127,8 @@ public:
 	void remove_cells_in_radius(const sf::Vector2f& position, const float radius);
 
 	void influence_cell_velocities_in_radii(const sf::Vector2f& position, const float radius, const int intensity);
+
+	void handle_cell_manager_event(SimCommand& cmd);
 
 	// data fetching
 	int get_cell_count() const;

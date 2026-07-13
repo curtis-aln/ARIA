@@ -97,4 +97,6 @@ private:
     void handle_pause_toggle();
     void handle_keyboard_events(const sf::Keyboard::Key& event_key_code);
     void dispatch_event(const sf::Event& event, const sf::Vector2f& cam_pos);
+
+    void handle_simulation_event(SimCommand& cmd);
 };

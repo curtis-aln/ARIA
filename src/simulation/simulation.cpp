@@ -79,193 +79,33 @@ void Simulation::resolve_modifications()
 
         while (!m_commands.empty())
         {
-            const SimCommand& cmd = m_commands.front();
-            switch (cmd.type)
+            SimCommand& cmd = m_commands.front();
+            switch (cmd.section)
             {
-			case CommandType::SetWorldToggles:
-				m_world_.toggles = cmd.toggles;
+			case CommandSection::SimulationEvent:
+				// Handle simulation-related commands
+				handle_simulation_event(cmd);
 				break;
 
-            case CommandType::SetUpdatingFrameRate:
-                sim_state_.max_frame_rate_updating = cmd.float_val;
-				updating_clock_.set_target_fps(cmd.float_val);
+			case CommandSection::WorldEvent:
+				// Handle world-related command
+				m_world_.handle_world_event(cmd);
 				break;
 
-            case CommandType::SetRenderingFrameRate:
-                sim_state_.max_frame_rate_rendering = cmd.float_val;
-                rendering_clock_.set_target_fps(cmd.float_val);
-                break;
-
-			case CommandType::ResetSimulation:
-				m_world_.reset_world();
+			case CommandSection::CellManagerEvent:
+				// Handle cell manager-related commands
+				m_world_.get_cell_manager()->handle_cell_manager_event(cmd);
 				break;
 
-			case CommandType::SetInfluenceRadius:
-				m_world_.get_statistics().mouse_radius = cmd.float_val;
+			case CommandSection::FoodManagerEvent:
+				// Handle food manager-related commands
 				break;
-
-			case CommandType::SetMouseIntensity:
-				m_world_.get_statistics().mouse_intensity = cmd.int_val;
-				break;
-
-            case CommandType::SetMouseMode:
-				m_world_.get_statistics().mouse_mode = cmd.int_val;
-				break;
-
-            // Spring Natual Selection Modifier
-            case CommandType::SetSpringBreakingForce:
-                Spring::SPRING_BREAK_FORCE = cmd.float_val;
-                break;
-            case CommandType::SetSpringBreakingLength:
-                Spring::SPRING_BREAK_LENGTH = cmd.float_val;
-                break;
-            case CommandType::SetSpringDamageThreshold:
-                Spring::SPRING_DAMAGE_THRESH = cmd.float_val;
-                break;
-            case CommandType::SetSpringWorkConst:
-                Spring::SPRING_WORK_CONST = cmd.float_val;
-                break;
-                
-			case CommandType::SetZoomLevel:
-				camera_.set_zoom(cmd.float_val, 
-                    camera_.window_pos_to_world_pos(sf::Vector2f{ (float)(videoMode.size.x/2u), (float)(videoMode.size.y/2u) }));
-				break;
-
-            //case CommandType::SetRadius:
-            //    if (selected_protozoa)
-            //        selected_protozoa->get_cells()[cmd.cell_spring_idx].radius = cmd.float_val;
-            //    break;
-
-            //case CommandType::SetAmplitude:
-            //    if (selected_protozoa)
-            //        selected_protozoa->get_cells()[cmd.cell_spring_idx].amplitude = cmd.float_val;
-            //    break;
-
-            case CommandType::SetFrequency:
-                //if (selected_protozoa)
-                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].frequency = cmd.float_val;
-                break;
-
-            case CommandType::SetVerticalShift:
-                //if (selected_protozoa)
-                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
-                break;
-
-            case CommandType::SetOffset:
-                //if (selected_protozoa)
-                //    selected_protozoa->get_cells()[cmd.cell_spring_idx].offset = cmd.float_val;
-                break;
-
-            case CommandType::SetCellGridResolution:
-                //m_world_.get_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
-                //m_world_.update_spatial_renderers();
-                break;
-
-            case CommandType::SetFoodGridResolution:
-                //m_world_.get_food_spatial_grid()->change_cell_dimsensions(cmd.int_val, cmd.int_val);
-                //m_world_.update_spatial_renderers();
-                break;
-
-            case CommandType::MutateProtozoa:
-                //if (selected_protozoa)
-               //     selected_protozoa->mutate(cmd.mutate.mut_rate, cmd.mutate.mut_range);
-                break;
-
-            case CommandType::AddCell:
-                //if (selected_protozoa)
-                //    selected_protozoa->add_cell();
-                break;
-
-            case CommandType::RemoveCell:
-                //if (selected_protozoa)
-                //    selected_protozoa->remove_cell();
-                break;
-
-            case CommandType::AddSpring:
-                //if (selected_protozoa)
-                //    selected_protozoa->add_spring(); todo
-                break;
-
-            case CommandType::RemoveSpring:
-                //if (selected_protozoa)
-                //    selected_protozoa->remove_spring(); todo
-                break;
-
-            case CommandType::InjectProtozoa:
-                //if (selected_protozoa)
-                //    m_world_.inject_protozoa(selected_protozoa, cmd.float_val);
-                break;
-
-            case CommandType::KillProtozoa:
-                //if (selected_protozoa)
-                //    selected_protozoa->kill(); // todo
-                break;
-
-            case CommandType::ForceReproduce:
-                //if (selected_protozoa) // todo
-                //    selected_protozoa->force_reproduce();
-                break;
-
-            case CommandType::MakeImmortal:
-                //if (selected_protozoa) // todo
-                //    selected_protozoa->immortal = cmd.bool_val;
-                break;
-
-            case CommandType::CloneProtozoa:
-                //if (selected_protozoa)
-                //{
-                //    m_world_.create_offspring(selected_protozoa, false);
-                //}
-                break;
-
-            case CommandType::SetSpringAmplitude:
-                //if (selected_protozoa)
-                //{
-                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
-                //}
-                break;
-
-            case CommandType::SetSpringFrequency:
-                //if (selected_protozoa)
-                //{
-                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
-                //}
-                break;
-
-            case CommandType::SetSpringOffset:
-                //if (selected_protozoa)
-                //{
-                //    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
-                //}
-                //break;
-                    //m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
-                //}
-                break;
-
-            case CommandType::SetSpringVerticalShift:
-                //if (selected_protozoa)
-                //{
-                    //m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
-                //}
-                break;
-
-            case CommandType::SetDampingConst:
-                //if (selected_protozoa)
-                //{
-                   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].damping = cmd.float_val;
-                //}
-                break;
-
-            case CommandType::SetSpringConst:
-                //if (selected_protozoa)
-                //{
-                   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
-                //}
-                break;
             }
+
             m_commands.pop();
         }
 
+    
         const auto& stats = m_world_.get_statistics();
         const auto t = m_world_.toggles;
 
@@ -276,6 +116,8 @@ void Simulation::resolve_modifications()
             m_world_.handle_right_click(bounds);
     } // mutex released here
 }
+
+
 
 
 void Simulation::camera_follow_selected_protozoa()
