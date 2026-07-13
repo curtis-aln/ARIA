@@ -6,7 +6,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 
 #include "world_settings.h"
-#include "world_state.h"
+#include "../simulation/context/state.h"
 #include "../managers/cell_manager/cell_manager_settings.h"
 #include "../managers/cell_manager/organism_tracker.h"
 
@@ -54,10 +54,7 @@ class World : public WorldSettings
     uint8_t max_capacity_area = cell_max_capacity * 9;
     static thread_local FixedSpan<uint32_t> tl_nearby_ids;
     static thread_local FixedSpan<obj_idx> tl_nearby_food;
-
-    // Generation tracking (internal — summarised into statistics_)
-    float tracked_generation_ = 0.f;
-    float frames_since_last_gen_change_ = 0.f;
+    
 
     WorldRenderer world_renderer_{ m_window_, &food_manager_, &collision_resolver_, world_rect_bounds_, world_circular_bounds_ };
 

@@ -264,7 +264,7 @@ void Simulation::resolve_modifications()
         const auto t = m_world_.toggles;
 
         auto* cell_manager = m_world_.get_cell_manager();
-        WorldBorder bounds{ camera_.get_world_mouse_pos(), stats.mouse_radius };
+        WorldBorder bounds{ camera_.get_world_mouse_pos(), m_world_.get_statistics().mouse_radius };
 
         if (right_mouse_pressed_event)
             m_world_.handle_right_click(bounds);
@@ -286,16 +286,16 @@ void Simulation::camera_follow_selected_protozoa()
 void Simulation::update_line_graphs(const SimSnapshot& snapshot)
 {
     m_history_.push(
-        snapshot.stats.cell_count,
-        snapshot.stats.food_count,
-        snapshot.stats.average_generation,
-        snapshot.stats.average_mutation_rate,
-        snapshot.stats.average_mutation_range,
-        snapshot.stats.average_offspring_count,
-        snapshot.stats.average_lifetime,
-        snapshot.stats.average_cells_per_protozoa,
-        snapshot.stats.average_spring_count,
-        snapshot.stats.average_energy);
+        snapshot.cell_manager_stats.cell_count,
+        snapshot.food_manager_stats.food_count,
+        snapshot.cell_manager_stats.average_generation,
+        snapshot.cell_manager_stats.average_mutation_rate,
+        snapshot.cell_manager_stats.average_mutation_range,
+        snapshot.cell_manager_stats.average_offspring_count,
+        snapshot.cell_manager_stats.average_lifetime,
+        snapshot.cell_manager_stats.average_cells_per_protozoa,
+        snapshot.cell_manager_stats.average_spring_count,
+        snapshot.cell_manager_stats.average_energy);
 }
 
 void Simulation::render()
@@ -305,7 +305,7 @@ void Simulation::render()
     float dt = static_cast<float>(rendering_clock_.get_delta_time());
     sim_state_.total_time_elapsed += dt;
 
-    if (snap.stats.iterations_ <= 2)
+    if (snap.world_stats.iterations_ <= 2)
         return;
     m_window_.clear(bg_color_);
     if (m_world_.toggles.m_rendering_)
@@ -347,6 +347,6 @@ void Simulation::fill_snapshot(SimSnapshot& snap)
 	sim_state_.mouse_pos_x = mouse_pos.x;
 	sim_state_.mouse_pos_y = mouse_pos.y;
 
-    snap.sim_state = sim_state_;
+    snap.sim_stats = sim_state_;
     snap.history = m_history_;
 }

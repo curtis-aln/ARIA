@@ -1,25 +1,28 @@
 #pragma once
 
-#include "../../world/world_state.h"
+#include "state.h"
 #include "simulation/imgui/population_history.h"
 #include "../../managers/cell_manager/organism_tracker.h"
-#include "../sim_state.h"
 #include "managers/food_manager/food_data.h"
 
 
 struct SimSnapshot
 {
     WorldToggles toggles;
-    WorldStatistics stats;
+
+    // Statistics
+    SimulationStatistics sim_stats;
+    WorldStatistics world_stats;
+	CellManagerStatistics cell_manager_stats;
+	FoodManagerStatistics food_manager_stats;
+
     RenderData render;
     FoodData food_data;
-	SimulationState sim_state;
 
     SpatialGridData food_grid;
     SpatialGridData cell_grid;
     PopulationHistory history;
 
-    bool selected_a_cell = false;
     OrganismTracker protozoa_tracker{};
 
 	SimSnapshot() = default;

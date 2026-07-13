@@ -37,6 +37,8 @@ class FoodManager : public FoodManagerSettings
     o_vector<Food> food_vector{ max_food };
 
 	FoodData food_data{};
+    
+	FoodManagerStatistics statistics_{};
 
 public:
     SimpleSpatialGrid spatial_hash_grid;
@@ -73,6 +75,8 @@ public:
     void   draw_food_grid(sf::Vector2f mouse_pos) const;
 
     FoodBodyPair create_food(const sf::Vector2f& position, bool random_genetics);
+
+	FoodManagerStatistics& get_statistics() { return statistics_; }
 
 private:
     void  update_food();

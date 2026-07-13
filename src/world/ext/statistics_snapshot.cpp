@@ -9,21 +9,19 @@ void World::update_statistics()
 	++stats.frames_since_last_gen_change;
 
 	// count cells and food
-	statistics_.cell_count = static_cast<int>(cell_manager_.get_cell_count());
-	statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
+	//statistics_.cell_count = static_cast<int>(cell_manager_.get_cell_count());
+	//statistics_.food_count = static_cast<int>(food_manager_.get_food_vector().size());
 
-	if (stats.cell_count == 0)
-		return;
-
-	cell_manager_.fill_statistics(stats);
+	//if (stats.cell_count == 0)
+	//	return;
 
 	// Generation tracking - if the average generation has changed, we reset the frames_per_generation counter
-	if (int(tracked_generation_) != int(stats.average_generation))
+	if (int(stats.tracked_generation_) != int(cell_manager_.get_statistics().average_generation))
 	{
-		stats.frames_per_generation = (tracked_generation_ != 0.f)
+		stats.frames_per_generation = (stats.tracked_generation_ != 0.f)
 			? (stats.iterations_ - stats.frames_since_last_gen_change) : stats.iterations_;
 		stats.frames_since_last_gen_change = 0;
-		tracked_generation_ = stats.average_generation;
+		stats.tracked_generation_ = cell_manager_.get_statistics().average_generation;
 	}
 }
 

@@ -30,13 +30,13 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::TextDisabled("Playback");
     ImGui::Separator();
 
-    ImGui::Text("Time:  %s", PlotUtils::format_time(snap.sim_state.total_time_elapsed).c_str());
+    ImGui::Text("Time:  %s", PlotUtils::format_time(snap.sim_stats.total_time_elapsed).c_str());
     ImGui::SameLine(150.0f); // fixed x-offset lines both columns up
-    ImGui::Text("Rendering FPS %.1f", snap.sim_state.rendering_frame_rate);
+    ImGui::Text("Rendering FPS %.1f", snap.sim_stats.rendering_frame_rate);
 
-    ImGui::Text("Frame: %u", snap.stats.iterations_);
+    ImGui::Text("Frame: %u", snap.world_stats.iterations_);
     ImGui::SameLine(150.0f);
-    ImGui::Text("Updating FPS %.1f", snap.sim_state.updating_frame_rate);
+    ImGui::Text("Updating FPS %.1f", snap.sim_stats.updating_frame_rate);
 
     const float bw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
     if (ImGui::Button(snap.toggles.paused ? "Resume [Spc]" : "Pause  [Spc]", { bw, 0.f }))
@@ -62,8 +62,8 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         constexpr float kSliderMax = 210.f; // top 10 units = "Max" zone
         constexpr float kMaxThreshold = 200.f;
 
-        const bool is_unlimited = snap.sim_state.max_frame_rate_updating <= 0.f;
-        float fps_val = is_unlimited ? kSliderMax : snap.sim_state.max_frame_rate_updating;
+        const bool is_unlimited = snap.sim_stats.max_frame_rate_updating <= 0.f;
+        float fps_val = is_unlimited ? kSliderMax : snap.sim_stats.max_frame_rate_updating;
 
         const char* fmt = is_unlimited ? "Updating Max FPS: MAX" : "Updating Max FPS %.1f";
 
@@ -80,8 +80,8 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         constexpr float kSliderMax = 150.f; // top 10 units = "Max" zone
         constexpr float kMaxThreshold = 140.f;
 
-        const bool is_unlimited = snap.sim_state.max_frame_rate_rendering <= 0.f;
-        float fps_val = is_unlimited ? kSliderMax : snap.sim_state.max_frame_rate_rendering;
+        const bool is_unlimited = snap.sim_stats.max_frame_rate_rendering <= 0.f;
+        float fps_val = is_unlimited ? kSliderMax : snap.sim_stats.max_frame_rate_rendering;
 
         const char* fmt = is_unlimited ? "Rendering Max FPS: MAX" : "Rendering Max FPS %.1f";
 
@@ -109,7 +109,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         ImGui::GetIO().FontGlobalScale = m_ui_scale_ / 100.f;
 
     ImGui::SetNextItemWidth(-1.f);
-    m_zoom_slider_ = snap.sim_state.camera_zoom; // sync with sim state
+    m_zoom_slider_ = snap.sim_stats.camera_zoom; // sync with sim state
     if (ImGui::SliderFloat("##zoom", &m_zoom_slider_, 0.0025f, 11.f, "Zoom %.3fx", ImGuiSliderFlags_Logarithmic))
     {
         SimCommand cmd{
@@ -189,7 +189,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     // ── Intensity and radius sliders ──────────────────────────────────────────────
     ImGui::SetNextItemWidth(-1.f);
-	m_mouse_intensity_ = snap.stats.mouse_intensity; // sync with sim state
+	m_mouse_intensity_ = snap.world_stats.mouse_intensity; // sync with sim state
     if (ImGui::SliderInt("##intensity", &m_mouse_intensity_, 1, 25, "Intensity %d%"))
     {
         SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetMouseIntensity, .int_val = m_mouse_intensity_ };
@@ -197,7 +197,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     }
 
     ImGui::SetNextItemWidth(-1.f);
-	m_mouse_radius_ = snap.stats.mouse_radius; // sync with sim state
+	m_mouse_radius_ = snap.world_stats.mouse_radius; // sync with sim state
     if (ImGui::SliderFloat("##radius", &m_mouse_radius_, 200.f, 10000.f, "Radius %.0f"))
     {
         SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetInfluenceRadius, .float_val = m_mouse_radius_ };
@@ -216,8 +216,8 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
     ImGui::Spacing();
 
-    ImGui::Text("Highlighted Cells: %u", snap.stats.highlighted_cells);
-    ImGui::Text("Highlighted Food: %u", snap.stats.highlighted_food);
+    ImGui::Text("Highlighted Cells: %u", snap.world_stats.highlighted_cells);
+    ImGui::Text("Highlighted Food: %u", snap.world_stats.highlighted_food);
 
     ImGui::EndChild();
     ImGui::SameLine();
@@ -229,7 +229,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     ImGui::Separator();
 
     ImGui::SetNextItemWidth(-1.f);
-	m_spring_breaking_force_ = snap.stats.spring_breaking_force;
+	m_spring_breaking_force_ = snap.cell_manager_stats.spring_breaking_force;
     if (ImGui::SliderFloat("##breaking force", &m_spring_breaking_force_, 0.f, 30.f, "breaking force %.2f"))
     {
         SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringBreakingForce, .float_val = m_spring_breaking_force_ };
@@ -237,7 +237,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     }
 
     ImGui::SetNextItemWidth(-1.f);
-	m_spring_breaking_length_ = snap.stats.spring_breaking_length;
+	m_spring_breaking_length_ = snap.cell_manager_stats.spring_breaking_length;
     if (ImGui::SliderFloat("##breaking Length", &m_spring_breaking_length_, 0.f, 400.f, "breaking Length %.2f"))
     {
         SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringBreakingLength, .float_val = m_spring_breaking_length_ };
@@ -245,7 +245,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     }
 
     ImGui::SetNextItemWidth(-1.f);
-	m_spring_damage_threshold_ = snap.stats.spring_damage_threshold;
+	m_spring_damage_threshold_ = snap.cell_manager_stats.spring_damage_threshold;
     if (ImGui::SliderFloat("##Damage Threshold", &m_spring_damage_threshold_, 0.f, 1.f, "Damage Threshold %.2f"))
     {
         SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringDamageThreshold, .float_val = m_spring_damage_threshold_ };
@@ -253,7 +253,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     }
 
     ImGui::SetNextItemWidth(-1.f);
-	m_spring_work_const_ = snap.stats.spring_work_const;
+	m_spring_work_const_ = snap.cell_manager_stats.spring_work_const;
     if (ImGui::SliderFloat("##Spring Work Const", &m_spring_work_const_, 0.f, 0.001f, "Spring Work Const %.6f"))
     {
         SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::SetSpringWorkConst, .float_val = m_spring_work_const_ };

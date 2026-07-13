@@ -192,3 +192,10 @@ and outputs
 
 The faster you transfer nutrients, the more energy it costs.
 - This is negatively preportional to the size of the cell
+
+
+
+
+1300fps paused Goal: 3000fps
+1500fps - improved fill spring data
+2000fps - removed a lot of updating statistics redundancy

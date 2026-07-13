@@ -21,7 +21,7 @@ void TaggedTab::draw_tag_input(const SimSnapshot& snapshot)
     if (ImGui::Button("Toggle Tag##tagged")) toggle_tag(input_id);
 
 	const OrganismTracker& sel = snapshot.protozoa_tracker;
-    if (snapshot.selected_a_cell)
+    if (snapshot.cell_manager_stats.selected_a_cell)
     {
         ImGui::SameLine(0, 16);
     
@@ -39,7 +39,7 @@ void TaggedTab::draw_list(ImGuiContext& ctx, const SimSnapshot& snapshot)
     {
         ImGui::PushID(id);
 
-        if (snapshot.selected_a_cell)
+        if (snapshot.cell_manager_stats.selected_a_cell)
         {
             auto p = snapshot.protozoa_tracker;
             const float ef = std::clamp(p.total_energy / 300.f, 0.f, 1.f);

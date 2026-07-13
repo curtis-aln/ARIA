@@ -79,8 +79,8 @@ private:
 		if (!snapshot.toggles.show_influence_radius)
 			return;
 
-		sf::Vector2f mouse_pos = {snapshot.sim_state.mouse_pos_x, snapshot.sim_state.mouse_pos_y};
-		float influence_radius = snapshot.stats.mouse_radius;
+		sf::Vector2f mouse_pos = {snapshot.sim_stats.mouse_pos_x, snapshot.sim_stats.mouse_pos_y};
+		float influence_radius = snapshot.world_stats.mouse_radius;
 
 		sf::CircleShape influence_circle;
 		influence_circle.setPointCount(60);
@@ -104,7 +104,7 @@ private:
 
 	void render_visual_grid(const SimSnapshot& snapshot)
 	{
-		float zoom = snapshot.sim_state.camera_zoom;
+		float zoom = snapshot.sim_stats.camera_zoom;
 		float a = 1.f;
 		if (zoom < start_fading_zoom)
 		{
@@ -122,7 +122,7 @@ private:
 		// The springs are rendered first, so they appear behind the cells in the rendering order.
 		render_springs(snapshot);
 
-		const float zoom = snapshot.sim_state.camera_zoom;
+		const float zoom = snapshot.sim_stats.camera_zoom;
 		bool simplify_colors = zoom < 0.05f;
 
 		if (!simplify_colors)
@@ -189,7 +189,7 @@ private:
 
 	void render_springs(const SimSnapshot& snapshot)
 	{
-		const float zoom = snapshot.sim_state.camera_zoom;
+		const float zoom = snapshot.sim_stats.camera_zoom;
 		if (zoom < 0.012f)
 			return;
 

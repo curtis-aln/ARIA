@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "../../world/world_state.h"
+#include "../../simulation/context/state.h"
 
 #include "../../Utils/spatial_grid/simple_spatial_grid.h"
 #include "../../entities/food/food.h"

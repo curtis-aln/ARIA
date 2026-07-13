@@ -176,11 +176,12 @@ void World::update_position_container_optimized(SimSnapshot& write_snapshot)
 void World::update_position_container(SimSnapshot& write_snapshot)
 {
 	RenderData& rend_data = write_snapshot.render;
-	rend_data.outer_colors.resize(statistics_.cell_count);
-	rend_data.inner_colors.resize(statistics_.cell_count);
-	rend_data.positions.resize(statistics_.cell_count);
-	rend_data.velocities.resize(statistics_.cell_count);
-	rend_data.radii.resize(statistics_.cell_count);
+	int n = cell_manager_.get_cell_count();
+	rend_data.outer_colors.resize(n);
+	rend_data.inner_colors.resize(n);
+	rend_data.positions.resize(n);
+	rend_data.velocities.resize(n);
+	rend_data.radii.resize(n);
 
 	// updating render data
 	int i = 0;

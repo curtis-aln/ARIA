@@ -1,12 +1,12 @@
 #pragma once
 #include <SFML/Graphics/Color.hpp>
 #include <vector>
-#include "../Utils/o_vec/o_vector.hpp"
-#include "../Utils/o_vec/o_vec_snapshot.h"
-#include "../entities/cell/cell.h"
-#include "../entities/food/food.h"
-#include "../entities/body.h"
-#include "../entities/spring/spring.h"
+#include "../../Utils/o_vec/o_vector.hpp"
+#include "../../Utils/o_vec/o_vec_snapshot.h"
+#include "../../entities/cell/cell.h"
+#include "../../entities/food/food.h"
+#include "../../entities/body.h"
+#include "../../entities/spring/spring.h"
 #include "world/connection_renderer.h"
 
 
@@ -50,17 +50,64 @@ struct WorldToggles
 //  Owned by the update thread (sim writes every tick).
 //  Copied into the snapshot so ImGui can read it safely.
 // ─────────────────────────────────────────────────────────────────────────────
+struct SimulationStatistics
+{
+    float max_frame_rate_updating = 0.f; // 0 = unlimited
+    float max_frame_rate_rendering = 0.f;
+    float total_time_elapsed = 0.f;
+
+    float camera_zoom = 1.f;
+
+    float mouse_pos_x = 0.f;
+    float mouse_pos_y = 0.f;
+
+    // Statistics
+    float rendering_frame_rate = 0.f;
+    float updating_frame_rate = 0.f;
+
+};
+
+
 struct WorldStatistics
 {
+    int   mouse_mode = 0;      // 0 = Add, 1 = Remove
+    int mouse_intensity = 1;
+    float mouse_radius = 300.f;
+
+    float frames_per_generation = -1.f; // negative = undefined
+    float tracked_generation = 0.f;
+    float frames_since_last_gen_change = 0.f;
+
+    int iterations_ = 0;
+
+    int highlighted_cells = 0;
+    int highlighted_food = 0;
+
+    std::vector<float> gen_data{};   
+
+    float tracked_generation_ = 0.f;
+    float frames_since_last_gen_change_ = 0.f;
+};
+
+
+struct CellManagerStatistics
+{
+    bool selected_a_cell = false;
+
+    uint16_t longest_lived_ever = 0;
+
+    int   total_deaths = 0;
+    int   infant_deaths = 0;
+    int deaths_this_window = 0;
+    int births_this_window = 0;
+
     int   cell_count = 0;
-    int   food_count = 0;
 
     int   peak_protozoa_ever = 0;
     int   highest_generation_ever = 0;
-	int   most_offspring_ever = 0;
-	
-    int container_size_read = 0;
+    int   most_offspring_ever = 0;
 
+    int container_size_read = 0;
     float average_generation = 0.f;
     float average_cells_per_protozoa = 0.f;
     float average_offspring_count = 0.f;
@@ -69,39 +116,22 @@ struct WorldStatistics
     float average_energy = 0.f;
     float average_spring_count = 0.f;
     float energy_efficiency = 0.f;
-	float average_lifetime = 0.f; 
+    float average_lifetime = 0.f;
 
-	float births_per_hundered_frames = 0.f;
-	float deaths_per_hundered_frames = 0.f;
-	float infant_mortality_rate = 0.f;
+    float births_per_hundered_frames = 0.f;
+    float deaths_per_hundered_frames = 0.f;
+    float infant_mortality_rate = 0.f;
 
-    int   total_deaths = 0;
-    int   infant_deaths = 0;
-    int deaths_this_window = 0;
-    int births_this_window = 0;
-
-    uint16_t longest_lived_ever = 0;
-
-    float frames_per_generation = -1.f; // negative = undefined
-    float tracked_generation = 0.f;
-    float frames_since_last_gen_change = 0.f;
-
-    int iterations_ = 0;
-
-    int   mouse_mode = 0;      // 0 = Add, 1 = Remove
-    int mouse_intensity = 1;
-    float mouse_radius = 300.f;
-
-    int highlighted_cells = 0;
-    int highlighted_food = 0;
-
-    std::vector<float> gen_data{};
-
-    // for springs
     float spring_breaking_length = 0.f;
-	float spring_breaking_force = 0.f;
-	float spring_work_const = 0.f;
-	float spring_damage_threshold = 0.f;
+    float spring_breaking_force = 0.f;
+    float spring_work_const = 0.f;
+    float spring_damage_threshold = 0.f;
+};
+
+
+struct FoodManagerStatistics
+{
+    int   food_count = 0;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

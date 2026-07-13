@@ -137,15 +137,14 @@ void World::unload_render_data(SimSnapshot& snapshot)
 void World::fill_snapshot(SimSnapshot& snapshot)
 {
     /* Data that goes to both the renderer and the ImGUI panels */
-	cell_manager_.fill_statistics(statistics_); // protozoa statistics
-
-    snapshot.stats = get_statistics(); // simulation statistics
+    snapshot.cell_manager_stats = cell_manager_.get_statistics();
+    snapshot.world_stats = get_statistics(); // simulation statistics
     snapshot.toggles = toggles;
 
 	copy_render_data_to_snapshot(snapshot); // render data
 
     food_manager_.fill_data(snapshot.food_data);
-    snapshot.stats.highlighted_food = food_manager_.select_indexes.count;
+    snapshot.world_stats.highlighted_food = food_manager_.select_indexes.count;
 	cell_manager_.fill_snapshot(snapshot, visible_bounds); // protozoa data
 
     copy_spatial_grids_to_snapshot(snapshot);
@@ -157,7 +156,7 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
     RenderData& render_data = snapshot.render;
 
     const int n = cell_manager_.get_cell_count();
-    snapshot.stats.cell_count = n;
+    snapshot.cell_manager_stats.cell_count = n;
 
     render_data.body_debug_snapshot = FillSnapshot<Body>(dbg_bodies_, "Body", sf::Color::White);
     render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);

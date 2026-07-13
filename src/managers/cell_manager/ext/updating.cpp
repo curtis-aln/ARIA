@@ -26,6 +26,8 @@ void CellManager::update()
 
 	// death
 	handle_death();
+
+	update_statistics();
 }
 
 void CellManager::update_cells()
@@ -155,20 +157,9 @@ Cell* CellManager::find_cell_at_point(const sf::Vector2f mouse_position, bool ma
 
 void CellManager::fill_snapshot(SimSnapshot& snapshot, sf::FloatRect& visible_bounds)
 {
-	// Selected cell Logic
-	if (selected_cell != nullptr)
-	{
-		protozoa_tracker_.update_primitive(selected_cell, all_cells_, all_springs_, *bodies_);
-	}
 	snapshot.protozoa_tracker = protozoa_tracker_;
-	snapshot.selected_a_cell = selected_cell != nullptr;
 
-	snapshot.stats.highlighted_cells = select_indexes.count;
-
-	snapshot.stats.spring_breaking_force = Spring::SPRING_BREAK_FORCE;
-	snapshot.stats.spring_breaking_length = Spring::SPRING_BREAK_LENGTH;
-	snapshot.stats.spring_damage_threshold = Spring::SPRING_DAMAGE_THRESH;
-	snapshot.stats.spring_work_const = Spring::SPRING_WORK_CONST;
+	snapshot.world_stats.highlighted_cells = select_indexes.count;
 
 	fill_render_data(snapshot.render, visible_bounds);
 }
@@ -183,19 +174,16 @@ void CellManager::fill_render_data(RenderData& render_data, sf::FloatRect& visib
 
 	for (Spring* spring : all_springs_)
 	{
-		Cell* cell_a = all_cells_.at(spring->cell_A_id);
-		Cell* cell_b = all_cells_.at(spring->cell_B_id);
-
 		Body* body_a = get_cell_body(spring->cell_A_id);
+		bool cell_a_visible = visible_bounds.contains({ body_a->position_.x, body_a->position_.y });
+
+		if (!cell_a_visible) continue;
+
 		Body* body_b = get_cell_body(spring->cell_B_id);
+		bool cell_b_visible = visible_bounds.contains({ body_b->position_.x, body_b->position_.y });
 
-		// If either of the cells are visible we draw the spring, otherwise we dont draw it
-		bool cell_a_visible = visible_bounds.contains({body_a->position_.x, body_a->position_.y});
-		bool cell_b_visible = visible_bounds.contains({body_b->position_.x, body_b->position_.y});
-
-		if (!cell_a_visible && !cell_b_visible)
-			continue;
-
+		if (!cell_b_visible) continue;
+		
 		const float min_dist = body_a->radius_ + body_b->radius_;
 
 		// The reason why we cant use indexing to fill this array is because we dont know how many bodies are not active,

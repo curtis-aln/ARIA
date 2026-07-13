@@ -59,42 +59,42 @@ void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
     ImGui::BeginChild("ST_pop", { -1.f, panel_h }, true);
     ImGui::TextDisabled("Population");
     ImGui::Separator();
-    const int  p = snap.stats.cell_count;
-    const int  f = snap.stats.food_count;
+    const int  p = snap.cell_manager_stats.cell_count;
+    const int  f = snap.food_manager_stats.food_count;
     const bool risk = p <= 10;
     StatRow::draw("Protozoa", "%d", p);
     StatRow::draw("Food", "%d", f);
     StatRow::draw("Total", "%d", p + f);
     StatRow::draw_warn("Ext. risk", risk, "%s", risk ? "YES" : "no");
-    StatRow::draw("Peak ever", "%d", snap.stats.peak_protozoa_ever);
+    StatRow::draw("Peak ever", "%d", snap.cell_manager_stats.peak_protozoa_ever);
 
     // ── Vitals ────────────────────────────────────────────────────────────────
     ImGui::TextDisabled("Vitals");
     ImGui::Separator();
-    StatRow::draw("Avg lifetime", "%.1f fr", snap.stats.average_lifetime);
-    StatRow::draw("Longest Lifetime", "%d fr", snap.stats.longest_lived_ever);
-    StatRow::draw("Births /100f", "%.1f", snap.stats.births_per_hundered_frames);
-    StatRow::draw("Deaths /100f", "%.1f", snap.stats.deaths_per_hundered_frames);
-    StatRow::draw("Infant mortality", "%.1f%%", snap.stats.infant_mortality_rate * 100.f);
+    StatRow::draw("Avg lifetime", "%.1f fr", snap.cell_manager_stats.average_lifetime);
+    StatRow::draw("Longest Lifetime", "%d fr", snap.cell_manager_stats.longest_lived_ever);
+    StatRow::draw("Births /100f", "%.1f", snap.cell_manager_stats.births_per_hundered_frames);
+    StatRow::draw("Deaths /100f", "%.1f", snap.cell_manager_stats.deaths_per_hundered_frames);
+    StatRow::draw("Infant mortality", "%.1f%%", snap.cell_manager_stats.infant_mortality_rate * 100.f);
 
     // ── Genetics ──────────────────────────────────────────────────────────────
     ImGui::TextDisabled("Genetics");
     ImGui::Separator();
-    StatRow::draw("Avg generation", "%.2f", snap.stats.average_generation);
-    StatRow::draw("Highest gen ever", "%d", snap.stats.highest_generation_ever);
-    StatRow::draw("Most offspring", "%d", snap.stats.most_offspring_ever);
-    StatRow::draw("Frames / gen", "%.0f", snap.stats.frames_per_generation);
-    StatRow::draw("Avg mut rate", "%.4f", snap.stats.average_mutation_rate);
-    StatRow::draw("Avg mut range", "%.4f", snap.stats.average_mutation_range);
+    StatRow::draw("Avg generation", "%.2f", snap.cell_manager_stats.average_generation);
+    StatRow::draw("Highest gen ever", "%d", snap.cell_manager_stats.highest_generation_ever);
+    StatRow::draw("Most offspring", "%d", snap.cell_manager_stats.most_offspring_ever);
+    StatRow::draw("Frames / gen", "%.0f", snap.world_stats.frames_per_generation);
+    StatRow::draw("Avg mut rate", "%.4f", snap.cell_manager_stats.average_mutation_rate);
+    StatRow::draw("Avg mut range", "%.4f", snap.cell_manager_stats.average_mutation_range);
 
     // ── Morphology ────────────────────────────────────────────────────────────
     ImGui::TextDisabled("Morphology");
     ImGui::Separator();
-    StatRow::draw("Avg cells", "%.2f", snap.stats.average_cells_per_protozoa);
-    StatRow::draw("Avg springs", "%.2f", snap.stats.average_spring_count);
-    StatRow::draw("Avg offspring", "%.2f", snap.stats.average_offspring_count);
-    StatRow::draw("Avg energy", "%.1f", snap.stats.average_energy);
-    StatRow::draw("Energy ratio", "%.3f", snap.stats.energy_efficiency);
+    StatRow::draw("Avg cells", "%.2f", snap.cell_manager_stats.average_cells_per_protozoa);
+    StatRow::draw("Avg springs", "%.2f", snap.cell_manager_stats.average_spring_count);
+    StatRow::draw("Avg offspring", "%.2f", snap.cell_manager_stats.average_offspring_count);
+    StatRow::draw("Avg energy", "%.1f", snap.cell_manager_stats.average_energy);
+    StatRow::draw("Energy ratio", "%.3f", snap.cell_manager_stats.energy_efficiency);
     ImGui::EndChild();
 }
 
@@ -274,7 +274,7 @@ void GraphsTab::draw_record_region(const float x_max, const float y_top)
 // ─────────────────────────────────────────────────────────────────────────────
 void GraphsTab::draw_generations_tab(const SimSnapshot& snap)
 {
-    const auto& gen_data = snap.stats.gen_data;
+    const auto& gen_data = snap.world_stats.gen_data;
 
     constexpr ImPlotFlags hf = ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText;
     const float           plot_h = ImGui::GetContentRegionAvail().y

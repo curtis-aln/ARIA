@@ -16,7 +16,7 @@
 #include <mutex>
 #include <queue>
 #include "../managers/cell_manager/organism_tracker.h"
-#include "sim_state.h"
+#include "context/state.h"
 
 
 class Simulation : SimulationSettings
@@ -42,7 +42,7 @@ class Simulation : SimulationSettings
     PopulationHistory m_history_;
     ControlPanel    m_control_panel_;
 
-    SimulationState sim_state_{};
+    SimulationStatistics sim_state_{};
 
     bool  tracking = false;
     

@@ -84,6 +84,7 @@ class CellManager: protected CellManagerSettings
 	// used to store requests for new protozoa to be created, and for new connections to be made between cells
 	std::vector<BirthRequest> birth_requests;
 	std::vector<ConnectionRequest> connection_requests;
+	CellManagerStatistics statistics_{};
 
 	// main body class is kept in the world class, we keep a pointer to it here so we can access it
 	o_vector<Body>* bodies_;
@@ -95,19 +96,11 @@ class CellManager: protected CellManagerSettings
 	// This builds a model around a protozoa that doesnt globally exist, so it can be monitored and learned about
 	OrganismTracker protozoa_tracker_{};
 
+	
+
 public:
 	uint16_t max_size = static_cast<uint16_t>(10000);
-	FixedSpan<cell_idx, uint16_t> select_indexes{ max_size };
-
-	// statistics tracking
-	uint16_t   longest_lived_ever_ = 0;
-	uint8_t   most_offspring_ever_ = 0;
-	float infant_mortality_rate_ = 0.f;
-	float average_lifetime_ = 0.f; // the average lifetime of the 500 most recent protozoa deaths
-	int   total_deaths_ = 0;
-	int   infant_deaths_ = 0;
-	int deaths_this_window_ = 0;
-	int births_this_window_ = 0;
+	FixedSpan<cell_idx, uint16_t> select_indexes{ max_size };	
 
 	// Functions
 public:
@@ -161,7 +154,8 @@ public:
 	// public statistics
 	const std::vector<float>& get_generation_distribution();
 
-	void fill_statistics(WorldStatistics& stats);
+	void update_statistics();
+	CellManagerStatistics& get_statistics() { return statistics_; }
 
 protected: // only functions the world can access todo
 
