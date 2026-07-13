@@ -5,6 +5,7 @@
 #include <numeric>
 #include <algorithm>
 #include <cfloat>
+#include "stat_row.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  BandCache
@@ -23,6 +24,19 @@ void GraphsTab::BandCache::refresh(const PopulationHistory& h, const bool need_p
 // ─────────────────────────────────────────────────────────────────────────────
 void GraphsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
+    const float total_w = ImGui::GetContentRegionAvail().x;
+    const float left_w = std::clamp(total_w * k_left_panel_frac, k_left_panel_min, k_left_panel_max);
+    const float ch = -ImGui::GetFrameHeight();
+
+    ImGui::BeginChild("ST_left", { left_w, ch }, false);
+    draw_stat_panels(snap);
+
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+
+    ImGui::BeginChild("ST_right", { -1.f, ch }, false);
+
     draw_shared_toolbar(snap);
     if (!ImGui::BeginTabBar("##graph_tabs")) return;
 
@@ -31,6 +45,57 @@ void GraphsTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::BeginTabItem("Misc")) { draw_misc_tab(snap);        ImGui::EndTabItem(); }
 
     ImGui::EndTabBar();
+
+    ImGui::EndChild();
+}
+
+void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
+{
+    const float avail_h = ImGui::GetContentRegionAvail().y;
+    const float sp = ImGui::GetStyle().ItemSpacing.y;
+    const float panel_h = (avail_h);
+
+    // ── Population ────────────────────────────────────────────────────────────
+    ImGui::BeginChild("ST_pop", { -1.f, panel_h }, true);
+    ImGui::TextDisabled("Population");
+    ImGui::Separator();
+    const int  p = snap.stats.cell_count;
+    const int  f = snap.stats.food_count;
+    const bool risk = p <= 10;
+    StatRow::draw("Protozoa", "%d", p);
+    StatRow::draw("Food", "%d", f);
+    StatRow::draw("Total", "%d", p + f);
+    StatRow::draw_warn("Ext. risk", risk, "%s", risk ? "YES" : "no");
+    StatRow::draw("Peak ever", "%d", snap.stats.peak_protozoa_ever);
+
+    // ── Vitals ────────────────────────────────────────────────────────────────
+    ImGui::TextDisabled("Vitals");
+    ImGui::Separator();
+    StatRow::draw("Avg lifetime", "%.1f fr", snap.stats.average_lifetime);
+    StatRow::draw("Longest Lifetime", "%d fr", snap.stats.longest_lived_ever);
+    StatRow::draw("Births /100f", "%.1f", snap.stats.births_per_hundered_frames);
+    StatRow::draw("Deaths /100f", "%.1f", snap.stats.deaths_per_hundered_frames);
+    StatRow::draw("Infant mortality", "%.1f%%", snap.stats.infant_mortality_rate * 100.f);
+
+    // ── Genetics ──────────────────────────────────────────────────────────────
+    ImGui::TextDisabled("Genetics");
+    ImGui::Separator();
+    StatRow::draw("Avg generation", "%.2f", snap.stats.average_generation);
+    StatRow::draw("Highest gen ever", "%d", snap.stats.highest_generation_ever);
+    StatRow::draw("Most offspring", "%d", snap.stats.most_offspring_ever);
+    StatRow::draw("Frames / gen", "%.0f", snap.stats.frames_per_generation);
+    StatRow::draw("Avg mut rate", "%.4f", snap.stats.average_mutation_rate);
+    StatRow::draw("Avg mut range", "%.4f", snap.stats.average_mutation_range);
+
+    // ── Morphology ────────────────────────────────────────────────────────────
+    ImGui::TextDisabled("Morphology");
+    ImGui::Separator();
+    StatRow::draw("Avg cells", "%.2f", snap.stats.average_cells_per_protozoa);
+    StatRow::draw("Avg springs", "%.2f", snap.stats.average_spring_count);
+    StatRow::draw("Avg offspring", "%.2f", snap.stats.average_offspring_count);
+    StatRow::draw("Avg energy", "%.1f", snap.stats.average_energy);
+    StatRow::draw("Energy ratio", "%.3f", snap.stats.energy_efficiency);
+    ImGui::EndChild();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

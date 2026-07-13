@@ -1,6 +1,5 @@
 #include "control_panel.h"
 #include "tabs/simulation_tab.h"
-#include "tabs/statistics_tab.h"
 #include "tabs/graphs_tab.h"
 #include "tabs/organism_tab.h"
 #include "tabs/tagged_tab.h"
@@ -21,7 +20,6 @@ ControlPanel::ControlPanel()
 
 	// The order of tabs here is the order they will appear in the control panel.
     m_tabs_.push_back(std::make_unique<SimulationTab>());
-    m_tabs_.push_back(std::make_unique<StatisticsTab>());
     m_tabs_.push_back(std::make_unique<GraphsTab>());
     m_tabs_.push_back(std::make_unique<OrganismTab>());
     m_tabs_.push_back(std::move(tagged));

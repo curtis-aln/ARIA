@@ -98,7 +98,7 @@ add_executable(ProjectARIA
     src/simulation/imgui/tabs/grid_tab.cpp
     src/simulation/imgui/tabs/organism_tab.cpp
     src/simulation/imgui/tabs/simulation_tab.cpp
-    src/simulation/imgui/tabs/statistics_tab.cpp
+    
     src/simulation/imgui/tabs/tagged_tab.cpp
     src/simulation/imgui/tabs/tools_tab.cpp
     src/simulation/imgui/tabs/o_vector_tab.cpp

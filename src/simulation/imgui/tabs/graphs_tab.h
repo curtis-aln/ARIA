@@ -8,6 +8,8 @@ public:
     const char* label() const override { return "Graphs"; }
     void        draw(const SimSnapshot& snap, ImGuiContext& ctx)   override;
 
+    void draw_stat_panels(const SimSnapshot& snap);
+
 private:
     // ── Shared toolbar state ──────────────────────────────────────────────
     
@@ -16,6 +18,10 @@ private:
     float m_scroll_window_ = 9000.f;                        
     bool  m_recording_ = false;
     float m_record_start_ = 0.f;
+
+    static constexpr float k_left_panel_frac = 0.04f; // fraction of available width
+    static constexpr float k_left_panel_min = 260.f;
+    static constexpr float k_left_panel_max = 420.f;
 
     // Population plot constants
     static constexpr float k_extinction_threshold = 10.f; // count below which the sim is "extinct"
