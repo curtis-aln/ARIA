@@ -72,44 +72,6 @@ void CellManager::update_springs()
 }
 
 
-void CellManager::update_food_interactions(FoodManager& food_manager)
-{
-	auto grid = food_manager.spatial_hash_grid;
-
-	for (Cell* cell : all_cells_)
-	{
-		Body* body = bodies_->at(cell->body_id_);
-
-		sf::Vector2f pos = body->position_;
-
-		nearby_food_ids.clear();
-		grid.find(pos.x, pos.y, &nearby_food_ids);
-
-		for (int i = 0; i < nearby_food_ids.count; ++i)
-		{
-			obj_idx food_id = nearby_food_ids[i];
-			Food* food = food_manager.at(food_id);
-			
-			Body* food_body = bodies_->at(food->body_id_);
-
-			sf::Vector2f food_pos = food_body->position_;
-			float food_radius = food_body->radius_;
-
-			float dist_sq = (food_pos - pos).lengthSquared();
-			float rel_rad = food_radius + body->radius_;
-			float rel_rad_sq = rel_rad * rel_rad;
-
-			if (dist_sq < rel_rad_sq + 1.f)
-			{
-				// The cell is in contact with the food
-				float transfer = CellSettings::bite_amount;
-				cell->eat(transfer);
-				food->nutrients -= transfer;
-			}
-		}
-	}
-}
-
 void CellManager::check_for_extinction_event()
 {
 	// if protozoas are still alivee or if auto reset on extinction is disabled, we dont need to do anything

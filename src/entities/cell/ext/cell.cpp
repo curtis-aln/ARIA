@@ -1,5 +1,7 @@
 #include "../cell.h"
 
+
+
 void Cell::recreate()
 {
 	energy = initial_energy;
@@ -104,9 +106,9 @@ void Cell::turn_off_reproduction()
 	});
 }
 
-[[nodiscard]] float  Cell::calculate_friction() const
+[[nodiscard]] float Cell::calculate_friction() const
 {
-	const float sin_value = sinf(frequency * clock_ + offset); // [-1, 1]
+	const float sin_value = fast_sin(frequency * clock_ + offset); // [-1, 1]
 	const float ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
 	const float clamped = std::clamp(ratio, 0.f, 1.f);
 	// clamping friction to [0, 1]

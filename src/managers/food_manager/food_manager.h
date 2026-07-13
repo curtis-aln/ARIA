@@ -42,9 +42,6 @@ class FoodManager : public FoodManagerSettings
 	FoodManagerStatistics statistics_{};
 
 public:
-    SimpleSpatialGrid spatial_hash_grid;
-    SpatialGridRenderer food_grid_renderer;
-
     FixedSpan<cell_idx, uint16_t> select_indexes{ static_cast<uint16_t>(10000) };
 
     int frames = 0;
@@ -63,7 +60,6 @@ public:
 
     int    get_size()               const;
     bool has_food_with_body_id(int body_id);
-    void update_food_grid_renderer();
     void fill_data(FoodData& other_food_data);
     const o_vector<Food>& get_food_vector() const;
     o_vector<Food>& get_food_vector();
@@ -73,7 +69,6 @@ public:
     void   remove_food(int food_id);
     Food* at(int idx);
     const Food* at(int idx) const;
-    void   draw_food_grid(sf::Vector2f mouse_pos) const;
 
     FoodBodyPair create_food(const sf::Vector2f& position, bool random_genetics);
 
@@ -83,7 +78,6 @@ private:
     void  update_food();
     
     void  check_food_death(const Food* food);
-    void  add_food_to_hash_grid();
 
     void  let_food_reproduce();
     bool  reproduce_food(Food* food);

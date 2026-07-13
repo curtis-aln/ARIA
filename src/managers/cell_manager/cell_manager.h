@@ -149,7 +149,6 @@ public:
 	
 	// updating, public
 	void update();
-	void update_food_interactions(FoodManager& food_manager);
 
 	// public statistics
 	const std::vector<float>& get_generation_distribution();

@@ -80,36 +80,6 @@ pass SpringResult by reference
 
 I could do with being able to modify the food nutrients Live
 
-ONE HUNDRED BUG FIXES
-(1) removed redundant fast forward code in Simulation Tab
-(2) Fixed bug where you could not unpause from the simulation Tab
-(3) When you pause / unpause in IMGUI it no longer resets the max fps
-
-(4) Removed redundant TextSettings Implementation
-(5) You can now control the rendering frame rate
-(6) Combined 3 clock classes into 1 
-
-(7) Fixed Toggles not working
-(8) Moved Fps trackers to the sim tab
-(9) removed the redundant statistics in the stats tab
-(10) Added Functionality to the Reset Simulation Button
-
-(11) Added all functionality to the Mouse Interaction Right Click
-
-(12) You can now attract and Repel Cells
-(13) You can now attract and Repel food
-
-(14) Colors and cell sizes now mutate correctly
-
-
-Today
-------
-Cells have 3 modes
-Alive -> Decaying -> Dead
-- All Functions work like normal on alive
-- When a cell's integrity reaches 0, it enters the decaying state
-- Decaying cells still exist in the world but have a lot of friction, and only lose integrity. no other function
-- When a cell's integrity reaches zero it is dead. which can be queried by is_dead()
 
 
 - There are no evolutionary parameters for Reproduction
@@ -194,13 +164,24 @@ The faster you transfer nutrients, the more energy it costs.
 - This is negatively preportional to the size of the cell
 
 
-current: 825 iterations
-Multithreadding FindFromIndex
+###### Movement System
+Cells Control their friction Through the following single layer NN
+Inputs:
+- Energy
+- Current Friction
+- Speed Sq
+
+Output(s):
+- delta friction
 
 
+Springs Take in
+- Cell A delta friction
+- Cell B delta friction
+- Current Length
 
-// New preposed food eat system
-(1) Update the cells by grids
-(2) Split the grid between 16 threads
-    2.1. each thread has their own eat vector which logs which food has had a bite out of it
-(3) At the end of this, in a single thread, go through all 16 containers and apply the bites
+And Churn out:
+- delta length
+
+i can begin working on the movement system when i solve 15 bugs
+OOOOOOOOOOOOOOO

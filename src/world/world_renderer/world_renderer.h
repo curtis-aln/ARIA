@@ -56,10 +56,12 @@ public:
 
 	void render(const SimSnapshot& snapshot, sf::Vector2f mouse_pos)
 	{
+		
+
 		render_visual_grid(snapshot);
 
-		if (snapshot.toggles.draw_food_grid)
-			food_manager_->draw_food_grid(mouse_pos);
+		//if (snapshot.toggles.draw_food_grid)
+		//	food_manager_->draw_food_grid(mouse_pos);
 
 		if (snapshot.toggles.draw_cell_grid)
 			cell_grid_renderer_.render(*m_window_, mouse_pos, 800.f);

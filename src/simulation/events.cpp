@@ -10,7 +10,8 @@ bool Simulation::try_select_protozoa(const sf::Vector2f& cam_pos)
 void Simulation::handle_left_click(const sf::Vector2f& cam_pos)
 {
 	// when a mouse button is pressed down it is either to pan the screen or to interact with an organism
-	if (try_select_protozoa(cam_pos))
+	float zoom = camera_.get_current_zoom();
+	if (zoom > 0.062 && try_select_protozoa(cam_pos))
 	{
 		left_mouse_pressed_event = true;
 	}

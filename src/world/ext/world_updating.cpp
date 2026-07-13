@@ -23,7 +23,7 @@ void World::update(SimSnapshot& write_snapshot)
 
 		update_entities();
 
-		cell_manager_.update_food_interactions(food_manager_);
+		food_eat_resolver_.resolve();
 	}
 
 	// We always update the position container, otherwise the simulation jitters when paused

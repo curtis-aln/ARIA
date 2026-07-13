@@ -4,9 +4,7 @@ struct SimSnapshot;
 struct FoodData;
 
 FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies)
-	: world_bounds_(world_bounds), bodies_(bodies), food_renderer(window, food_radius, max_food), window_(window),
-	spatial_hash_grid(cells_x, cells_y, cell_max_capacity, world_bounds_->bounds_radius * 2, world_bounds_->bounds_radius * 2), 
-	food_grid_renderer(&spatial_hash_grid)
+	: world_bounds_(world_bounds), bodies_(bodies), food_renderer(window, food_radius, max_food), window_(window)
 {
 	food_data.positions.reserve(max_food);
 	food_data.colors.reserve(max_food);
@@ -17,7 +15,6 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 
 void FoodManager::update()
 {
-	add_food_to_hash_grid();
 	for (Food* food : food_vector)
 	{
 		check_food_death(food);
@@ -108,21 +105,12 @@ const Food* FoodManager::at(const int idx) const
 	return food_vector.at(idx);
 }
 
-void FoodManager::draw_food_grid(sf::Vector2f mouse_pos) const
-{
-	food_grid_renderer.render(*window_, mouse_pos, 1600.f);
-}
 
 int FoodManager::get_size() const
 {
 	return food_vector.size();
 }
 
-
-void FoodManager::update_food_grid_renderer()
-{
-	food_grid_renderer.rebuild();
-}
 
 void FoodManager::fill_data(FoodData& other_food_data)
 {

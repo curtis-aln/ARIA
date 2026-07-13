@@ -6,11 +6,6 @@
 #include "../../entities/cell/cell_genome.h"
 #include "simulation/settings/settings.h"
 
-thread_local FixedSpan<uint32_t> World::tl_nearby_ids{25};
-thread_local FixedSpan<obj_idx> World::tl_nearby_food{25};
-
-
-
 World::World(sf::RenderWindow* window) : m_window_(window)
 {
     food_manager_.init();
@@ -123,17 +118,6 @@ void World::handle_right_click(WorldBorder& spawn_area)
 }
 
 
-void World::update_spatial_renderers()
-{
-    food_manager_.update_food_grid_renderer();
-}
-
-void World::unload_render_data(SimSnapshot& snapshot)
-{
-    // we check if the rendering process has written any new data for us to use, we unload it onto the world before updating it
-    
-}
-
 void World::fill_snapshot(SimSnapshot& snapshot)
 {
     /* Data that goes to both the renderer and the ImGUI panels */
@@ -168,7 +152,7 @@ void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)
 {
     // printing if there is a protozoa selected
     auto* cell_grid = get_spatial_grid();
-    auto* food_grid = get_food_spatial_grid();
+    auto* food_grid = &food_eat_resolver_.get_spatial_grid();
 
     snapshot.food_grid = get_grid_data(food_grid);
     snapshot.cell_grid = get_grid_data(cell_grid);

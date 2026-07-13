@@ -92,47 +92,49 @@ public:
 		const sf::Vector2f& vel_a = body_a.velocity_;
 		const sf::Vector2f& vel_b = body_b.velocity_;
 
-		current_length = (pos_b - pos_a).length();
+		const sf::Vector2f dir = pos_b - pos_a;
+		const float length_squared = dir.x * dir.x + dir.y * dir.y;
 
-		if (current_length > SPRING_BREAK_LENGTH)
+		if (length_squared > SPRING_BREAK_LENGTH * SPRING_BREAK_LENGTH)
 		{
 			break_spring();
 		}
+
+		current_length = fast_sqrt(length_squared);
+		const float length_diff = current_length - rest_length;
+		const float inv_length = 1.0f / current_length;
 
 		// finding the rest length of the spring
 		rest_length = calculate_rest_length(clock_);
 
 		// Calculating the spring force: Fs = K * (|B - A| - L)
-		spring_force = spring_const * (current_length - rest_length);
+		spring_force = spring_const * (length_diff);
 
 		// Calculating the damping force
-		const sf::Vector2f normalised_dir = ((pos_b - pos_a) / current_length);
+		const sf::Vector2f normalised_dir{ dir.x * inv_length, dir.y * inv_length};
 		const sf::Vector2f vel_difference = (vel_b - vel_a);
 		damping_force = normalised_dir.dot(vel_difference) * damping;
 
 		// Calculating total force (sum of the two forces)
 		const float total_force = spring_force + damping_force;
+		const sf::Vector2f movement_vector = normalised_dir * total_force;
 
 		// moving each cell
-		body_a.accelerate(total_force * ((pos_b - pos_a) / current_length));
-		body_b.accelerate(total_force * ((pos_a - pos_b) / current_length));
+		body_a.accelerate(movement_vector);
+		body_b.accelerate(-movement_vector);
 
 		// we can calculate the amount of energy this contraction / extension took
-		work_done = std::abs(spring_force) * std::abs(current_length - rest_length);
+		work_done = std::abs(spring_force * length_diff);
 		work_done *= SPRING_WORK_CONST;
 
 		const float force_magnitude = std::abs(total_force);
-
 
 		// Stress: 0 = relaxed, 1 = at breaking point
 		stress = force_magnitude / SPRING_BREAK_FORCE;
 
 		// Force-based break (complements your existing length-based break)
 		if (force_magnitude > SPRING_BREAK_FORCE)
-		{
 			break_spring();
-		}
-
 	}
 
 	void update_organics(Cell& cell_a, Cell& cell_b)
@@ -178,7 +180,7 @@ private:
 	float calculate_rest_length(const int internal_clock)
 	{
 		// sin oscillates around vertical_shift with ±amplitude swing
-		const float sin_value = sinf(frequency * internal_clock + offset); // [-1, 1]
+		const float sin_value = fast_sin(frequency * internal_clock + offset); // [-1, 1]
 		ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
 		const float clamped = std::clamp(ratio, 0.f, 1.f);
 		return clamped * maximum_extension;

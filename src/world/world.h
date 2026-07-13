@@ -22,6 +22,7 @@
 #include "../Utils/Graphics/SFML_Grid.h"
 
 #include "world_renderer/world_renderer.h"
+#include "food_eat_resolver.h"
 
 
 class World : public WorldSettings
@@ -48,14 +49,10 @@ class World : public WorldSettings
     sf::FloatRect bounds = { {0, 0}, {bounds_radius * 2, bounds_radius * 2} };
     
     CollisionResolver collision_resolver_{ &bounds, &bodies_, updating_threads, max_entities, max_entities };
-
-	BarrierThreadPool food_thread_pool_{ (int)updating_threads };
-
-    uint8_t max_capacity_area = cell_max_capacity * 9;
-    static thread_local FixedSpan<uint32_t> tl_nearby_ids;
-    static thread_local FixedSpan<obj_idx> tl_nearby_food;
+	FoodEatResolver food_eat_resolver_{ 
+        &food_manager_.get_food_vector(), &bodies_, &cell_manager_.get_all_cells(), 
+        updating_threads, max_entities / updating_threads, bounds };
     
-
     WorldRenderer world_renderer_{ m_window_, &food_manager_, &collision_resolver_, world_rect_bounds_, world_circular_bounds_ };
 
     std::vector<std::function<void()>> food_jobs_;
@@ -89,19 +86,14 @@ public:
 
     // ── Accessors — spatial grids / food ─────────────────────────────────────
     SimpleSpatialGrid* get_spatial_grid() { return collision_resolver_.get_grid(); }
-    SimpleSpatialGrid* get_food_spatial_grid() { return &food_manager_.spatial_hash_grid; }
 
-    const SimpleSpatialGrid* get_food_spatial_grid() const { return &food_manager_.spatial_hash_grid; }
     FoodManager* get_food_manager() { return &food_manager_; }
     const FoodManager* get_food_manager() const { return &food_manager_; }
     const CellManager* get_cell_manager() const { return &cell_manager_; }
     CellManager* get_cell_manager() { return &cell_manager_; }
-    void               update_spatial_renderers();
 	int get_entity_count() const { return cell_manager_.get_cell_count() + food_manager_.get_size(); }
 
     // world.h
-
-    void unload_render_data(SimSnapshot& snapshot);
     static SpatialGridData get_grid_data(SimpleSpatialGrid* grid);
     void calculate_spatial_grid_statistics(SimpleSpatialGrid* grid, SpatialGridData& data);
 
