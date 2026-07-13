@@ -36,6 +36,12 @@ void Simulation::run_simulation()
         handle_events();
         manage_rendering_frame_rate();
         render();
+
+        if (sim_state_.total_time_elapsed > 10)
+        {
+			std::cout << "total iterations: " << m_world_.get_statistics().iterations_ << std::endl;
+            running = false;
+        }
     }
 
     m_sim_thread_.join();

@@ -194,8 +194,13 @@ The faster you transfer nutrients, the more energy it costs.
 - This is negatively preportional to the size of the cell
 
 
+current: 825 iterations
+Multithreadding FindFromIndex
 
 
-1300fps paused Goal: 3000fps
-1500fps - improved fill spring data
-2000fps - removed a lot of updating statistics redundancy
+
+// New preposed food eat system
+(1) Update the cells by grids
+(2) Split the grid between 16 threads
+    2.1. each thread has their own eat vector which logs which food has had a bite out of it
+(3) At the end of this, in a single thread, go through all 16 containers and apply the bites

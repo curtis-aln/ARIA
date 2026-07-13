@@ -29,7 +29,7 @@ cell_max_capacity           = 14
 # ── Cell Manager ─────────────────────────────────────────────────────────
 [cell_manager]
 max_protozoa                = 70000     
-initial_protozoa            = 8000     
+initial_protozoa            = 16000     
 auto_reset_on_extinction    = true
 
 # ── Cell ─────────────────────────────────────────────────────────────────
@@ -48,8 +48,8 @@ spring_work_const                = 0.00001
 
 # ── Food Manager ─────────────────────────────────────────────────────────
 [food_manager]
-max_food                    =  30000
-initial_food                 = 30000
+max_food                    =  60000
+initial_food                 = 50000
 
 # ── Food ─────────────────────────────────────────────────────────────────
 [food]

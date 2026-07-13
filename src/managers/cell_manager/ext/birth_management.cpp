@@ -41,32 +41,25 @@
 // ─────────────────────────────────────────────────────────────────────────────
 bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth)
 {
-	// This function takes in a seed cell and builds a protozoa around it, with a random number of cells and springs
-	// This happens only at the start of the simulation or whenver we want to reset it (e.g. extinction event)
-	// It is a recursive function meaning it calls itself until a certain depth is reached
-
-	// The body of the seed cell needs to be retrieved so we can spawn the new cells around it
+	const int seed_id = seed_cell->id_;          // survives reallocation, the pointer doesn't
 	Body* seed_body = bodies_->at(seed_cell->body_id_);
 
-	// The First child is made next to the seed_cell, within close proximity so that the spring can be made without breaking immediately
 	float spawn_dist = seed_body->radius_ * 3.5f;
 	sf::Vector2f child_pos = Random::rand_position_in_circle(seed_body->position_, spawn_dist);
 
-	// we have all the information we need to spawn the next cell
-	CellBodyPair pair = create_cell(child_pos);
+	CellBodyPair pair = create_cell(child_pos);   // may reallocate all_cells_ / bodies_
 	if (!pair.is_valid())
 		return false;
 
-	// now that the child cell is spawned, we can create a spring between the seed cell and the child cell
+	seed_cell = all_cells_.at(seed_id);           // re-resolve — seed_body isn't used again, so it's fine as-is
+
 	Spring* spring = create_spring(seed_cell->id_, pair.cell_ptr->id_);
 	if (spring == nullptr)
 		return false;
 	spring->randomize();
 
 	if (recursion_depth < max_recursion_depth)
-	{
 		build_protozoa_from_seed(pair.cell_ptr, max_recursion_depth, recursion_depth + 1);
-	}
 
 	return true;
 }

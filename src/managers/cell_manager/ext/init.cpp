@@ -61,6 +61,7 @@ void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 	{
 		sf::Vector2f spawn_pos = spawn_area->rand_pos();
 		CellBodyPair pair = create_cell(spawn_pos, true);
+
 		if (!pair.is_valid())
 			break;
 

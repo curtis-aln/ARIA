@@ -11,6 +11,7 @@
 #include "../../Utils/spatial_grid/spatial_grid_renderer.h"
 #include "food_data.h"
 #include "world/world_border.h"
+#include "../../simulation/context/state.h"
 
 struct FoodBodyPair
 {

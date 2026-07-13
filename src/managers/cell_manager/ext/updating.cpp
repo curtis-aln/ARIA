@@ -79,8 +79,6 @@ void CellManager::update_food_interactions(FoodManager& food_manager)
 	for (Cell* cell : all_cells_)
 	{
 		Body* body = bodies_->at(cell->body_id_);
-		if (body == nullptr)
-			continue;
 
 		sf::Vector2f pos = body->position_;
 
@@ -91,8 +89,6 @@ void CellManager::update_food_interactions(FoodManager& food_manager)
 		{
 			obj_idx food_id = nearby_food_ids[i];
 			Food* food = food_manager.at(food_id);
-			if (food == nullptr)
-				continue;
 			
 			Body* food_body = bodies_->at(food->body_id_);
 
