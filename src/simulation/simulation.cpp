@@ -166,7 +166,8 @@ void Simulation::render()
 
     m_sim_buffer_.end_read();
 
-    ImGui::SFML::Render(m_window_);
+    if (!m_world_.toggles.hide_panels)
+        ImGui::SFML::Render(m_window_);
     m_window_.display();
 }
 

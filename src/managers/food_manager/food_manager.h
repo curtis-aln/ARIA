@@ -76,6 +76,7 @@ public:
 
 private:
     void  update_food();
+    void update_statistics();
     
     void  check_food_death(const Food* food);
 

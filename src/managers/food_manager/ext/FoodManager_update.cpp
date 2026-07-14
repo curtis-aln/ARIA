@@ -105,3 +105,8 @@ void FoodManager::influence_food_velocities_in_radii(const sf::Vector2f& positio
 		body->velocity_ += direction * (float)intensity;
 	}
 }
+
+void FoodManager::update_statistics()
+{
+	statistics_.food_count = food_vector.size();
+}

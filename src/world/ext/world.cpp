@@ -124,9 +124,11 @@ void World::fill_snapshot(SimSnapshot& snapshot)
     /* Data that goes to both the renderer and the ImGUI panels */
     snapshot.cell_manager_stats = cell_manager_.get_statistics();
     snapshot.world_stats = get_statistics(); // simulation statistics
+    snapshot.food_manager_stats = food_manager_.get_statistics();
     snapshot.toggles = toggles;
 
 	copy_render_data_to_snapshot(snapshot); // render data
+
 
     food_manager_.fill_data(snapshot.food_data);
     snapshot.world_stats.highlighted_food = food_manager_.select_indexes.count;

@@ -5,7 +5,6 @@
 - Worlds should be able to be saved and loaded
 - add the ability to change the worldsize in real time, regardless of if the spatial hash grid can change with it yet
 - add the ability to pinch, pin, and throw organisms around 
-- add a zoom slider
 - add a "Navigate to most sucessfull organism" button which locks on to the organism which has reporoduced the most
 - add the ability to save organisms to file
 - add the ability to spawn a saved organism
@@ -78,7 +77,24 @@ pass SpringResult by reference
 - o_vector needs an imgui Visuliser attached to it
 - Birth and Death Requests need an imgui visuliser attached to it
 
-I could do with being able to modify the food nutrients Live
+
+#### Today
+[done] Food Count shows as zero 
+[done] Hide panels button doesnt work
+- Force reproduce and Force Die do not work, and you cant choose between single cell and whole organism
+- Add cell, add spring, remove cell, remove spring do not work
+- add the ability to pinch, pin, and throw organisms around 
+- Feed energy / feed nutrients doesnt work
+- No way to select between feed to one cell or whole organism
+
+### Subtodo
+- remove the add energy from the Tuning and controls tab
+- Remove the save to file / load from file
+- move force reproduce and force die to the man organism tab to the left
+- make the "make immortal" button to the same place
+- Move the clone button to the same place
+- Move the mutation and structure to the left of the graph
+- remove the tuning and controls panel
 
 
 
@@ -92,13 +108,10 @@ I could do with being able to modify the food nutrients Live
 - births per 100 frames isnt calculated
 - deaths per 100 frames isnt calculated
 - Infant mortality isnt calculated
-[Done] Generation doesnt work
 - Avg cells and Avg springs isnt calculated
 - Energy ratio is not calculated
 - Highlighted cells and Highlighted food isnt live
 - World Resize doesnt work
-[Done] Toggle collisions doesnt work and should be moved to world section in simulation tab
-- Line graph blows up
 - The whole Tagged system doesnt work
 - The Tools Tab needs to be side by side
 - In display, enable rendering needs to go in the sim tab
@@ -107,17 +120,11 @@ I could do with being able to modify the food nutrients Live
 - Simple mode needs to be removed we now have Level-Of-Detail Rendering
 - Track statistics needs to go to the sim tab
 - All the debug overlays need to go to the organism tracker tab
-- Hide panels button doesnt work
-- Zoom feature doesnt work
-- Remove camera lock code
 - Move UI controls to the simulation Tab
 - Its hard to click on a cell, there should be an invisible click hitbox to make it easier
 - Remove the redundant energy bar in the organism debugger
 - give the energy subtab better names
 - make SetMouseMode an Enum
-- Feed energy / feed nutrients doesnt work
-- No way to select between feed to one cell or whole organism
-- Force reproduce and Force Die do not work, and you cant choose between single cell and whole organism
 - you cant change the spring constant or damping of springs which are selected
 - you cant change any of the spring values when selected
 - Cells can gain more than their max energy, nutrients, integrity
@@ -125,7 +132,6 @@ I could do with being able to modify the food nutrients Live
 - Apply mutation does not work and you cannot choose between a cell and a whole organism
 - Clone Nearby doesnt work
 - Save to file doesnt work
-- add the ability to pinch, pin, and throw organisms around 
 - you should be able to deselect the mouse right click effects, and when you select it should show the radius by defualt
 
 After i have all these bug fixes, we can work on
@@ -135,10 +141,6 @@ The Pheromones Update
 
 
 ---------------------------------------------------------
-Pre update todo:
-- Fix the spawning bug where child cells spawn very far away
-- Add missing cell debug features
-
 New evolutionary Parameters
 - Disconnect chance:
 	- A value between 0 and 1 which is the chance a temparary spring disconnects every frame
@@ -173,8 +175,8 @@ Output(s):
 
 
 Springs Take in
-- Cell A delta friction
-- Cell B delta friction
+- Cell A friction
+- Cell B friction
 - Current Length
 
 And Churn out:

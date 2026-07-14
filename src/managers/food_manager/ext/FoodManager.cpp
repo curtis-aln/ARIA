@@ -23,6 +23,7 @@ void FoodManager::update()
 	update_position_data();
 	let_food_reproduce();
 	update_food();
+	update_statistics();
 }
 
 void FoodManager::render(const FoodData& snapshot_food_data)
