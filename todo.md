@@ -88,11 +88,11 @@ pass SpringResult by reference
 - No way to select between feed to one cell or whole organism
 
 ### Subtodo
-- remove the add energy from the Tuning and controls tab
-- Remove the save to file / load from file
-- move force reproduce and force die to the man organism tab to the left
-- make the "make immortal" button to the same place
-- Move the clone button to the same place
+[Done] remove the add energy from the Tuning and controls tab
+[Done] Remove the save to file / load from file
+[Done] move force reproduce and force die to the man organism tab to the left
+[Done] make the "make immortal" button to the same place
+[Done] Move the clone button to the same place
 - Move the mutation and structure to the left of the graph
 - remove the tuning and controls panel
 

@@ -12,7 +12,7 @@ private:
     int  m_sel_cell_idx_ = 0;
     int  m_sel_spring_idx_ = 0;
     bool m_sel_is_spring_ = false;
-    int  m_wave_cycles_ = 1;   // number of full periods shown in the sinwave graph
+    int  m_wave_cycles_ = 8;   // number of full periods shown in the sinwave graph
 
     // ── Feed state (owned here, shared by Energy tab) ─────────────────────
     int   m_feed_mode_ = 0;     // 0 = energy,  1 = nutrients
@@ -20,9 +20,8 @@ private:
 
     void draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
     static void draw_no_selection();
-    void draw_cells_springs_tab(ImGuiContext& ctx, const OrganismTracker& protozoa);
+    void draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
     void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel);
     void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);
-    static void draw_tuning_controls_tab(ImGuiContext& ctx, const SimSnapshot& snap);
     void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);
 };
