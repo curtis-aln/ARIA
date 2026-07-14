@@ -86,16 +86,8 @@ pass SpringResult by reference
 - add the ability to pinch, pin, and throw organisms around 
 - Feed energy / feed nutrients doesnt work
 - No way to select between feed to one cell or whole organism
-
-### Subtodo
-[Done] remove the add energy from the Tuning and controls tab
-[Done] Remove the save to file / load from file
-[Done] move force reproduce and force die to the man organism tab to the left
-[Done] make the "make immortal" button to the same place
-[Done] Move the clone button to the same place
-- Move the mutation and structure to the left of the graph
-- remove the tuning and controls panel
-
+- When you select a Cell it should change your tab to The Organism Tracker
+- When you deselect or the cell dies it should change your view back to the Simulation Tab
 
 
 - There are no evolutionary parameters for Reproduction

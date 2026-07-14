@@ -74,6 +74,8 @@ struct WorldStatistics
     int mouse_intensity = 1;
     float mouse_radius = 300.f;
 
+    int structure_mode = 0;
+
     float frames_per_generation = -1.f; // negative = undefined
     float tracked_generation = 0.f;
     float frames_since_last_gen_change = 0.f;

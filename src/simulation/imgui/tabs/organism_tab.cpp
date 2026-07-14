@@ -130,8 +130,6 @@ void OrganismTab::draw_no_selection()
 // ─────────────────────────────────────────────────────────────────────────────
 void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa)
 {
-
-
     // ── Identity / Locomotion side-by-side ───────────────────────────────
     ImGui::Columns(2, nullptr, false);
 
@@ -180,6 +178,18 @@ void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, cons
 
     ImGui::Spacing();
     ImGui::Separator();
+
+    const float sp = ImGui::GetStyle().ItemSpacing.x;
+    const float hw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
+
+    static constexpr ModeOption<int> kStructureModes[] = {
+    { "For Selected##mode", 0 },
+    { "For All##mode",      1 },
+    };
+
+    mode_button_row(ctx, CommandSection::CellManagerEvent, CommandType::SetMouseMode,
+        &SimCommand::int_val, kStructureModes, snap.world_stats.structure_mode,
+        ImVec4{ 0.4f, 0.4f, 0.4f, 1.f }, 20);
 
     bool immortal = false;
     if (ImGui::Checkbox("Immortal##org", &immortal))
@@ -318,6 +328,49 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
     ImGui::EndChild();
 }
 
+void OrganismTab::draw_wave_panel(ImGuiContext& ctx, const char* child_id,
+    const char* description, int frames_alive, int idx, const char* value_label,
+    std::vector<float>& scratch_buf,
+    const WaveParam& amplitude, const WaveParam& frequency,
+    const WaveParam& offset, const WaveParam& vertical_shift)
+{
+    const int period = safe_time_period(frequency.value);
+    const int display_size = std::min(m_wave_cycles_ * period, k_max_wave_buf);
+    const int head = frames_alive % display_size;
+
+    ImGui::BeginChild(child_id, { -1.f, -1.f }, true);
+    ImGui::TextDisabled("%s", description);
+
+    scratch_buf.resize(display_size);
+    PlotUtils::fill_sinwave(scratch_buf.data(), display_size,
+        amplitude.value, frequency.value, offset.value, vertical_shift.value, 0.f, 1.f);
+    PlotUtils::sinwave_graph("##wave", scratch_buf.data(), display_size, head, 0.f, 1.f, { -1.f, 52.f });
+    ImGui::Text("t=%-4d  %s = %.4f", head, value_label, scratch_buf[head]);
+
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(-1.f);
+    ImGui::SliderInt("##cycles", &m_wave_cycles_, 1, 8, "Display cycles = %d");
+
+    const WaveParam params[] = { amplitude, frequency, offset, vertical_shift };
+    for (int i = 0; i < 4; ++i)
+    {
+        ImGui::PushID(i); // needed since all four sliders now share the "##wp" label
+        ImGui::Spacing();
+        ImGui::SetNextItemWidth(-1.f);
+        float val = params[i].value;
+        if (ImGui::SliderFloat("##wp", &val, params[i].min, params[i].max, params[i].fmt))
+        {
+            SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = params[i].type };
+            cmd.float_val = val;
+            cmd.cell_spring_idx = idx;
+            ctx.push(cmd);
+        }
+        ImGui::PopID();
+    }
+
+    ImGui::EndChild();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Cell detail (stats + sinwave)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -331,21 +384,6 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
 
     const int frames_alive = c.frames_alive_;
     const float current_friction = c.calculate_friction();
-
-    auto slider_float_cmd = [&](const char* label, float current, float min, float max,
-        const char* fmt, CommandSection section, CommandType type)
-        {
-            float val = current;
-            if (ImGui::SliderFloat(label, &val, min, max, fmt))
-            {
-                SimCommand cmd;
-				cmd.section = section;
-                cmd.type = type;
-                cmd.float_val = val;
-				cmd.cell_spring_idx = c.body_id_;
-                ctx.push(cmd);
-            }
-        };
 
     const int period = safe_time_period(c.frequency);
     const int display_size = std::min(m_wave_cycles_ * period, k_max_wave_buf);
@@ -407,7 +445,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
     ImGui::Spacing();
     ImGui::SetNextItemWidth(-1.f);
     
-    slider_float_cmd("##rad_c", c.radius,
+    slider_float_cmd(ctx, "##rad_c", c.radius,
         CellGeneticConstraints::radius.min, CellGeneticConstraints::radius.max,
         "R = %.1f", CommandSection::CellManagerEvent, CommandType::SetRadius);
 
@@ -415,31 +453,14 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
     ImGui::SameLine();
 
     // ── Sin wave ───────────────────────────────────────────────────────────
-    ImGui::BeginChild("CL_wave", { 500, -1.f }, true);
-    ImGui::TextDisabled("Friction  amplitude * sin(frequency * t + phase) + shift");
-
     static std::vector<float> fric_buf;
-    fric_buf.resize(display_size);
-    PlotUtils::fill_sinwave(fric_buf.data(), display_size,
-        c.amplitude, c.frequency, c.offset, c.vertical_shift, 0.f, 1.f);
-    PlotUtils::sinwave_graph("##fw", fric_buf.data(), display_size, head, 0.f, 1.f, { -1.f, 52.f });
-    ImGui::Text("t=%-4d  friction = %.4f", head, fric_buf[head]);
-
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(-1.f);
-    ImGui::SliderInt("##cycles_c", &m_wave_cycles_, 1, 8, "Display cycles = %d");
-
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##cA", c.amplitude, CellGeneticConstraints::amplitude.min, CellGeneticConstraints::amplitude.max, "Amplitude = %.3f", CommandSection::CellManagerEvent, CommandType::SetAmplitude);
-    ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cB", c.frequency, CellGeneticConstraints::frequency.min, CellGeneticConstraints::frequency.max, "Frequency = %.5f", CommandSection::CellManagerEvent, CommandType::SetFrequency);
-    ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cC", c.offset, CellGeneticConstraints::offset.min, CellGeneticConstraints::offset.max, "Phase     = %.3f", CommandSection::CellManagerEvent, CommandType::SetOffset);
-    ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd("##cD", c.vertical_shift, CellGeneticConstraints::vertical_shift.min, CellGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandSection::CellManagerEvent, CommandType::SetVerticalShift);
-
-    ImGui::EndChild();
+    draw_wave_panel(ctx, "CL_wave",
+        "Friction  amplitude * sin(frequency * t + phase) + shift",
+        frames_alive, c.body_id_, "friction", fric_buf,
+        { c.amplitude,      CellGeneticConstraints::amplitude.min,      CellGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetAmplitude },
+        { c.frequency,      CellGeneticConstraints::frequency.min,      CellGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetFrequency },
+        { c.offset,         CellGeneticConstraints::offset.min,         CellGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetOffset },
+        { c.vertical_shift, CellGeneticConstraints::vertical_shift.min, CellGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetVerticalShift });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -447,20 +468,6 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
 // ─────────────────────────────────────────────────────────────────────────────
 void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s)
 {
-    auto slider_float_cmd = [&](const char* label, float current, float min, float max,
-        const char* fmt, CommandSection section, CommandType type)
-        {
-            float val = current;
-            if (ImGui::SliderFloat(label, &val, min, max, fmt))
-            {
-                SimCommand cmd;
-                cmd.type = type;
-                cmd.float_val = val;
-                cmd.cell_spring_idx = s.id_;
-                ctx.push(cmd);
-            }
-        };
-
     const int period = safe_time_period(s.frequency);
     const int display_size = std::min(m_wave_cycles_ * period, k_max_wave_buf);
     const int head = static_cast<int>(p.frames_alive) % display_size;
@@ -508,12 +515,12 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::TextDisabled("Physical");
     ImGui::SetNextItemWidth(-1.f);
 
-    slider_float_cmd("##sk", s.spring_const,
+    slider_float_cmd(ctx, "##sk", s.spring_const,
         0.f, SpringGeneticConstraints::spring_const.max,
         "Spring constant = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringConst);
 
     ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##sd", s.damping,
+    slider_float_cmd(ctx, "##sd", s.damping,
         0.f, SpringGeneticConstraints::damping.max,
         "Damping         = %.3f", CommandSection::CellManagerEvent, CommandType::SetDampingConst);
 
@@ -522,39 +529,15 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
 
     // ── Sin wave ───────────────────────────────────────────────────────────
     ImGui::BeginChild("SL_wave", { -1.f, -1.f }, true);
-    ImGui::TextDisabled("Extension  amplitude * sin(frequency * t + phase) + shift  [0, 1]");
-
+    // in draw_spring_detail, after the SL_stat child:
     static std::vector<float> ext_buf;
-    ext_buf.resize(display_size);
-    PlotUtils::fill_sinwave(ext_buf.data(), display_size,
-        s.amplitude, s.frequency, s.offset, s.vertical_shift, 0.f, 1.f);
-    PlotUtils::sinwave_graph("##sw", ext_buf.data(), display_size, head, 0.f, 1.f, { -1.f, 52.f });
-    ImGui::Text("t=%-4d  ratio = %.4f", head, ext_buf[head]);
-
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(-1.f);
-    ImGui::SliderInt("##cycles_s", &m_wave_cycles_, 1, 8, "Display cycles = %d");
-
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##sA", s.amplitude,
-        0.f, SpringGeneticConstraints::amplitude.max,
-        "Amplitude = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringAmplitude);
-
-    ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##sB", s.frequency,
-        -SpringGeneticConstraints::frequency.min, SpringGeneticConstraints::frequency.max,
-        "Frequency = %.5f", CommandSection::CellManagerEvent, CommandType::SetSpringFrequency);
-
-    ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##sC", s.offset,
-        -SpringGeneticConstraints::offset.min, SpringGeneticConstraints::offset.max,
-        "Phase     = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringOffset);
-
-    ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd("##sD", s.vertical_shift,
-        -SpringGeneticConstraints::vertical_shift.min, SpringGeneticConstraints::vertical_shift.max,
-        "Shift     = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringVerticalShift);
+    draw_wave_panel(ctx, "SL_wave",
+        "Extension  amplitude * sin(frequency * t + phase) + shift  [0, 1]",
+        static_cast<int>(p.frames_alive), s.id_, "ratio", ext_buf,
+        { s.amplitude,      0.f,                                          SpringGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetSpringAmplitude },
+        { s.frequency,      -SpringGeneticConstraints::frequency.min,     SpringGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetSpringFrequency },
+        { s.offset,         -SpringGeneticConstraints::offset.min,        SpringGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetSpringOffset },
+        { s.vertical_shift, -SpringGeneticConstraints::vertical_shift.min, SpringGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetSpringVerticalShift });
 
     ImGui::EndChild();
 }
