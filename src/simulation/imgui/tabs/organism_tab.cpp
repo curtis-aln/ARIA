@@ -175,43 +175,6 @@ void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, cons
 
 	toggle(snap, ctx,"Debug Mode", &WorldToggles::debug_mode, "D");
     toggle(snap, ctx, "Bounding Boxes", &WorldToggles::show_bounding_boxes, "B");
-
-    ImGui::Spacing();
-    ImGui::Separator();
-
-    const float sp = ImGui::GetStyle().ItemSpacing.x;
-    const float hw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
-
-    static constexpr ModeOption<int> kStructureModes[] = {
-    { "For Selected##mode", 0 },
-    { "For All##mode",      1 },
-    };
-
-    mode_button_row(ctx, CommandSection::CellManagerEvent, CommandType::SetMouseMode,
-        &SimCommand::int_val, kStructureModes, snap.world_stats.structure_mode,
-        ImVec4{ 0.4f, 0.4f, 0.4f, 1.f }, 20);
-
-    bool immortal = false;
-    if (ImGui::Checkbox("Immortal##org", &immortal))
-    {
-        SimCommand cmd{ .type = CommandType::MakeImmortal };
-        cmd.bool_val = immortal;
-        ctx.push(cmd);
-    }
-    ImGui::Spacing();
-    if (ImGui::Button("Force Reproduce##org", { -1.f, 0.f }))
-        ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::ForceReproduce });
-
-    ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Button, { 0.55f, 0.08f, 0.08f, 1.f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.75f, 0.15f, 0.15f, 1.f });
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 1.00f, 0.25f, 0.25f, 1.f });
-    if (ConfirmButton::draw("Force Die##org", { -1.f, 0.f }))
-        ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::KillProtozoa });
-    ImGui::PopStyleColor(3);
-
-    if (ImGui::Button("Clone nearby##org", { -1.f, 0.f }))
-        ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::CloneProtozoa });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -323,7 +286,43 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
     ImGui::NextColumn();
     if (ImGui::Button("Add Spring", { -1.f, 0.f })) ctx.push({ .type = CommandType::AddSpring });
     if (ImGui::Button("Remove Spring", { -1.f, 0.f })) ctx.push({ .type = CommandType::RemoveSpring });
+
     ImGui::Columns(1);
+
+    ImGui::Spacing();
+    ImGui::Separator();
+
+    static constexpr ModeOption<int> kStructureModes[] = {
+    { "For Selected##mode", 0 },
+    { "For All##mode",      1 },
+    };
+
+    mode_button_row(ctx, CommandSection::CellManagerEvent, CommandType::SetMouseMode,
+        &SimCommand::int_val, kStructureModes, snap.world_stats.structure_mode,
+        ImVec4{ 0.4f, 0.4f, 0.4f, 1.f }, 20);
+
+    bool immortal = false;
+    if (ImGui::Checkbox("Immortal##org", &immortal))
+    {
+        SimCommand cmd{ .type = CommandType::MakeImmortal };
+        cmd.bool_val = immortal;
+        ctx.push(cmd);
+    }
+    ImGui::Spacing();
+    if (ImGui::Button("Force Reproduce##org", { -1.f, 0.f }))
+        ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::ForceReproduce });
+
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Button, { 0.55f, 0.08f, 0.08f, 1.f });
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.75f, 0.15f, 0.15f, 1.f });
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 1.00f, 0.25f, 0.25f, 1.f });
+    if (ConfirmButton::draw("Force Die##org", { -1.f, 0.f }))
+        ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::KillProtozoa });
+    ImGui::PopStyleColor(3);
+
+    if (ImGui::Button("Clone nearby##org", { -1.f, 0.f }))
+        ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::CloneProtozoa });
+
 
     ImGui::EndChild();
 }
@@ -338,7 +337,7 @@ void OrganismTab::draw_wave_panel(ImGuiContext& ctx, const char* child_id,
     const int display_size = std::min(m_wave_cycles_ * period, k_max_wave_buf);
     const int head = frames_alive % display_size;
 
-    ImGui::BeginChild(child_id, { -1.f, -1.f }, true);
+    ImGui::BeginChild(child_id, { 500, -1.f }, true);
     ImGui::TextDisabled("%s", description);
 
     scratch_buf.resize(display_size);
@@ -528,8 +527,6 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::SameLine();
 
     // ── Sin wave ───────────────────────────────────────────────────────────
-    ImGui::BeginChild("SL_wave", { -1.f, -1.f }, true);
-    // in draw_spring_detail, after the SL_stat child:
     static std::vector<float> ext_buf;
     draw_wave_panel(ctx, "SL_wave",
         "Extension  amplitude * sin(frequency * t + phase) + shift  [0, 1]",
@@ -539,7 +536,6 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
         { s.offset,         -SpringGeneticConstraints::offset.min,        SpringGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetSpringOffset },
         { s.vertical_shift, -SpringGeneticConstraints::vertical_shift.min, SpringGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetSpringVerticalShift });
 
-    ImGui::EndChild();
 }
 
 

@@ -88,6 +88,7 @@ pass SpringResult by reference
 - No way to select between feed to one cell or whole organism
 - When you select a Cell it should change your tab to The Organism Tracker
 - When you deselect or the cell dies it should change your view back to the Simulation Tab
+- render food grid doesnt work
 
 
 - There are no evolutionary parameters for Reproduction

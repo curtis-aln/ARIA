@@ -3,6 +3,8 @@
 #include <imgui.h>
 
 #include "world/world_settings.h"
+#include "../helpers/confirm_button.h"
+
 
 void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
@@ -260,20 +262,47 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
         ctx.push(cmd);
     }
 
-	ImGui::Separator();
+    ImGui::Separator();
     ImGui::TextDisabled("Toggles");
-    toggle(snap, ctx, "Toggle Collisions", &WorldToggles::toggle_collisions, "C");
-    toggle(snap, ctx, "Enable Rendering", &WorldToggles::m_rendering_, "R");
+
+    ImGui::Columns(2, nullptr, false);
+
+    toggle(snap, ctx, "Collisions", &WorldToggles::toggle_collisions, "C");
+    toggle(snap, ctx, "Rendering", &WorldToggles::m_rendering_, "R");
     toggle(snap, ctx, "Simple Mode", &WorldToggles::simple_mode, "S");
     toggle(snap, ctx, "Debug Mode", &WorldToggles::debug_mode, "D");
+
+    ImGui::NextColumn();
+
     toggle(snap, ctx, "Cell Grid", &WorldToggles::draw_cell_grid, "G");
     toggle(snap, ctx, "Food Grid", &WorldToggles::draw_food_grid, "F");
-    toggle(snap, ctx, "Track Statistics", &WorldToggles::track_statistics, "T");
+    toggle(snap, ctx, "Track Stats", &WorldToggles::track_statistics, "T");
+
+    ImGui::Columns(1);
+
+    if (ConfirmButton::draw("Clear all food##tools", { -1.f, 0.f }))
+    { /* TODO: ctx.world.get_food_manager()->clear_all() */
+    }
+    if (ConfirmButton::draw("Clear all protozoa##tools", { -1.f, 0.f }))
+    { /* TODO: ctx.world.clear_all_protozoa() */
+    }
 
     ImGui::EndChild();
     ImGui::SameLine();
 
-    ImGui::BeginChild("SIM_io", { -1.f, ch }, true);
+    ImGui::BeginChild("World", { -1.f, ch }, true);
+    ImGui::SeparatorText("Blackhole Tool (stub)");
+   
+    if (m_blackhole_) ImGui::PushStyleColor(ImGuiCol_Button, { 0.5f, 0.1f, 0.7f, 1.f });
+    if (ImGui::Button(m_blackhole_ ? "Deactivate Blackhole##bh" : "Activate Blackhole##bh", { -1.f, 0.f }))
+        m_blackhole_ = !m_blackhole_;
+    if (m_blackhole_) ImGui::PopStyleColor();
+    if (m_blackhole_) ImGui::TextColored({ 0.9f, 0.5f, 1.f, 1.f }, "Click in world to place");
+    ImGui::SetNextItemWidth(-1.f); ImGui::SliderFloat("Strength##bh", &m_bh_strength_, 10.f, 5000.f, "%.0f");
+    ImGui::SetNextItemWidth(-1.f); ImGui::SliderFloat("Radius##bh", &m_bh_radius_, 100.f, 5000.f, "%.0f");
+    ImGui::TextDisabled("TODO: World::apply_gravity_well(pos, strength, radius)");
+
+	ImGui::EndChild();
     // ── Save / Load + Keybinds ────────────────────────────────────────────────
     /*
     
@@ -285,33 +314,4 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
     if (ImGui::Button("Save Settings JSON", { -1.f, 0.f })) {  }
     if (ImGui::Button("Load Settings JSON", { -1.f, 0.f })) {  }
     */
-
-    ImGui::Spacing();
-    ImGui::TextDisabled("Keybinds");
-    ImGui::Separator();
-
-    // Compact two-column keybind list — no table header to save vertical space
-    if (ImGui::BeginTable("##keys", 2,
-        ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
-    {
-        auto row = [](const char* a, const char* k)
-            {
-                ImGui::TableNextRow();
-                ImGui::TableSetColumnIndex(0); ImGui::TextUnformatted(a);
-                ImGui::TableSetColumnIndex(1); ImGui::TextDisabled("%s", k);
-            };
-
-        row("Pause / Resume", "Space");  row("Step frame", "O");
-        row("Toggle render", "R");      row("Hide panels", "Q");
-        row("Cell grid", "G");      row("Food grid", "F");
-        row("Collisions", "C");      row("Simple mode", "S");
-        row("Debug mode", "D");      row("Track stats", "T");
-        row("Skeleton mode", "K");      row("Bounding boxes", "B");
-        row("Zoom", "Scroll"); row("Pan", "LMB drag");
-        row("Select organism", "LMB");    row("Exit", "Esc");
-
-        ImGui::EndTable();
-    }
-
-    ImGui::EndChild();
 }

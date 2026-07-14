@@ -3,7 +3,6 @@
 #include "tabs/graphs_tab.h"
 #include "tabs/organism_tab.h"
 #include "tabs/tagged_tab.h"
-#include "tabs/tools_tab.h"
 #include "tabs/grid_tab.h"
 #include "tabs/o_vector_tab.h"
 #include <imgui.h>
@@ -23,7 +22,6 @@ ControlPanel::ControlPanel()
     m_tabs_.push_back(std::make_unique<GraphsTab>());
     m_tabs_.push_back(std::make_unique<OrganismTab>());
     m_tabs_.push_back(std::move(tagged));
-    m_tabs_.push_back(std::make_unique<ToolsTab>());
     m_tabs_.push_back(std::make_unique<GridTab>());
     m_tabs_.push_back(std::make_unique<OVecDebugTab>());
 }

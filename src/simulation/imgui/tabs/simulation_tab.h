@@ -34,4 +34,8 @@ private:
     float m_zoom_slider_ = 1.f;
     float m_camera_friction_ = 0.98f;
     float m_ui_scale_ = 100.f;
+
+    bool  m_blackhole_ = false;
+    float m_bh_strength_ = 500.f;
+    float m_bh_radius_ = 1000.f;
 };
