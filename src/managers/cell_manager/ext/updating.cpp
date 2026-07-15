@@ -191,7 +191,7 @@ void CellManager::drag_selected_cell_to_point(const sf::Vector2f& target_positio
 }
 
 
-CellBodyPair CellManager::create_cell(const sf::Vector2f& position, bool random_genetics)
+CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetics)
 {
 	// This is the safest way to create a cell with a body, all creation events Must go through this function to ensure that the cell and body are linked correctly.
 	// if there are not any already avalable cells in the o_vector we create a new one

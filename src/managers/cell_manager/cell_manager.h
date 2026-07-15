@@ -118,7 +118,7 @@ public:
 	void check_for_extinction_event();
 	void drag_selected_cell_to_point(const sf::Vector2f& target_position, const float move_fraction);
 
-	CellBodyPair create_cell(const sf::Vector2f& position, bool random_genetics = false);
+	CellBodyPair create_cell(sf::Vector2f position = { 0, 0 }, bool random_genetics = false);
 
 	Spring* create_spring(const int cell_a_id, const int cell_b_id);
 

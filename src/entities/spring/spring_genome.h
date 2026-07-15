@@ -5,7 +5,7 @@
 struct SpringGeneticConstraints
 {
     inline static Range amplitude = { 0.f,          1.f };  // ratio [0,1]
-    inline static Range frequency = { -1.f / 40.f, 1.f / 40.f };
+    inline static Range frequency = { -1.f / 5.f, 1.f / 5.f };
     inline static Range offset = { -3.14159f,    3.14159f };
     inline static Range vertical_shift = { -0.5f,        0.5f };
     inline static Range spring_const = { 0.f,          1.f };

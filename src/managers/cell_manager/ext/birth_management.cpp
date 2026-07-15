@@ -41,17 +41,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth)
 {
-	const int seed_id = seed_cell->id_;          // survives reallocation, the pointer doesn't
-	Body* seed_body = bodies_->at(seed_cell->body_id_);
-
-	float spawn_dist = seed_body->radius_ * 3.5f;
-	sf::Vector2f child_pos = Random::rand_position_in_circle(seed_body->position_, spawn_dist);
-
-	CellBodyPair pair = create_cell(child_pos);   // may reallocate all_cells_ / bodies_
+	CellBodyPair pair = create_cell();
 	if (!pair.is_valid())
 		return false;
 
-	seed_cell = all_cells_.at(seed_id);           // re-resolve — seed_body isn't used again, so it's fine as-is
+	Body* seed_body = bodies_->at(seed_cell->body_id_);
+
+	Body* child_body = get_cell_body(pair.cell_ptr->id_);
+	child_body->position_ = Random::rand_position_in_circle(seed_body->position_, seed_body->radius_ * 3.5f);
+
+	seed_cell = all_cells_.at(seed_cell->id_);           // re-resolve — seed_body isn't used again, so it's fine as-is
 
 	Spring* spring = create_spring(seed_cell->id_, pair.cell_ptr->id_);
 	if (spring == nullptr)
@@ -133,13 +132,13 @@ void CellManager::apply_birth_requests()
 {
 	for (const BirthRequest& req : birth_requests)
 	{
+		CellBodyPair pair = create_cell();
+		if (!pair.is_valid())
+			break;
+
 		// retrieve the parent cell
 		Cell* parent_cell = all_cells_.at(req.parent_cell_id);
 		Body* parent_body = bodies_->at(parent_cell->body_id_);
-
-		CellBodyPair pair = create_cell(parent_body->position_, false);
-		if (!pair.is_valid())
-			break;
 
 		Body* offspring_body = pair.body_ptr;
 		Cell* offspring = pair.cell_ptr;

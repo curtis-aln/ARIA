@@ -37,4 +37,5 @@ private:
     void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel);
     void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);
     void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);
+    void Brain();
 };

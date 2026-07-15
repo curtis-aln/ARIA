@@ -69,10 +69,10 @@ food_visibility_ramp_frames  = 90.0
 food_max_alpha                = 200.0
 
 # birth
-spawn_proportionality_constant = 0.0025
+spawn_proportionality_constant = 0.0065
 food_spawn_distance           = 200.0
 reproductive_cooldown          = 520
-reproductive_threshold          = 400
+reproductive_threshold          = 300
 
 # nutrients
 initial_nutrients             = 10.0
@@ -80,5 +80,5 @@ final_nutrients                = 50.0
 nutrient_development_time       = 300
 
 # death
-death_age                     = 2300.0
+death_age                     = 3300.0
 death_age_chance               = 0.01
