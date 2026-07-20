@@ -84,7 +84,7 @@ struct SimpleSpatialGrid
 {
     uint32_t CellsX = 0;
     uint32_t CellsY = 0;
-    uint32_t cell_max_capacity = 0;
+    uint8_t cell_max_capacity = 0;
 
     float cell_width = 0;
     float cell_height = 0;
@@ -95,7 +95,7 @@ struct SimpleSpatialGrid
     alignas(64) std::vector<uint8_t>  cell_capacities{};
 
 public:
-    explicit SimpleSpatialGrid(uint32_t cells_x, uint32_t cells_y, uint32_t cell_capacity,
+    explicit SimpleSpatialGrid(uint32_t cells_x, uint32_t cells_y, uint8_t cell_capacity,
         float world_width, float world_height)
         : CellsX(cells_x), CellsY(cells_y), cell_max_capacity(cell_capacity)
         , world_width(world_width), world_height(world_height)

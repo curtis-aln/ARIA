@@ -23,7 +23,7 @@ struct WorldToggles
     bool paused = false;  // pause the simulation update loop
     bool draw_cell_grid = false;  // render the cell spatial hash grid
     bool draw_food_grid = false;  // render the food spatial hash grid
-    bool toggle_collisions = true;   // enable/disable cell collision handling
+    bool toggle_collisions = false;   // enable/disable cell collision handling
     bool show_connections = true;   // show spring connections between cells
     bool show_bounding_boxes = true;  // show protozoa bounding boxes
     bool track_statistics = true;   // gather per-frame statistics

@@ -8,25 +8,7 @@
 
 /* FoodManager
 
-Food:
-Reproduction:
-When a food is born it can only reproduce when
-1. its age surpasses the reproductive_threshold
-2. it hasnt reproduced in a specified amount of frames (reproductive_cooldown)
-3. The world food limit hasnt already been reached
-- The chance of a food spawning is proportional to how much food there is in the world,
-the more food there is the less chance there is for a new one to spawn.
-- Every food item gets an opportunity to reproduce
-- when a new food is made, it is spawned near its parent
-
-Death:
-- Food has a chance to die every frame after it reaches a certain age (death_age)
-- it can also die by beng eaten by a protozoa
-
-Nutrition:
-- Every food starts with a certain amount of nutrients (initial_nutrients)
-- Every frame the nutrients increase by a certain amount until they reach a maximum (final_nutrients)
-- The nutrients of a food are what the protozoa gain when they eat it
++
 */
 
 struct Food : FoodManagerSettings
@@ -36,29 +18,48 @@ struct Food : FoodManagerSettings
 	float age = 0;
 	int time_since_last_reproduced = 0;
 
-	float nutrients = 0.0f;
+	float nutrients = initial_nutrients;
 
 	sf::Color color{};
 
 	bool active = true;
 
-	void update(Body* body)
+	float vibration_x = 0.f;
+	float vibration_y = 0.f;
+
+	void reset()
+	{
+		body_id_ = 0;
+		age = 0;
+		time_since_last_reproduced = 0;
+		nutrients = initial_nutrients;
+		color = {};
+		active = true;
+		vibration_x = 0.f;
+		vibration_y = 0.f;
+	}
+
+	void update()
 	{
 		time_since_last_reproduced++;
 		age += Random::rand_range(0.4f, 1.0f);
 
 		update_food_nutrients();
-		update_food_size(body);
-
-		if (Random::rand01_float() < vibrate_freq)
-			vibrate_food(body, vibration_strength);
-
-		body->velocity_ *= friction;
+		vibrate_food(vibration_strength);
 	}
 
 	bool is_food_dead() const
 	{
 		return nutrients < initial_nutrients && age > spawn_immunity;
+	}
+
+	float calculate_food_size()
+	{
+		// Radius is directly proportional to current nutrients
+		if (nutrients == 0.f)
+			return 0.f;
+
+		return nutrients * nutrients_to_radius_scale;
 	}
 
 private:
@@ -99,20 +100,17 @@ private:
 		);
 	}
 
-	void update_food_size(Body* body)
+	
+
+	void vibrate_food(float strength)
 	{
-		// Radius is directly proportional to current nutrients
-		if (nutrients == 0.f)
-		{
-			body->radius_ = 0.f;
+		vibration_x = 0.f;
+		vibration_y = 0.f;
+
+		if (Random::rand01_float() < vibrate_freq)
 			return;
-		}
 
-		body->radius_ = nutrients * nutrients_to_radius_scale;
-	}
-
-	void vibrate_food(Body* body, float strength)
-	{
-		body->accelerate(Random::rand_vector(-strength, strength));
+		vibration_x = Random::rand11_float() * strength;
+		vibration_y = Random::rand11_float() * strength;
 	}
 };

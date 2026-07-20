@@ -39,6 +39,8 @@ public:
 
 	float stress = 0.f; // 0..1, normalised force relative to break threshold
 
+	sf::Vector2f movement_vector{ 0 ,0 };
+
 	
 
 	Spring(const uint8_t _id=0, const uint8_t _cell_A_id=0, const uint8_t _cell_B_id=0)
@@ -61,6 +63,7 @@ public:
 		offset = 0.f;
 		vertical_shift = 1.f;
 		amplitude = 0.f;
+		movement_vector = { 0, 0 };
 	}
 
 	void break_spring()
@@ -83,14 +86,10 @@ public:
 		offspring.generation++;
 	}
 
-	void update_physics(Body& body_a, Body& body_b)
+	// returns a movement vector
+	void update_physics(const sf::Vector2f& pos_a, const sf::Vector2f& vel_a, const sf::Vector2f& pos_b, const sf::Vector2f& vel_b)
 	{
 		clock_++;
-
-		const sf::Vector2f& pos_a = body_a.position_;
-		const sf::Vector2f& pos_b = body_b.position_;
-		const sf::Vector2f& vel_a = body_a.velocity_;
-		const sf::Vector2f& vel_b = body_b.velocity_;
 
 		const sf::Vector2f dir = pos_b - pos_a;
 		const float length_squared = dir.x * dir.x + dir.y * dir.y;
@@ -117,11 +116,7 @@ public:
 
 		// Calculating total force (sum of the two forces)
 		const float total_force = spring_force + damping_force;
-		const sf::Vector2f movement_vector = normalised_dir * total_force;
-
-		// moving each cell
-		body_a.accelerate(movement_vector);
-		body_b.accelerate(-movement_vector);
+		movement_vector = normalised_dir * total_force;
 
 		// we can calculate the amount of energy this contraction / extension took
 		work_done = std::abs(spring_force * length_diff);
@@ -139,22 +134,31 @@ public:
 
 	void update_organics(Cell& cell_a, Cell& cell_b)
 	{
+		if (!cell_a.is_alive() || !cell_b.is_alive())
+			broken = true;
+
 		if (stress > SPRING_DAMAGE_THRESH)
 		{
-			float excess = stress - SPRING_DAMAGE_THRESH;
-			cell_a.integrity -= excess;
-			cell_b.integrity -= excess;
+			update_integrity(cell_a.integrity, cell_b.integrity);
 		}
 
 		handle_reproduction(cell_a, cell_b);
 
-		transfer_nutrients(cell_a, cell_b);
+		float transfer = transfer_nutrients(cell_a.nutrients_, cell_b.nutrients_);
+
+		cell_a.nutrients_ += transfer;
+		cell_b.nutrients_ -= transfer;
 
 		cell_a.energy -= work_done / 2.f; // Eventually springs will be their own organic systems with energy
 		cell_b.energy -= work_done / 2.f;
 	}
 
-
+	void update_integrity(float& cell_a_integrity, float& cell_b_integrity)
+	{
+		float excess = stress - SPRING_DAMAGE_THRESH;
+		cell_a_integrity -= excess;
+		cell_b_integrity -= excess;
+	}
 
 private:
 	void handle_reproduction(Cell& cell_a, Cell& cell_b)
@@ -166,15 +170,10 @@ private:
 		}
 	}
 
-	void transfer_nutrients(Cell& cell_a, Cell& cell_b)
+	// takes in the nutrients of cell a and cell b and reutrns the transfer amount
+	float transfer_nutrients(float nutrients_a, float nutrients_b)
 	{
-		// you cant transfer nutrients to a cell which is decaying
-		if (!cell_a.is_alive() || !cell_b.is_alive())
-			return;
-
-		const float transfer = std::copysign(nutrient_transfer_rate, cell_b.nutrients_ - cell_a.nutrients_);
-		cell_a.nutrients_ += transfer;
-		cell_b.nutrients_ -= transfer;
+		return std::copysign(nutrient_transfer_rate, nutrients_b - nutrients_a);
 	}
 
 	float calculate_rest_length(const int internal_clock)

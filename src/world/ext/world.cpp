@@ -130,7 +130,6 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	copy_render_data_to_snapshot(snapshot); // render data
 
 
-    food_manager_.fill_data(snapshot.food_data);
     snapshot.world_stats.highlighted_food = food_manager_.select_indexes.count;
 	cell_manager_.fill_snapshot(snapshot, visible_bounds); // protozoa data
 

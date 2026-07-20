@@ -121,7 +121,7 @@ public:
 
 	void update_statistics();
 
-	void update_organics(Body* body);
+	void update_organics();
 
 	void process_nutrients();
 

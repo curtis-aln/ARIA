@@ -36,8 +36,6 @@ class FoodManager : public FoodManagerSettings
 
     o_vector<Body>* bodies_;
     o_vector<Food> food_vector{ max_food };
-
-	FoodData food_data{};
     
 	FoodManagerStatistics statistics_{};
 
@@ -60,12 +58,12 @@ public:
 
     int    get_size()               const;
     bool has_food_with_body_id(int body_id);
-    void fill_data(FoodData& other_food_data);
     const o_vector<Food>& get_food_vector() const;
     o_vector<Food>& get_food_vector();
-    void   update();
+    void update(FoodData& snap_food_data);
     void   render(const FoodData& snapshot_food_data);
-    void update_position_data();
+    void update_position_data(FoodData& food_data);
+    sf::Color calc_food_color(const Food* food, int food_id) const;
     void   remove_food(int food_id);
     Food* at(int idx);
     const Food* at(int idx) const;
@@ -78,8 +76,6 @@ private:
     void  update_food();
     void update_statistics();
     
-    void  check_food_death(const Food* food);
-
     void  let_food_reproduce();
     bool  reproduce_food(Food* food);
     

@@ -129,18 +129,16 @@ void  Cell::update_statistics()
 }
 
 
-void Cell::update_organics(Body* body)
+void Cell::update_organics()
 {
 	if (dead)
 	{
 		sinwave_current_friction_ = 0.6f;
-		integrity -= integrity_drain_rate;
-		body->velocity_ *= sinwave_current_friction_;
+		integrity -= integrity_drain_rate;	
 		return;
 	}
 
 	sinwave_current_friction_ = calculate_friction();
-	body->velocity_ *= sinwave_current_friction_;
 
 	// 1. Passive decay — base cost of being alive
 	energy -= energy_decay_rate;

@@ -18,7 +18,7 @@ void World::update(SimSnapshot& write_snapshot)
 	if (toggles.m_tick_frame_time || !toggles.paused)
 	{
 		// updating the food and the cells in the world
-		food_manager_.update();
+		food_manager_.update(write_snapshot.food_data);
 		cell_manager_.update();
 
 		update_entities();
@@ -68,23 +68,25 @@ void World::bound_body_to_world(Body* body)
 
 	// Circular boundary bounce
 	const sf::Vector2f diff = body->position_ - world_circular_bounds_.center_;
-	
 	const float dist_sq = diff.x * diff.x + diff.y * diff.y;
 
 	const float max_dist = world_circular_bounds_.bounds_radius - (body->radius_ * 2.f);
-	
-	if (dist_sq > max_dist * max_dist && dist_sq > 0.0001f)
+	const float max_dist_sq = max_dist * max_dist;
+
+	if (dist_sq > max_dist_sq && dist_sq > 0.0001f)
 	{
-		const sf::Vector2f normal = diff / std::sqrt(dist_sq); // outward normal (center → body)
+		// Reflect velocity using the raw (unnormalized) diff instead of a unit normal.
+		// v -= n * (2*v.n) with n = diff/sqrt(dist_sq) simplifies algebraically to:
+		// v -= diff * (2 * v.diff / dist_sq)  -- same result, zero sqrt calls.
+		const float vel_dot_diff = body->velocity_.dot(diff);
+		if (vel_dot_diff > 0.f)
+			body->velocity_ -= diff * ((1.f + bounce_coefficient) * vel_dot_diff / dist_sq);
 
-		// Only reflect if actually moving outward — avoids double-bounce
-		// when collision resolution has already pushed the body inside
-		const float vel_dot_n = body->velocity_.dot(normal);
-		if (vel_dot_n > 0.f)
-			body->velocity_ -= normal * ((1.f + bounce_coefficient) * vel_dot_n);
-
-		// Clamp position flush to the inner surface
-		body->position_ = world_circular_bounds_.center_ + normal * max_dist;
+		// Soft position correction: nudge back proportional to overshoot instead of
+		// clamping exactly onto the circle (that would need sqrt too). Converges
+		// quickly and is visually indistinguishable from a hard clamp for small overshoots.
+		const float correction = (dist_sq - max_dist_sq) / dist_sq;
+		body->position_ -= diff * correction;
 	}
 
 	// very small attraction to the centre of the world

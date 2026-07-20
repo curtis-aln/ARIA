@@ -85,6 +85,7 @@ FoodBodyPair FoodManager::create_food(const sf::Vector2f& position, bool random_
 	}
 
 	// connecting the two
+	food->reset();
 	food->body_id_ = body->id_;
 	body->position_ = position;
 	body->radius_ = food_initial_radius;

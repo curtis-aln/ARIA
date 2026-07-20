@@ -20,13 +20,10 @@
 
 struct CellBodyPair
 {
-	Cell* cell_ptr;
-	Body* body_ptr;
+	uint32_t cell_id{};
+	uint32_t body_id{};
 
-	bool is_valid()
-	{
-		return (cell_ptr != nullptr) && (body_ptr != nullptr);
-	}
+	bool is_valid{};
 };
 
 
@@ -120,7 +117,7 @@ public:
 
 	CellBodyPair create_cell(sf::Vector2f position = { 0, 0 }, bool random_genetics = false);
 
-	Spring* create_spring(const int cell_a_id, const int cell_b_id);
+	int32_t create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id);
 
 	void gather_food_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, const sf::Vector2f& position, const float radius);
 
@@ -166,7 +163,7 @@ protected: // only functions the world can access todo
 
 private: // only functions this class can access
 	// protozoa building, and reproducing
-	bool build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth = 1);
+	bool build_protozoa_from_seed(uint32_t seed_cell_id, int max_recursion_depth, int recursion_depth = 1);
 	void collect_reproduction_requests();
 	void apply_birth_requests();
 	void apply_connection_requests();

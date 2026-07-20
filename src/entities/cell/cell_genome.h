@@ -10,17 +10,17 @@ struct CellGeneticConstraints
     inline static Range amplitude = { -2.f,         2.f };
     inline static Range frequency = { -1.f / 5.f,  1.f / 5.f };
     inline static Range offset = { -3.14159f,    3.14159f };
-    inline static Range vertical_shift = { -0.5f,        0.5f };
+    inline static Range vertical_shift = { -0.6f,        0.6f };
 };
 
 struct CellInitialSpawnRanges
 {
     inline static Range radius = { 25.f,          85.f };
 
-    inline static Range amplitude = { 0.01f,          0.05f };
+    inline static Range amplitude = { 0.01f,          0.02f };
     inline static Range frequency = { 1.f / 180.f,   1.f / 20.f };
     inline static Range offset = CellGeneticConstraints::offset;
-    inline static Range vertical_shift = { 0.90f,           0.95f };
+    inline static Range vertical_shift = { 0.965f,           0.99f };
 };
 
 struct HardConstants

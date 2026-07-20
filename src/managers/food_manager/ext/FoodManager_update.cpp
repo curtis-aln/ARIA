@@ -6,30 +6,15 @@ void FoodManager::update_food()
 {
 	for (Food* food : food_vector)
 	{
-		food->update(bodies_->at(food->body_id_));
+		if (food->is_food_dead())
+			remove_food(food->id_);
 
 		Body* body = bodies_->at(food->body_id_);
-		// clamping the body
-		const float rad = world_bounds_->bounds_radius;
-		sf::Vector2f centre = world_bounds_->center_;
+		food->update();
 
-		if (!world_bounds_->contains(body->position_))
-		{
-			sf::Vector2f diff = body->position_ - centre;
-			float dist = diff.length();
-			sf::Vector2f normal = diff / dist;
-			body->position_ = centre + normal * (rad - body->radius_);
-		}
+		body->velocity_ = (body->velocity_ + sf::Vector2f{ food->vibration_x, food->vibration_y }) * friction;
+		body->radius_ = food->calculate_food_size();
 	}
-}
-
-
-
-void FoodManager::check_food_death(const Food* food)
-{
-	// Food dies when its nutrients drop below initial_nutrients (shrunk out of existence)
-	if (food->is_food_dead())
-		remove_food(food->id_);
 }
 
 
@@ -49,7 +34,7 @@ void FoodManager::init()
 
 		Food* food = food_body_pair.food_ptr;
 		food->color = Random::rand_color(food_darkest_color, food_lightest_color);
-		food->age = Random::rand_range(0.0f, 100.0f);
+		food->nutrients = Random::rand_range(initial_nutrients, initial_nutrients + 50.f);
 	}
 
 	std::cout << "Initialized " << initial_food << " food.\n";

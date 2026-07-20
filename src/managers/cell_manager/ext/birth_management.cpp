@@ -39,26 +39,30 @@
 //
 //  Returns false if body allocation fails (pool exhausted), true otherwise.
 // ─────────────────────────────────────────────────────────────────────────────
-bool CellManager::build_protozoa_from_seed(Cell* seed_cell, int max_recursion_depth, int recursion_depth)
+bool CellManager::build_protozoa_from_seed(uint32_t seed_cell_id, int max_recursion_depth, int recursion_depth)
 {
+	// First we create our child and fetch its body
 	CellBodyPair pair = create_cell();
-	if (!pair.is_valid())
+	if (!pair.is_valid)
 		return false;
+	Body* child_body = get_cell_body(pair.cell_id);
 
+	// getting our seed cell
+	Cell* seed_cell = all_cells_.at(seed_cell_id);
 	Body* seed_body = bodies_->at(seed_cell->body_id_);
-
-	Body* child_body = get_cell_body(pair.cell_ptr->id_);
+	
+	// We then set the position of the child to be near the seed cell
 	child_body->position_ = Random::rand_position_in_circle(seed_body->position_, seed_body->radius_ * 3.5f);
-
-	seed_cell = all_cells_.at(seed_cell->id_);           // re-resolve — seed_body isn't used again, so it's fine as-is
-
-	Spring* spring = create_spring(seed_cell->id_, pair.cell_ptr->id_);
-	if (spring == nullptr)
+	
+	// creating the spring
+	uint32_t spring_id = create_spring(seed_cell->id_, pair.cell_id);
+	if (spring_id == -1)
 		return false;
+	Spring* spring = all_springs_.at(spring_id);
 	spring->randomize();
 
 	if (recursion_depth < max_recursion_depth)
-		build_protozoa_from_seed(pair.cell_ptr, max_recursion_depth, recursion_depth + 1);
+		build_protozoa_from_seed(pair.cell_id, max_recursion_depth, recursion_depth + 1);
 
 	return true;
 }
@@ -133,15 +137,15 @@ void CellManager::apply_birth_requests()
 	for (const BirthRequest& req : birth_requests)
 	{
 		CellBodyPair pair = create_cell();
-		if (!pair.is_valid())
+		if (!pair.is_valid)
 			break;
 
 		// retrieve the parent cell
 		Cell* parent_cell = all_cells_.at(req.parent_cell_id);
 		Body* parent_body = bodies_->at(parent_cell->body_id_);
 
-		Body* offspring_body = pair.body_ptr;
-		Cell* offspring = pair.cell_ptr;
+		Body* offspring_body = bodies_->at(pair.body_id);
+		Cell* offspring = all_cells_.at(pair.cell_id);
 		
 		// create the offspring by filling in its genetics and other properties based on the parent cell
 		parent_cell->create_offspring(offspring, parent_body, offspring_body, true);
@@ -154,19 +158,19 @@ void CellManager::apply_birth_requests()
 		// This is a temporary spring, it needs hold the new cell close to the parent cell until the real spring is made
 		// this is because if the two new cells are too far apart when the spring is made, the spring will break immediately and the offspring will die before it can reproduce
 
+		int32_t new_spring_id = create_spring(static_cast<uint32_t>(parent_cell->id_), static_cast<uint32_t>(offspring->id_));
+		if (new_spring_id == -1)
+			continue;
 		
-		Spring* spring = all_springs_.emplace(true, true);
-		spring->reset();
+		Spring* spring = all_springs_.at(new_spring_id);
 
 		spring->spring_const = 0.00005f;
 		spring->amplitude = 0.4f;
 		spring->damping = 0.0005;
 
-		spring->cell_A_id = parent_cell->id_;
-		spring->cell_B_id = offspring->id_;
 
 		const sf::Vector2f diff = parent_body->position_ - offspring_body->position_;
-		spring->rest_length = diff.length() * 3;
+		spring->rest_length = diff.length() * 3; // Todo redundant
 	}
 
 	birth_requests.clear(); 
@@ -194,10 +198,12 @@ void CellManager::apply_connection_requests()
 {
 	for (const ConnectionRequest& req : connection_requests)
 	{
-		Spring* new_spring = all_springs_.emplace(true, true);
-		new_spring->reset();
-		new_spring->cell_A_id = req.offspring_id;
-		new_spring->cell_B_id = req.connect_to_id;
+		uint32_t new_spring_id = create_spring(static_cast<uint32_t>(req.offspring_id), static_cast<uint32_t>(req.connect_to_id));
+		
+		if (new_spring_id == -1)
+			continue;
+
+		Spring* new_spring = all_springs_.at(new_spring_id);
 
 		Spring* parent_spring = all_springs_.at(req.spring_to_copy_index);
 		parent_spring->create_offspring(*new_spring);

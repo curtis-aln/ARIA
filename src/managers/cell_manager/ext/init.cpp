@@ -62,12 +62,12 @@ void CellManager::create_new_protozoa(int count, WorldBorder* spawn_area)
 		sf::Vector2f spawn_pos = spawn_area->rand_pos();
 		CellBodyPair pair = create_cell(spawn_pos, true);
 
-		if (!pair.is_valid())
+		if (!pair.is_valid)
 			break;
 
 		// we want to limit the number of cells in a protozoa to avoid performance issues 
-		int max_recursion_depth = Random::rand_range(1, 6);
-		if (!build_protozoa_from_seed(pair.cell_ptr, max_recursion_depth))
+		int max_recursion_depth = Random::rand_range(1, 2);
+		if (!build_protozoa_from_seed(pair.cell_id, max_recursion_depth))
 			break;
 	}
 	

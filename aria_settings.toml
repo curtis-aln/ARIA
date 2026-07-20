@@ -41,8 +41,8 @@ wander_threshold             = 600.0
 reproductive_cooldown        = 500
 digestive_time                = 100
 initial_energy                = 70.0
-breaking_length                = 325.0
-maximum_extension               = 250.0
+breaking_length                = 425.0
+maximum_extension               = 380.0
 spring_work_const                = 0.00001
 
 
@@ -62,7 +62,7 @@ update_freq                    = 4
 # physics
 food_radius                  = 60.0
 friction                      = 0.95
-vibration_strength             = 3.0
+vibration_strength             = 0.12
 
 # color / fade
 food_visibility_ramp_frames  = 90.0

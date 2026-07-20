@@ -36,8 +36,8 @@ void CellManager::update_cells()
 	{
 		Body* body = bodies_->at(cell->body_id_);
 		cell->update_statistics();
-		cell->update_organics(body);
-
+		cell->update_organics();
+		body->velocity_ *= cell->sinwave_current_friction_;
 	}
 }
 
@@ -55,18 +55,13 @@ void CellManager::update_springs()
 		Cell* cell_a = all_cells_.at(spring->cell_A_id);
 		Cell* cell_b = all_cells_.at(spring->cell_B_id);
 
-		// if the spring is connected to a cell that has died, we remove the spring
-		if (cell_a->should_remove() || cell_b->should_remove())
-		{
-			all_springs_.remove(spring);
-			continue;
-		}
-
 		// otherwise we update the spring physics and organics
 		Body* body_a = bodies_->at(cell_a->body_id_);
 		Body* body_b = bodies_->at(cell_b->body_id_);
 
-		spring->update_physics(*body_a, *body_b);
+		spring->update_physics(body_a->position_, body_a->velocity_, body_b->position_, body_b->velocity_);
+		body_a->accelerate(spring->movement_vector);
+		body_b->accelerate(-spring->movement_vector);
 		spring->update_organics(*cell_a, *cell_b);
 	}
 }
@@ -199,7 +194,7 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 	// Finding a body
 	Body* body = bodies_->emplace(true, true);
 	if (body == nullptr)
-		return { nullptr, nullptr };
+		return { .is_valid = false };
 
 	// Finding a cell
 	Cell* cell = all_cells_.emplace(true, true);
@@ -208,7 +203,7 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 		// raise an error as there shouldnt be a situation where we have a body but no cell, this should never happen
 		std::cerr << "[ERROR]: Failed to create cell during initialization. Max cells reached.\n";
 		bodies_->remove(body);
-		return { nullptr, nullptr };
+		return { .is_valid = false };
 	}
 
 	// resetting the cell just incase it isnt brand new
@@ -229,21 +224,21 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 	body->radius_ = cell->radius;
 	body->mass_ = body->radius_;
 
-	return { cell, body };
+	return { cell->id_, body->id_, true };
 }
 
-Spring* CellManager::create_spring(const int cell_a_id, const int cell_b_id)
+int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id)
 {
 	Spring* spring = all_springs_.emplace(true, true);
 	
 	if (spring == nullptr)
 	{
-		return nullptr;
+		return -1;
 	}
 	spring->reset();
 	spring->cell_A_id = cell_a_id;
 	spring->cell_B_id = cell_b_id;
-	return spring;
+	return spring->id_;
 }
 
 void CellManager::gather_food_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, const sf::Vector2f& position, const float radius)

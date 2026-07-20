@@ -6,21 +6,13 @@ struct FoodData;
 FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies)
 	: world_bounds_(world_bounds), bodies_(bodies), food_renderer(window, food_radius, max_food), window_(window)
 {
-	food_data.positions.reserve(max_food);
-	food_data.colors.reserve(max_food);
-	food_data.radii.reserve(max_food);
-	std::cout << "food manager containers resized FoodManager::FoodManager()\n";
+
 }
 
 
-void FoodManager::update()
+void FoodManager::update(FoodData& snap_food_data)
 {
-	for (Food* food : food_vector)
-	{
-		check_food_death(food);
-	}
-
-	update_position_data();
+	update_position_data(snap_food_data);
 	let_food_reproduce();
 	update_food();
 	update_statistics();
@@ -37,7 +29,7 @@ void FoodManager::render(const FoodData& snapshot_food_data)
 	food_renderer.render();
 }
 
-void FoodManager::update_position_data()
+void FoodManager::update_position_data(FoodData& food_data)
 {
 	int food_count = food_vector.size();
 	food_data.positions.resize(food_count);
@@ -49,33 +41,38 @@ void FoodManager::update_position_data()
 	for (Food* food : food_vector)
 	{
 		Body* body = bodies_->at(food->body_id_);
+
 		food_data.positions[idx] = body->position_;
 		food_data.radii[idx] = body->radius_;
-
-		sf::Color c = food->color;
-
-		const bool is_dying = food->age >= death_age;
-
-		if (!is_dying)
-		{
-			// Fade in over the first kFoodVisibilityRampFrames frames
-			const float t = std::min(static_cast<float>(food->age) / kFoodVisibilityRampFrames, 1.f);
-			c.a = static_cast<uint8_t>(t * kFoodMaxAlpha);
-		}
-		else
-		{
-			// Fade out as nutrients fall from fade_start_nutrients down to initial_nutrients
-			const float range = fade_start_nutrients - initial_nutrients;
-			const float t = std::clamp(
-				(food->nutrients - initial_nutrients) / range,
-				0.f, 1.f
-			);
-			c.a = static_cast<uint8_t>(t * kFoodMaxAlpha);
-		}
-
-		food_data.colors[idx] = c;
+		food_data.colors[idx] = calc_food_color(food, idx);
 		idx++;
 	}
+}
+
+sf::Color FoodManager::calc_food_color(const Food* food, int food_id) const
+{
+	sf::Color c = food->color;
+
+	const bool is_dying = food->age >= death_age;
+
+	if (!is_dying)
+	{
+		// Fade in over the first kFoodVisibilityRampFrames frames
+		const float t = std::min(static_cast<float>(food->age) / kFoodVisibilityRampFrames, 1.f);
+		c.a = static_cast<uint8_t>(t * kFoodMaxAlpha);
+	}
+	else
+	{
+		// Fade out as nutrients fall from fade_start_nutrients down to initial_nutrients
+		const float range = fade_start_nutrients - initial_nutrients;
+		const float t = std::clamp(
+			(food->nutrients - initial_nutrients) / range,
+			0.f, 1.f
+		);
+		c.a = static_cast<uint8_t>(t * kFoodMaxAlpha);
+	}
+
+	return c;
 }
 
 // world interacting with the food
@@ -112,11 +109,6 @@ int FoodManager::get_size() const
 	return food_vector.size();
 }
 
-
-void FoodManager::fill_data(FoodData& other_food_data)
-{
-	other_food_data = food_data;
-}
 
 const o_vector<Food>& FoodManager::get_food_vector() const
 {

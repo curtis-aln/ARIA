@@ -143,3 +143,33 @@ pass SpringResult by reference
 #### Issues with the current evolution system
 - Springs dont work off energy, they should take a cut of the energy transfer process for themselves to maintain their integrity
 - Springs should have a decaying state too
+
+808 iterations
+1025 iterations: removing body pointer in spring
+1056 iterations: adding references 
+1045 iterations: variation
+1070 iterations: took Body pointer out of cell
+1082 iterations: variation
+1142 iterations: managing body pointer in food update
+
+Turning off collisions because Fuck collisions
+- Recalculate food resolve thread jobs 16%
+- CellManager update 25%
+- Fill Snapshot 12%
+
+1649
+
+
+- Do we need to check to eat food every frame? what about every 30 frames, relative to the cells clock
+- We dont need to have o_vector debug information running every single frame, or even when its not on screen
+- What if each particle kept track of its 8 nearby entities for N frames, resolved collisions with them, then updated after the Nth frame
+
+
+Simulation has discovered it is more evolutionarialy efficient to stay still and let food run into them
+[Done] Food should slowly move.
+- Food should be repelled from Cells
+
+Cells Can blow up to rediculous populations:
+- increase the max particles per grid cell count
+- cells can take integrity damage from collisions
+- No nutrient transfer should be allowed to take place between connector cells
