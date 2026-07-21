@@ -110,6 +110,9 @@ class FoodEatResolver: private FoodResolutionSettings
 	
 	std::vector<BiteResolution> bite_resolutions_;
 
+	int  current_total_cells_ = 0;
+	bool detection_jobs_built_ = false;
+
 public:
 	FoodEatResolver(
 		o_vector<Food>* food_vector, o_vector<Body>* body_vector, o_vector<Cell>* cell_vector, 
@@ -121,13 +124,54 @@ public:
 		init_bite_resolutions(reserve_per_thread);
 	}
 
+	void ensure_detection_jobs_built()
+	{
+		if (detection_jobs_built_)
+			return;
+
+		detection_jobs_.clear();
+		detection_jobs_.reserve(threads);
+
+		// For each of the threads
+		for (int t = 0; t < (int)threads; ++t)
+		{
+			detection_jobs_.emplace_back([this, t] {
+				const int total_cells = current_total_cells_;
+				if (total_cells == 0)
+					return;
+
+				const int chunk = std::max(1, (total_cells + (int)threads - 1) / (int)threads);
+				const int begin = t * chunk;
+				if (begin >= total_cells)
+					return;
+				const int end = std::min(begin + chunk, total_cells);
+
+				for (int k = begin; k < end; ++k)
+				{
+					const int cell_id = cell_vector_->occupied_list[k];
+					detect_bite_for_cell(body_vector_->at(cell_id), bite_resolutions_[t]);
+				}
+				});
+		}
+
+		thread_pool_.set_jobs(detection_jobs_);   // only ever called this once
+		detection_jobs_built_ = true;
+	}
+
 	void resolve()
 	{
 		add_food_to_grid();
-		recalculate_detection_jobs();
+
+		current_total_cells_ = cell_vector_->occupied_count;
+		if (current_total_cells_ == 0)
+			return;   // nothing to detect or resolve — skip the pool entirely
+
+		ensure_detection_jobs_built();
 		food_bite_detection();
 		food_bite_resolution();
 	}
+
+	
 
 	// Fetching Functions
 	SimpleSpatialGrid& get_spatial_grid() { return spatial_grid_; }
@@ -139,41 +183,6 @@ private:
 		bite_resolutions_.resize(threads, BiteResolution(reserve_per_thread));
 	}
 
-	void recalculate_detection_jobs()
-	{
-		detection_jobs_.clear();
-
-		// IMPORTANT: cell_vector_->size() returns active_objs (a *count*), not the
-		// valid raw index range. Because removed cells are recycled via the free list
-		// out of order, active_objs can be lower than the highest live index, so using
-		// it as a loop bound silently skips real cells. array_size is the actual span
-		// of valid slot indices for cell_vector_->at(i), so we use that instead.
-		const int total_cells = static_cast<int>(cell_vector_->array_size);
-		const int chunk = std::max(1, (total_cells + (int)threads - 1) / (int)threads);
-
-		for (int t = 0; t < (int)threads; ++t)
-		{
-			const int begin = t * chunk;
-			if (begin >= total_cells) break;
-			const int end = std::min(begin + chunk, total_cells);
-
-			detection_jobs_.emplace_back([this, begin, end, t] {
-				for (int i = begin; i < end; ++i)
-				{
-					// Skip slots the o_vector has recycled onto the free list.
-					// This is distinct from Cell::is_alive(), which is game-logic
-					// state, not slot-recycling state — a freed slot may still hold
-					// stale data where is_alive() happens to read true.
-					if (!cell_vector_->is_obj_active(i))
-						continue;
-
-					detect_bite_for_cell(i, bite_resolutions_[t]);
-				}
-				});
-		}
-
-		thread_pool_.set_jobs(detection_jobs_);
-	}
 
 	void clear_bite_resolutions()
 	{
@@ -199,18 +208,12 @@ private:
 		thread_pool_.run_and_wait();
 	}
 
-	void detect_bite_for_cell(int cell_id, BiteResolution& resolution)
+	float detect_bite_for_cell(Body* body, BiteResolution& resolution)
 	{
-		Cell* cell = cell_vector_->at(cell_id);
-
-		if (cell->is_alive() == false)
-			return;
-
-		Body* body = body_vector_->at(cell->body_id_);
-
 		tl_nearby_ids_.count = 0;
 		spatial_grid_.find(body->position_.x, body->position_.y, &tl_nearby_ids_);
 
+		float transfer = 0;
 		for (int i = 0; i < tl_nearby_ids_.count; ++i)
 		{
 			obj_idx food_id = tl_nearby_ids_[i];
@@ -227,11 +230,11 @@ private:
 			if (dist_sq < rel_rad_sq + 1.f)
 			{
 				// The cell is in contact with the food
-				float transfer = CellSettings::bite_amount;
-				cell->eat(transfer);
+				transfer = CellSettings::bite_amount;
 				resolution.add(food_id);
 			}
 		}
+		return transfer;
 	}
 		
 	// This function will resolve the bites, by taking the appropriate amount of nutrients from the food and adding it to the cell

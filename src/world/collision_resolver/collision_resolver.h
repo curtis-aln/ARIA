@@ -61,9 +61,56 @@ class CollisionResolver : public ResolutionSettings
 	// ---------------------------
 	int resolution_frame_ = 0;  // toggles 0/1 each frame
 
+	int  current_total_cells_ = 0;
+	bool quick_collision_jobs_built_ = false;
+
 public:
 	CollisionResolver(sf::Rect<float>* bounds, o_vector<Body>* entities, 
 		unsigned int init_thread_count, unsigned int max_collisions_per_thread, unsigned int max_particles);
+
+	void ensure_quick_collision_jobs_built()
+	{
+		if (quick_collision_jobs_built_)
+			return;
+
+		quick_collision_jobs_.clear();
+		quick_collision_jobs_.reserve(thread_count_);
+
+		for (int t = 0; t < (int)thread_count_; ++t)
+		{
+			quick_collision_jobs_.emplace_back([this, t] {
+				const int total_cells = current_total_cells_;
+				if (total_cells == 0)
+					return;
+
+				const int chunk = std::max(1, (total_cells + (int)thread_count_ - 1) / (int)thread_count_);
+				const int begin = t * chunk;
+				if (begin >= total_cells)
+					return;
+				const int end = std::min(begin + chunk, total_cells);
+
+				for (int k = begin; k < end; ++k)
+				{
+					const int body_id = collision_bodies_->occupied_list[k];
+					Body* obj = collision_bodies_->at(body_id);
+
+					for (int j = 0; j < obj->nearby_ids_size_; ++j)
+					{
+						int idx = obj->nearby_ids_[j];
+						if (idx == obj->id_ || idx >= (int)collision_bodies_->raw_object_store_.size())
+							continue;  // skip self-collision
+						Body* other_body = collision_bodies_->at(idx);
+						if (other_body == nullptr || !other_body->active)
+							continue;
+						body2bodycollisiondetection(obj, other_body, collision_indexes_[t]);
+					}
+				}
+				});
+		}
+
+		quick_collision_thread_pool_.set_jobs(quick_collision_jobs_);  // only ever called this once
+		quick_collision_jobs_built_ = true;
+	}
 
 	void resolve_existing_detections();
 
