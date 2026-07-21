@@ -143,18 +143,32 @@ private:
 	{
 		detection_jobs_.clear();
 
-		const int total_food = food_vector_->size();
-		const int chunk = std::max(1, (total_food + (int)threads - 1) / (int)threads);
+		// IMPORTANT: cell_vector_->size() returns active_objs (a *count*), not the
+		// valid raw index range. Because removed cells are recycled via the free list
+		// out of order, active_objs can be lower than the highest live index, so using
+		// it as a loop bound silently skips real cells. array_size is the actual span
+		// of valid slot indices for cell_vector_->at(i), so we use that instead.
+		const int total_cells = static_cast<int>(cell_vector_->array_size);
+		const int chunk = std::max(1, (total_cells + (int)threads - 1) / (int)threads);
 
 		for (int t = 0; t < (int)threads; ++t)
 		{
 			const int begin = t * chunk;
-			if (begin >= total_food) break;
-			const int end = std::min(begin + chunk, total_food);
+			if (begin >= total_cells) break;
+			const int end = std::min(begin + chunk, total_cells);
 
 			detection_jobs_.emplace_back([this, begin, end, t] {
 				for (int i = begin; i < end; ++i)
+				{
+					// Skip slots the o_vector has recycled onto the free list.
+					// This is distinct from Cell::is_alive(), which is game-logic
+					// state, not slot-recycling state — a freed slot may still hold
+					// stale data where is_alive() happens to read true.
+					if (!cell_vector_->is_obj_active(i))
+						continue;
+
 					detect_bite_for_cell(i, bite_resolutions_[t]);
+				}
 				});
 		}
 
@@ -188,6 +202,10 @@ private:
 	void detect_bite_for_cell(int cell_id, BiteResolution& resolution)
 	{
 		Cell* cell = cell_vector_->at(cell_id);
+
+		if (cell->is_alive() == false)
+			return;
+
 		Body* body = body_vector_->at(cell->body_id_);
 
 		tl_nearby_ids_.count = 0;

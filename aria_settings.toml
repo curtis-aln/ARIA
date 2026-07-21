@@ -20,7 +20,7 @@ food_transparency          = 200         # 0-255
 
 # ── World ────────────────────────────────────────────────────────────────
 [world]
-bounds_radius               = 30000
+bounds_radius               = 48000
 border_repulsion_magnitude  = 0.001
 cells_x                     = 256    
 cells_y                     = 256
@@ -76,7 +76,7 @@ reproductive_threshold          = 300
 
 # nutrients
 initial_nutrients             = 10.0
-final_nutrients                = 50.0
+final_nutrients                = 80.0
 nutrient_development_time       = 300
 
 # death

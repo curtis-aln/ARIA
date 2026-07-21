@@ -164,7 +164,6 @@ Turning off collisions because Fuck collisions
 - We dont need to have o_vector debug information running every single frame, or even when its not on screen
 - What if each particle kept track of its 8 nearby entities for N frames, resolved collisions with them, then updated after the Nth frame
 
-
 Simulation has discovered it is more evolutionarialy efficient to stay still and let food run into them
 [Done] Food should slowly move.
 - Food should be repelled from Cells
@@ -173,3 +172,6 @@ Cells Can blow up to rediculous populations:
 - increase the max particles per grid cell count
 - cells can take integrity damage from collisions
 - No nutrient transfer should be allowed to take place between connector cells
+- i cant freely change the size of the cell capacities
+
+1401

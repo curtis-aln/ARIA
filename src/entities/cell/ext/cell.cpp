@@ -133,7 +133,7 @@ void Cell::update_organics()
 {
 	if (dead)
 	{
-		sinwave_current_friction_ = 0.6f;
+		sinwave_current_friction_ = 0.3f;
 		integrity -= integrity_drain_rate;	
 		return;
 	}
