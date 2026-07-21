@@ -174,4 +174,6 @@ Cells Can blow up to rediculous populations:
 - No nutrient transfer should be allowed to take place between connector cells
 - i cant freely change the size of the cell capacities
 
-1401
+9000 frames over 60s
+8200 frames - initial implementation (single thread)
+8655 frames - o_vector improvements

@@ -19,6 +19,55 @@ CollisionResolver::CollisionResolver(sf::Rect<float>* bounds, o_vector<Body>* en
 	collision_thread_pool_.set_jobs(collision_jobs_);  // once
 }
 
+void CollisionResolver::resolve_existing_detections()
+{
+	quick_collision_jobs_.clear();
+
+	const int total_cells = static_cast<int>(collision_bodies_->array_size);
+	const int chunk = std::max(1, (total_cells + (int)thread_count_ - 1) / (int)thread_count_);
+
+	for (int t = 0; t < (int)thread_count_; ++t)
+	{
+		const int begin = t * chunk;
+		if (begin >= total_cells) break;
+		const int end = std::min(begin + chunk, total_cells);
+
+		quick_collision_jobs_.emplace_back([this, begin, end, t] {
+			for (int i = begin; i < end; ++i)
+			{
+				// Skip slots the o_vector has recycled onto the free list.
+				// This is distinct from Cell::is_alive(), which is game-logic
+				// state, not slot-recycling state — a freed slot may still hold
+				// stale data where is_alive() happens to read true.
+				
+				if (!collision_bodies_->is_obj_active(i))
+					continue;
+
+				Body* obj = collision_bodies_->at(i);
+				for (int j = 0; j < obj->nearby_ids_size_; ++j)
+				{
+					Body* other_body = collision_bodies_->at(obj->nearby_ids_[j]);
+					body2bodycollisiondetection(obj, other_body, collision_indexes_[t]);
+				}
+			}
+			});
+
+	}
+
+
+	for (Body* particle : *collision_bodies_)
+	{
+		if (!particle->active)
+			continue;
+
+		for (int i = 0; i < particle->nearby_ids_size_; ++i)
+		{
+			Body* other_body = collision_bodies_->at(particle->nearby_ids_[i]);
+			resolve_pair_collision(particle, other_body); // single-threaded for now
+		}
+	}
+}
+
 
 void CollisionResolver::handle_collision_resolutions()
 {
@@ -55,17 +104,19 @@ void CollisionResolver::resolve_collision_vector_collisions(CollisionVector& col
 void CollisionResolver::resolve_pair_collision(Body* particle_a, Body* particle_b)
 {
 
-	float rad_a = particle_a->radius_; // Todo - dynamic radii
+	float rad_a = particle_a->radius_;
 	float rad_b = particle_b->radius_;
+	const float local_diam = rad_a + rad_b;
 
 	// Collision resolution
 	sf::Vector2f direction = particle_a->position_ - particle_b->position_;
 
-	float distance = direction.length();
-	if (distance < 1e-6f) return;
-	sf::Vector2f direction_normal = direction / distance;
+	float distance_squared = direction.lengthSquared();
+	if (distance_squared < 1e-12f) return;
+	if (distance_squared >= local_diam * local_diam) return;
+	sf::Vector2f direction_normal = direction / sqrt(distance_squared);
+	float distance = sqrt(distance_squared);
 
-	const float local_diam = rad_a + rad_b;
 	const float overlap = distance - local_diam;
 
 	const sf::Vector2f collision_resolution = direction_normal * (overlap * 0.5f * correction_factor);

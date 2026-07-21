@@ -118,31 +118,41 @@ void CollisionResolver::check_collisions_for_body(
 	const int limit = (check_count < 0) ? nearby_ids.count : check_count;
 
 	Body* protozoa_cell = collision_bodies_->at(collision_body_id);
-	const sf::Vector2f pos = protozoa_cell->position_;
-	const float ax = pos.x;
-	const float ay = pos.y;
-	const float rad_a = protozoa_cell->radius_;
-
 
 	for (int idx = 0; idx < limit; ++idx)
 	{
 		const int id = nearby_ids.buffer[idx];
 
 		// Only process forward pairs — eliminates all (b,a) duplicates
-		if (id <= collision_body_id) 
+		if (id <= collision_body_id)
 			continue;
 
-		Body* other_cell = collision_bodies_->at(id);
-		const sf::Vector2f other_pos = other_cell->position_;
+		body2bodycollisiondetection(protozoa_cell, collision_bodies_->at(nearby_ids.buffer[idx]), collision_vector);
 
-		const float rad_b = other_cell->radius_; // Todo - dynamic radii
-		const float rad_sq = (rad_a + rad_b) * (rad_a + rad_b);
-		const float dx = ax - other_pos.x;
-		const float dy = ay - other_pos.y;
-		const float length_sq = dx * dx + dy * dy;
-
-		const bool colliding = (length_sq < rad_sq && length_sq >= 0.01f);
-		if (colliding)
-			collision_vector.add(collision_body_id, id);
+		if (idx < protozoa_cell->nearby_ids_.size())
+		{
+			protozoa_cell->nearby_ids_[idx] = nearby_ids.buffer[idx];
+			protozoa_cell->nearby_ids_size_++;
+		}
 	}
+}
+
+void CollisionResolver::body2bodycollisiondetection(const Body* protozoa_cell, const Body* other_cell, CollisionVector& collision_vector)
+{
+	const sf::Vector2f pos = protozoa_cell->position_;
+	const float ax = pos.x;
+	const float ay = pos.y;
+	const float rad_a = protozoa_cell->radius_;
+
+	const sf::Vector2f other_pos = other_cell->position_;
+
+	const float rad_b = other_cell->radius_; // Todo - dynamic radii
+	const float rad_sq = (rad_a + rad_b) * (rad_a + rad_b);
+	const float dx = ax - other_pos.x;
+	const float dy = ay - other_pos.y;
+	const float length_sq = dx * dx + dy * dy;
+
+	const bool colliding = (length_sq < rad_sq && length_sq >= 0.01f);
+	if (colliding)
+		collision_vector.add(protozoa_cell->id_, other_cell->id_);
 }

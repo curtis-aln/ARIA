@@ -47,10 +47,18 @@ void World::update_entities()
 
 	if (!toggles.toggle_collisions)
 		return;
-
-	collision_resolver_.add_particles_to_grid();
-	collision_resolver_.run_collision_detection();
-	collision_resolver_.handle_collision_resolutions();
+	
+	if (statistics_.iterations_ % 20 != 0)
+	{
+		collision_resolver_.resolve_existing_detections();
+		collision_resolver_.handle_collision_resolutions();
+	}
+	else
+	{
+		collision_resolver_.add_particles_to_grid();
+		collision_resolver_.run_collision_detection();
+		collision_resolver_.handle_collision_resolutions();
+	}
 }
 
 

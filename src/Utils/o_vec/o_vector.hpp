@@ -54,10 +54,13 @@ public:
 
     // These are all of the indexes where active_[id_] is false, this is used to find the next available slot in the array when adding a new object
     std::vector<uint32_t> free_list{};
-    
     // The current size of the free_list container, this lets us avoid true removal from the vector
     int free_count = 0;
 
+    // on the contrarary
+    std::vector<uint32_t> occupied_list{};
+    int occupied_count = 0;
+    std::vector<int> occupied_pos{};   // occupied_pos[raw_index] = its slot in occupied_list, or -1 if not occupied
 
 private:
     // This iterator allows the datastructure to be used in a for loop as so
@@ -72,28 +75,26 @@ private:
         using pointer = Obj*;
         using reference = Obj&;
 
-        explicit Iterator(o_vector* vec = nullptr, const unsigned index = 0) 
-            : vectorPtr(vec), currentIndex(index) {}
+        explicit Iterator(o_vector* vec = nullptr, const int pos = 0)
+            : vectorPtr(vec), pos_(pos) {}
 
         Iterator() : vectorPtr(nullptr) {}
 
         Iterator& operator++()
         {
-            ++currentIndex;
-            while (currentIndex < vectorPtr->array_size && !vectorPtr->active_[currentIndex])
-                ++currentIndex;
+            ++pos_;
             return *this;
         }
 
-        pointer operator*()   const { return &vectorPtr->raw_object_store_[currentIndex]; }
-        pointer operator->()  const { return &vectorPtr->raw_object_store_[currentIndex]; }
+        pointer operator*()  const { return &vectorPtr->raw_object_store_[vectorPtr->occupied_list[pos_]]; }
+        pointer operator->() const { return &vectorPtr->raw_object_store_[vectorPtr->occupied_list[pos_]]; }
 
-        bool operator==(const Iterator& other) const { return currentIndex == other.currentIndex; }
+        bool operator==(const Iterator& other) const { return pos_ == other.pos_; }
         bool operator!=(const Iterator& other) const { return !(*this == other); }
 
     private:
         o_vector* vectorPtr;
-        unsigned currentIndex = 0;
+        int pos_ = 0;
     };
 
 
@@ -113,10 +114,12 @@ public:
         all_object_indexes_.reserve(N);
 		active_.reserve(N);
         free_list.reserve(N);
+        occupied_list.reserve(N);
+        occupied_pos.reserve(N);
     }
 
-    [[nodiscard]] Iterator begin() const { return Iterator(const_cast<o_vector*>(this), getFirstAvalableIteration()); }
-    [[nodiscard]] Iterator end()   const { return Iterator(const_cast<o_vector*>(this), array_size); }
+    [[nodiscard]] Iterator begin() const { return Iterator(const_cast<o_vector*>(this), 0); }
+    [[nodiscard]] Iterator end()   const { return Iterator(const_cast<o_vector*>(this), occupied_count); }
     [[nodiscard]] unsigned size()  const { return active_objs; }
 	[[nodiscard]] bool can_add() const { return free_count > 0; }
 
@@ -145,15 +148,19 @@ public:
         all_object_indexes_.push_back(id_);
         ++array_size;
 
-		// allocating memory in both of these containers
+		// allocating memory in these containers
         active_.push_back(is_active);
 		free_list.push_back(-1); // value does not matter as free_count will overwrite it when incremented
+        occupied_list.push_back(-1);
+        occupied_pos.push_back(-1);
 
         if (is_active)
         {
+            occupied_pos[id_] = occupied_count;
+            occupied_list[occupied_count++] = id_;
             ++active_objs;
         }
-		else // Not active, add to free list
+        else
         {
             free_list[free_count++] = id_;
         }
@@ -217,6 +224,8 @@ public:
             return nullptr;
 
         const unsigned idx = free_list[--free_count];
+        occupied_pos[idx] = occupied_count;
+        occupied_list[occupied_count++] = idx;
         active_[idx] = true;
         ++active_objs;
         return &raw_object_store_[idx];
@@ -238,12 +247,15 @@ public:
             active_[vector_index] = false;
             --active_objs;
             free_list[free_count++] = vector_index;
+
+            const int pos = occupied_pos[vector_index];
+            const uint32_t last_idx = occupied_list[--occupied_count];
+            occupied_list[pos] = last_idx;
+            occupied_pos[last_idx] = pos;
+            occupied_pos[vector_index] = -1;
         }
         else
             std::cout << "tried to remove when object isnt active INDEX\n";
     }
-
     int      free_slots()   const { return free_count; }
 };
-
-// Current: 191 lines, gonna try and write 30 lines of commenting

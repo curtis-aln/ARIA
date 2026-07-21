@@ -9,6 +9,10 @@ struct Body
 	// This id references the body itself
 	uint32_t id_ = 0;
 
+	// Keeping track of nearby id's to resolve collisions with
+	std::array<uint32_t, 8> nearby_ids_;
+	int nearby_ids_size_ = 0;
+
 	inline static constexpr float density = 1.f; // the density of the cell, used to calculate radius from mass
 
 	sf::Vector2f position_;

@@ -37,10 +37,10 @@ void Simulation::run_simulation()
         manage_rendering_frame_rate();
         render();
 
-        if (sim_state_.total_time_elapsed > 10)
+        if (sim_state_.total_time_elapsed > 60)
         {
-			//std::cout << "total iterations: " << m_world_.get_statistics().iterations_ << std::endl;
-            //running = false;
+			std::cout << "total iterations: " << m_world_.get_statistics().iterations_ << std::endl;
+            running = false;
         }
     }
 
