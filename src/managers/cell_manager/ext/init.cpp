@@ -21,6 +21,44 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	Spring::SPRING_WORK_CONST = SpringSettings::spring_work_const;
 }
 
+
+void CellManager::ensure_update_jobs_built()
+{
+	if (update_jobs_built_)
+		return;
+
+	int updating_threads = WorldSettings::updating_threads;
+
+	updating_bodies_.clear();
+	updating_bodies_.reserve(updating_threads);
+
+	// For each of the threads
+	for (int t = 0; t < (int)updating_threads; ++t)
+	{
+		updating_bodies_.emplace_back([this, t, updating_threads] {
+			const int total_cells = current_total_cells_;
+			if (total_cells == 0)
+				return;
+
+			const int chunk = std::max(1, (total_cells + (int)updating_threads - 1) / (int)updating_threads);
+			const int begin = t * chunk;
+			if (begin >= total_cells)
+				return;
+			const int end = std::min(begin + chunk, total_cells);
+
+			for (int k = begin; k < end; ++k)
+			{
+				Cell* cell = all_cells_.at(all_cells_.occupied_list[k]);
+				update_cell(cell);
+
+			}});
+	}
+
+	thread_pool_.set_jobs(updating_bodies_);   // only ever called this once
+	update_jobs_built_ = true;
+}
+
+
 void CellManager::reset()
 {
 	birth_requests.clear();

@@ -12,6 +12,10 @@
 #include "food_data.h"
 #include "world/world_border.h"
 #include "../../simulation/context/state.h"
+#include <Utils/thread_pool.h>
+
+#include <world/world_settings.h>
+
 
 struct FoodBodyPair
 {
@@ -38,6 +42,11 @@ class FoodManager : public FoodManagerSettings
     o_vector<Food> food_vector{ max_food };
     
 	FoodManagerStatistics statistics_{};
+
+    std::vector<std::function<void()>> updating_bodies_;
+    BarrierThreadPool thread_pool_{ (int)WorldSettings::updating_threads };
+	bool update_jobs_built_ = false;
+    int  current_total_food_ = 0;
 
 public:
     FixedSpan<cell_idx, uint16_t> select_indexes{ static_cast<uint16_t>(10000) };
@@ -74,6 +83,8 @@ public:
 
 private:
     void  update_food();
+    void update_food_item(Food* food);
+    void ensure_update_jobs_built();
     void update_statistics();
     
     void  let_food_reproduce();

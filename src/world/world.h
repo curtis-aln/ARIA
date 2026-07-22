@@ -55,7 +55,12 @@ class World : public WorldSettings
     
     WorldRenderer world_renderer_{ m_window_, &food_manager_, &collision_resolver_, world_rect_bounds_, world_circular_bounds_ };
 
-    std::vector<std::function<void()>> food_jobs_;
+
+    std::vector<std::function<void()>> updating_bodies_;
+    BarrierThreadPool thread_pool_{ (int)updating_threads };
+
+    int  current_total_bodies_ = 0;
+    bool update_jobs_built_ = false;
 
     // debugging o_vectors
     OVecDebug<Cell> dbg_cells_{ cell_manager_.get_all_cells()};
@@ -77,6 +82,8 @@ public:
 
     // ── Update ───────────────────────────────────────────────────────────────
     void update(SimSnapshot& write_snapshot);
+
+    void ensure_update_jobs_built();
 
     // ── Render ───────────────────────────────────────────────────────────────
     void render(const SimSnapshot& snapshot, sf::Vector2f mouse_pos);

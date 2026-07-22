@@ -32,13 +32,17 @@ void CellManager::update()
 
 void CellManager::update_cells()
 {
-	for (Cell* cell : all_cells_)
-	{
-		Body* body = bodies_->at(cell->body_id_);
-		cell->update_statistics();
-		cell->update_organics();
-		body->velocity_ *= cell->sinwave_current_friction_;
-	}
+	current_total_cells_ = all_cells_.occupied_count;
+	ensure_update_jobs_built();
+	thread_pool_.run_and_wait();
+}
+
+void CellManager::update_cell(Cell* cell)
+{
+	Body* body = bodies_->at(cell->body_id_);
+	cell->update_statistics();
+	cell->update_organics();
+	body->velocity_ *= cell->sinwave_current_friction_;
 }
 
 void CellManager::update_springs()

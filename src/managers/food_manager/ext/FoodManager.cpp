@@ -40,6 +40,13 @@ void FoodManager::update_position_data(FoodData& food_data)
 	int idx = 0;
 	for (Food* food : food_vector)
 	{
+		if (food->is_food_dead())
+		{
+
+			remove_food(food->id_);
+			continue;
+		}
+
 		Body* body = bodies_->at(food->body_id_);
 
 		food_data.positions[idx] = body->position_;

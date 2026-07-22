@@ -87,6 +87,9 @@ public:
 
 	uint16_t frames_since_offspring_pending_ = 0;
 
+	std::array<uint32_t, 8> nearby_food_ids_{};
+	int nearby_food_ids_size_ = 0;
+
 
 	Cell(const uint32_t _id = 0)
 	{

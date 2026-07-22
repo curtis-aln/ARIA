@@ -177,3 +177,9 @@ Cells Can blow up to rediculous populations:
 9000 frames over 60s
 8200 frames - initial implementation (single thread)
 8655 frames - o_vector improvements
+9056 frames - only updating food indexes every so often
+10007 frames - used ensure with food detection index
+11754 franes - optimized random in food
+12926 frames - mulithreadded body bounding
+14124 frames - multithreadded food update
+14500 frames - multithreadded cells

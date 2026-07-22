@@ -96,6 +96,10 @@ class CellManager: protected CellManagerSettings
 	// This builds a model around a protozoa that doesnt globally exist, so it can be monitored and learned about
 	OrganismTracker protozoa_tracker_{};
 
+	std::vector<std::function<void()>> updating_bodies_;
+	BarrierThreadPool thread_pool_{ (int)WorldSettings::updating_threads };
+	bool update_jobs_built_ = false;
+	int  current_total_cells_ = 0;
 	
 
 public:
@@ -106,6 +110,8 @@ public:
 public:
 	// Constructor and initialization
 	CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
+
+	void ensure_update_jobs_built();
 
 	void reset();
 
@@ -175,6 +181,8 @@ private: // only functions this class can access
 	// updating
 	void update_springs();
 	void update_cells();
+
+	void update_cell(Cell* cell);
 
 	void handle_death();
 	void remove_cell(Cell* cell);

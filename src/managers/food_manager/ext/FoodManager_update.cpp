@@ -4,17 +4,55 @@
 
 void FoodManager::update_food()
 {
-	for (Food* food : food_vector)
+	current_total_food_ = food_vector.occupied_count;
+	ensure_update_jobs_built();
+	thread_pool_.run_and_wait();
+}
+
+void FoodManager::update_food_item(Food* food)
+{
+	Body* body = bodies_->at(food->body_id_);
+	food->update();
+
+	body->velocity_ = (body->velocity_ + sf::Vector2f{ food->vibration_x, food->vibration_y }) * friction;
+	body->radius_ = food->calculate_food_size();
+}
+
+
+void FoodManager::ensure_update_jobs_built()
+{
+	if (update_jobs_built_)
+		return;
+
+	int updating_threads = WorldSettings::updating_threads;
+
+	updating_bodies_.clear();
+	updating_bodies_.reserve(updating_threads);
+
+	// For each of the threads
+	for (int t = 0; t < (int)updating_threads; ++t)
 	{
-		if (food->is_food_dead())
-			remove_food(food->id_);
+		updating_bodies_.emplace_back([this, t, updating_threads] {
+			const int total_cells = current_total_food_;
+			if (total_cells == 0)
+				return;
 
-		Body* body = bodies_->at(food->body_id_);
-		food->update();
+			const int chunk = std::max(1, (total_cells + (int)updating_threads - 1) / (int)updating_threads);
+			const int begin = t * chunk;
+			if (begin >= total_cells)
+				return;
+			const int end = std::min(begin + chunk, total_cells);
 
-		body->velocity_ = (body->velocity_ + sf::Vector2f{ food->vibration_x, food->vibration_y }) * friction;
-		body->radius_ = food->calculate_food_size();
+			for (int k = begin; k < end; ++k)
+			{
+				Food* food = food_vector.at(food_vector.occupied_list[k]);
+				update_food_item(food);
+
+			}});
 	}
+
+	thread_pool_.set_jobs(updating_bodies_);   // only ever called this once
+	update_jobs_built_ = true;
 }
 
 

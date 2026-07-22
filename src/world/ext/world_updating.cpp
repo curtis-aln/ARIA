@@ -23,7 +23,10 @@ void World::update(SimSnapshot& write_snapshot)
 
 		update_entities();
 
-		food_eat_resolver_.resolve();
+		if (statistics_.iterations_ % 30 == 0)
+			food_eat_resolver_.resolve();
+		else
+			food_eat_resolver_.resolve_existing_detections();
 	}
 
 	// We always update the position container, otherwise the simulation jitters when paused
@@ -39,6 +42,40 @@ void World::update(SimSnapshot& write_snapshot)
 	if (toggles.m_tick_frame_time) toggles.m_tick_frame_time = false;
 }
 
+void World::ensure_update_jobs_built()
+{
+	if (update_jobs_built_)
+		return;
+
+	updating_bodies_.clear();
+	updating_bodies_.reserve(updating_threads);
+
+	// For each of the threads
+	for (int t = 0; t < (int)updating_threads; ++t)
+	{
+		updating_bodies_.emplace_back([this, t] {
+			const int total_cells = current_total_bodies_;
+			if (total_cells == 0)
+				return;
+
+			const int chunk = std::max(1, (total_cells + (int)updating_threads - 1) / (int)updating_threads);
+			const int begin = t * chunk;
+			if (begin >= total_cells)
+				return;
+			const int end = std::min(begin + chunk, total_cells);
+
+			for (int k = begin; k < end; ++k)
+			{
+				Body* body = bodies_.at(bodies_.occupied_list[k]);
+				bound_body_to_world(body);
+
+			}});
+	}
+
+	thread_pool_.set_jobs(updating_bodies_);   // only ever called this once
+	update_jobs_built_ = true;
+}
+
 
 void World::update_entities()
 {
@@ -48,7 +85,7 @@ void World::update_entities()
 	if (!toggles.toggle_collisions)
 		return;
 	
-	if (statistics_.iterations_ % 20 != 0)
+	if (statistics_.iterations_ % 30 != 0)
 	{
 		collision_resolver_.resolve_existing_detections();
 		collision_resolver_.handle_collision_resolutions();
@@ -64,8 +101,9 @@ void World::update_entities()
 
 void World::bound_bodies()
 {
-	for (Body* body : bodies_)
-		bound_body_to_world(body);
+	current_total_bodies_ = bodies_.occupied_count;
+	ensure_update_jobs_built();
+	thread_pool_.run_and_wait();
 }
 
 void World::bound_body_to_world(Body* body)

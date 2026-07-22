@@ -27,6 +27,7 @@ Foodmanager will handle if the food gets removed
 #include "../Utils/thread_pool.h" // Multithreadding
 
 
+
 struct alignas(64) BiteResolution
 {
 	struct Iterator
@@ -107,11 +108,42 @@ class FoodEatResolver: private FoodResolutionSettings
 	// Multithreadding
 	std::vector<std::function<void()>> detection_jobs_;
 	BarrierThreadPool thread_pool_{ threads };
+
+	BarrierThreadPool quick_collision_thread_pool_;
+	std::vector<std::function<void()>> quick_collision_jobs_;
 	
 	std::vector<BiteResolution> bite_resolutions_;
 
 	int  current_total_cells_ = 0;
 	bool detection_jobs_built_ = false;
+
+	bool quick_collision_jobs_built_ = false;
+
+	// Shared by the threaded "fresh grid query" path and the single-threaded
+// "cached candidates" path — the only place bite/collision logic lives.
+	template <class FoodIdContainer>
+	void resolve_bites_against_candidates(Cell* cell, Body* body, const FoodIdContainer& food_ids, int count, BiteResolution& resolution)
+	{
+		for (int i = 0; i < count; ++i)
+		{
+			const int food_id = food_ids[i];
+			Food* food = food_vector_->at(food_id);
+			Body* food_body = body_vector_->at(food->body_id_);
+
+			const sf::Vector2f food_pos = food_body->position_;
+			const float food_radius = food_body->radius_;
+
+			const float dist_sq = (food_pos - body->position_).lengthSquared();
+			const float rel_rad = food_radius + body->radius_;
+			const float rel_rad_sq = rel_rad * rel_rad;
+
+			if (dist_sq < rel_rad_sq + 1.f)
+			{
+				cell->eat(CellSettings::bite_amount);
+				resolution.add(food_id);
+			}
+		}
+	}
 
 public:
 	FoodEatResolver(
@@ -119,7 +151,7 @@ public:
 		unsigned thread_count, unsigned reserve_per_thread, sf::FloatRect world_bounds)
 		: food_vector_(food_vector), body_vector_(body_vector), cell_vector_(cell_vector),
 		spatial_grid_(cells_x, cells_y, cell_max_capacity, world_bounds.size.x, world_bounds.size.y), 
-		world_bounds_(world_bounds)
+		world_bounds_(world_bounds), thread_pool_(thread_count), quick_collision_thread_pool_(thread_count)
 	{
 		init_bite_resolutions(reserve_per_thread);
 	}
@@ -149,13 +181,54 @@ public:
 				for (int k = begin; k < end; ++k)
 				{
 					const int cell_id = cell_vector_->occupied_list[k];
-					detect_bite_for_cell(body_vector_->at(cell_id), bite_resolutions_[t]);
+					Cell* cell = cell_vector_->at(cell_id);
+					Body* body = body_vector_->at(cell->body_id_);
+					detect_bite_for_cell(cell, body, bite_resolutions_[t]);
 				}
 				});
 		}
 
 		thread_pool_.set_jobs(detection_jobs_);   // only ever called this once
 		detection_jobs_built_ = true;
+	}
+
+	void ensure_quick_collision_jobs_built()
+	{
+		if (quick_collision_jobs_built_)
+			return;
+
+		quick_collision_jobs_.clear();
+		quick_collision_jobs_.reserve(threads);
+
+		for (int t = 0; t < (int)threads; ++t)
+		{
+			quick_collision_jobs_.emplace_back([this, t] {
+				const int total_cells = current_total_cells_;
+				if (total_cells == 0)
+					return;
+
+				const int chunk = std::max(1, (total_cells + (int)threads - 1) / (int)threads);
+				const int begin = t * chunk;
+				if (begin >= total_cells)
+					return;
+				const int end = std::min(begin + chunk, total_cells);
+
+				for (int k = begin; k < end; ++k)
+				{
+					const int cell_id = cell_vector_->occupied_list[k];
+					Cell* cell = cell_vector_->at(cell_id);
+
+					if (cell->nearby_food_ids_size_ == 0)
+						continue;
+
+					Body* body = body_vector_->at(cell->body_id_);
+					resolve_bites_against_candidates(cell, body, cell->nearby_food_ids_, cell->nearby_food_ids_size_, bite_resolutions_[t]);
+				}
+				});
+		}
+
+		quick_collision_thread_pool_.set_jobs(quick_collision_jobs_);
+		quick_collision_jobs_built_ = true;
 	}
 
 	void resolve()
@@ -208,35 +281,36 @@ private:
 		thread_pool_.run_and_wait();
 	}
 
-	float detect_bite_for_cell(Body* body, BiteResolution& resolution)
+	void detect_bite_for_cell(Cell* cell, Body* body, BiteResolution& resolution)
 	{
+		cell->nearby_food_ids_size_ = 0;
+
 		tl_nearby_ids_.count = 0;
 		spatial_grid_.find(body->position_.x, body->position_.y, &tl_nearby_ids_);
 
-		float transfer = 0;
-		for (int i = 0; i < tl_nearby_ids_.count; ++i)
-		{
-			obj_idx food_id = tl_nearby_ids_[i];
-			Food* food = food_vector_->at(food_id);
-			Body* food_body = body_vector_->at(food->body_id_);
+		const int cache_capacity = (int)cell->nearby_food_ids_.size();
+		for (int i = 0; i < tl_nearby_ids_.count && i < cache_capacity; ++i)
+			cell->nearby_food_ids_[cell->nearby_food_ids_size_++] = tl_nearby_ids_[i];
 
-			sf::Vector2f food_pos = food_body->position_;
-			float food_radius = food_body->radius_;
-
-			float dist_sq = (food_pos - body->position_).lengthSquared();
-			float rel_rad = food_radius + body->radius_;
-			float rel_rad_sq = rel_rad * rel_rad;
-
-			if (dist_sq < rel_rad_sq + 1.f)
-			{
-				// The cell is in contact with the food
-				transfer = CellSettings::bite_amount;
-				resolution.add(food_id);
-			}
-		}
-		return transfer;
+		resolve_bites_against_candidates(cell, body, tl_nearby_ids_, tl_nearby_ids_.count, resolution);
 	}
-		
+
+	public:
+		void resolve_existing_detections()
+		{
+			clear_bite_resolutions();
+
+			current_total_cells_ = cell_vector_->occupied_count;
+			if (current_total_cells_ == 0)
+				return;
+
+			ensure_quick_collision_jobs_built();
+			quick_collision_thread_pool_.run_and_wait();
+
+			food_bite_resolution();
+		}
+
+		private:
 	// This function will resolve the bites, by taking the appropriate amount of nutrients from the food and adding it to the cell
 	void food_bite_resolution()
 	{

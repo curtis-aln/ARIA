@@ -112,3 +112,32 @@ namespace Random
 
     
 }
+
+
+namespace FastRandom
+{
+    // Not statistically rigorous — just a cheap, fast, "good enough" bit-mixer.
+    // 4 bytes of state vs mt19937's ~2.5KB: far friendlier to cache, no rejection
+    // loops, no distribution machinery.
+    inline thread_local uint32_t fast_state = std::random_device{}() | 1u; // must never be 0
+
+    inline uint32_t next_bits()
+    {
+        uint32_t x = fast_state;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        return fast_state = x;
+    }
+
+    // Bit-trick float in [0,1): stuff 23 random mantissa bits into a float
+    // with exponent forced to represent [1,2), then subtract 1. No division,
+    // no branches, no rejection sampling.
+    inline float fast01()
+    {
+        uint32_t bits = (next_bits() >> 9) | 0x3f800000u;
+        float f;
+        std::memcpy(&f, &bits, sizeof(f));
+        return f - 1.f;
+    }
+}

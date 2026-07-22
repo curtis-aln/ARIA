@@ -42,7 +42,7 @@ struct Food : FoodManagerSettings
 	void update()
 	{
 		time_since_last_reproduced++;
-		age += Random::rand_range(0.4f, 1.0f);
+		age += 1;
 
 		update_food_nutrients();
 		vibrate_food(vibration_strength);
@@ -104,13 +104,19 @@ private:
 
 	void vibrate_food(float strength)
 	{
-		vibration_x = 0.f;
-		vibration_y = 0.f;
-
-		if (Random::rand01_float() < vibrate_freq)
+		if ((int)age % 5 != 0)
 			return;
 
-		vibration_x = Random::rand11_float() * strength;
-		vibration_y = Random::rand11_float() * strength;
+		const uint32_t bits = FastRandom::next_bits();
+
+		// top 10 bits -> frequency check (integer compare, no float conversion needed)
+		const uint32_t freq_threshold = static_cast<uint32_t>(vibrate_freq * 1023.f);
+		if ((bits >> 22) < freq_threshold)
+			return;
+
+		// remaining 22 bits -> 11 bits each for x and y, mapped to [-1, 1]
+		constexpr float inv = 2.f / 2047.f;
+		vibration_x = (static_cast<int32_t>((bits >> 11) & 0x7FF) * inv - 1.f) * strength;
+		vibration_y = (static_cast<int32_t>(bits & 0x7FF) * inv - 1.f) * strength;
 	}
 };
