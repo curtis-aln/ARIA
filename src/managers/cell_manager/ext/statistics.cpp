@@ -69,7 +69,7 @@ void CellManager::update_statistics()
 	statistics_.selected_a_cell = selected_cell != nullptr;
 	if (selected_cell != nullptr)
 	{
-		protozoa_tracker_.update_primitive(selected_cell, all_cells_, all_springs_, *bodies_);
+		protozoa_tracker_.update_primitive(selected_cell->id_, all_cells_, all_springs_, *bodies_);
 	}
 
 	statistics_.average_generation = calculate_average_generation();

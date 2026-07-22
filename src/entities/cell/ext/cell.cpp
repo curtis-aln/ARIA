@@ -141,7 +141,7 @@ void Cell::update_organics()
 	sinwave_current_friction_ = calculate_friction();
 
 	// 1. Passive decay — base cost of being alive
-	energy -= energy_decay_rate;
+	energy -= sinwave_current_friction_ * 0.02f;
 
 	// 2. Digest nutrients → energy, BEFORE the death check
 	//    so a fed cell can survive a decay tick it otherwise couldn't

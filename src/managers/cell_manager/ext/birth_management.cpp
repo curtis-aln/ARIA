@@ -171,6 +171,12 @@ void CellManager::apply_birth_requests()
 
 		const sf::Vector2f diff = parent_body->position_ - offspring_body->position_;
 		spring->rest_length = diff.length() * 3; // Todo redundant
+
+		// small random chance that this offspring has its own cell addition
+		if (Random::rand01_float() < offspring->add_cell_chance)
+		{
+			create_weak_offspring(offspring->id_);
+		}
 	}
 
 	birth_requests.clear(); 
@@ -222,4 +228,33 @@ void CellManager::apply_connection_requests()
 	}
 
 	connection_requests.clear();
+}
+
+void CellManager::create_weak_offspring(uint32_t parent_id)
+{
+	CellBodyPair pair = create_cell();
+	if (!pair.is_valid)
+		return;
+
+	Cell* parent = all_cells_.at(parent_id);
+	Body* parent_body = bodies_->at(parent->body_id_);
+	Cell* child = all_cells_.at(pair.cell_id);
+	Body* child_body = bodies_->at(pair.body_id);
+
+	int32_t spring_id = create_spring(parent_id, pair.cell_id);
+
+	//if (spring_id < 0) // potential error here
+	//	return;
+
+	Spring* spring = all_springs_.at(spring_id);
+
+	// creating a spring that is firm but doesnt oscilate mutch
+	spring->randomize();
+	spring->amplitude = 0.2f;
+
+	// creating a child which doesnt grab on too much
+	parent->create_offspring(child, parent_body, child_body, true);
+	child->randomize();
+	child->amplitude = 0.2f;
+	child->vertical_shift = 0.5f;
 }

@@ -39,8 +39,8 @@ void Simulation::run_simulation()
 
         if (sim_state_.total_time_elapsed > 60)
         {
-			std::cout << "total iterations: " << m_world_.get_statistics().iterations_ << std::endl;
-            running = false;
+			//std::cout << "total iterations: " << m_world_.get_statistics().iterations_ << std::endl;
+            //running = false;
         }
     }
 

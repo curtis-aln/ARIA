@@ -174,6 +174,8 @@ private: // only functions this class can access
 	void apply_birth_requests();
 	void apply_connection_requests();
 
+	void create_weak_offspring(uint32_t parent_id);
+
 	// statistics 
 	void register_death_stat(const float lifetime, const bool had_offspring);
 	void register_birth_stat();

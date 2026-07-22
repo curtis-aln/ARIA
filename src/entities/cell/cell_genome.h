@@ -25,7 +25,7 @@ struct CellInitialSpawnRanges
 
 struct HardConstants
 {
-    inline static float     add_cell_chance = 0.03f;
+    inline static float     add_cell_chance = 0.02f;
     inline static float     add_spring_chance = 0.03f;
     inline static uint8_t   outer_transparency = 200;
     inline static uint8_t   inner_transparency = 100;
@@ -67,7 +67,7 @@ struct CellGenome : GenomeBase, HardConstants
         const auto& C = CellGeneticConstraints{};
 
         radius = maybe_mutate(radius, C.radius, rate, range);
-        amplitude = maybe_mutate(amplitude, C.amplitude, rate, range);
+        amplitude = maybe_mutate(amplitude, C.amplitude, rate, range * 0.1f);
         frequency = maybe_mutate(frequency, C.frequency, rate, range);
         offset = maybe_mutate(offset, C.offset, rate, range);
         vertical_shift = maybe_mutate(vertical_shift, C.vertical_shift, rate, range);
