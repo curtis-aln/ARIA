@@ -74,7 +74,7 @@ void CellManager::remove_cell(cell_idx cell_id)
 	// removing all the springs attached to this cell
 	for (int i = 0; i < cell->spring_links_.size_; ++i)
 	{
-		uint32_t spring_id = cell->spring_links_.connected_cell_ids_[i];
+		uint32_t spring_id = cell->spring_links_.connected_spring_ids_[i];
 		spring_death_requests.push_back(spring_id);
 	}
 

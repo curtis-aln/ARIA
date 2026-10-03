@@ -76,6 +76,9 @@ struct CellManagerToggles
 	bool skeleton_mode = false;  // only render springs, no cell bodies
 	bool show_connections = true;   // show spring connections between cells
 	bool show_bounding_boxes = true;  // show protozoa bounding boxes
+
+	// other
+	bool easy_reproduction = false;  // cells can reproduce through hardcoded copy paste
 };
 
 struct FoodToggles

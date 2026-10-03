@@ -25,9 +25,9 @@ struct alignas(16) SpringLinks
 
 	/// IDs of the cells at the other end of each spring.
 	/// Only the first connection_count_ entries are valid; the rest are unused.
-	std::array<uint32_t, max_connections> connected_cell_ids_{};
+	std::array<uint32_t, max_connections> connected_spring_ids_{};
 
-	/// Number of valid entries in connected_cell_ids_.
+	/// Number of valid entries in connected_spring_ids_.
 	/// Deliberately 32 bits wide: the struct is padded to 16 bytes anyway, so a
 	/// smaller type saves no memory and only adds widening/zero-extension work.
 	uint32_t size_ = 0;
@@ -48,7 +48,7 @@ struct alignas(16) SpringLinks
 		assert(!is_full());
 		if (!is_full()) [[likely]]
 		{
-			connected_cell_ids_[size_++] = other_cell_id;
+			connected_spring_ids_[size_++] = other_cell_id;
 		}
 	}
 
@@ -61,10 +61,10 @@ struct alignas(16) SpringLinks
 	{
 		for (uint32_t i = 0; i < size_; ++i)
 		{
-			if (connected_cell_ids_[i] == other_cell_id)
+			if (connected_spring_ids_[i] == other_cell_id)
 			{
 				// Overwrite the removed slot with the last valid entry, then shrink.
-				connected_cell_ids_[i] = connected_cell_ids_[--size_];
+				connected_spring_ids_[i] = connected_spring_ids_[--size_];
 				return;
 			}
 		}

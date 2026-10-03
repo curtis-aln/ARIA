@@ -131,6 +131,10 @@ class CellManager : protected CellManagerSettings
 
 	bool spawn_immune = false;
 
+	// easy reproduction
+	static constexpr int max_protozoa_cells = 10;
+	FixedSpan<cell_idx> protozoa_cell_ids_{ max_protozoa_cells };
+
 public:
 	CellManagerToggles toggles_{};
 
@@ -224,7 +228,6 @@ private: // only functions this class can access
 	void try_connect_newborn_cell(Cell* cell);
 
 
-
 	// birth - springs
 	int32_t create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id);
 	void create_weak_offspring(uint32_t parent_id);
@@ -234,10 +237,21 @@ private: // only functions this class can access
 
 	// birth - cells
 	CellBodyPair create_cell(sf::Vector2f position = { 0, 0 }, bool random_genetics = false);
-	void clone_selected_protozoa();
-	void create_protozoa_from_pool(const sf::Vector2f position, const unsigned max_cells, const unsigned max_springs);
 	void collect_reproduction_requests();
 	void apply_reproduction_requests();
+
+	// birth - whole protozoa
+	void clone_selected_protozoa();
+	bool can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell_idx>& out_cell_ids);
+	void create_protozoa_from_pool(const sf::Vector2f position, const unsigned max_cells, const unsigned max_springs);
+	bool protozoa_reproduce(FixedSpan<cell_idx>& old_ids);
+
+	sf::Vector2f calculate_organism_centre(FixedSpan<cell_idx>& cell_ids);
+	float        calculate_organism_radius(FixedSpan<cell_idx>& cell_ids, const sf::Vector2f& centre);
+	sf::Vector2f calculate_clone_offset(FixedSpan<cell_idx>& parent_ids);
+
+	int32_t clone_cell(cell_idx parent_cell_id, const sf::Vector2f& offset);
+	bool    clone_spring(uint32_t parent_spring_id, cell_idx offspring_cell_a, cell_idx offspring_cell_b);
 
 	// death - cell matter
 	void collect_matter_death_requests();

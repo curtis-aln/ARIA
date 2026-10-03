@@ -76,7 +76,7 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 	ImGui::Text("delta integrity: %.2f", c.delta_integrity);
 
 	// showing data from the array, The connections to springs this cell has from SpringGenome spring_genome{};
-	const auto& ids = c.spring_links_.connected_cell_ids_;
+	const auto& ids = c.spring_links_.connected_spring_ids_;
 	const int size = c.spring_links_.size_;
 
 	ImGui::Text("spring links: %zu", size);

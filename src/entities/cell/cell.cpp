@@ -122,7 +122,6 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 
 void Cell::turn_off_reproduction()
 {
-	repro_timer_ = 0;
 	reproduce_ = false;
 }
 

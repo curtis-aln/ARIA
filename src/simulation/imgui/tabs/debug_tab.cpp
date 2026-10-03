@@ -95,6 +95,9 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	// rendering the background grid
 	toggle(snap, ctx, "background grid", &WorldToggles::draw_background_grid);
 
+	ImGui::Spacing();
+	toggle(snap, ctx, "easy reproduction", &CellManagerToggles::easy_reproduction);
+
 	ImGui::EndChild();
 	ImGui::SameLine();
 
