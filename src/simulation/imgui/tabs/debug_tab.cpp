@@ -66,6 +66,16 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	toggle(snap, ctx, "spring too long breakage", &CellManagerToggles::spring_too_long_breakage);
 	toggle(snap, ctx, "spring too much force breakage", &CellManagerToggles::spring_too_much_force_breakage);
 
+	toggle(snap, ctx, "old age death", &CellManagerToggles::old_age_death);
+	if (ctx.cell_toggles.old_age_death)
+	{
+		//ImGui::Indent();
+		//float max_age = CellManagerSettings::max_time_to_live;
+		//if (ImGui::SliderFloat("##max_time_to_live", &max_age, 0.f, 30000.f, "max age %.0f"))
+		//	ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetCellMatterLifetime, .int_val = static_cast<int>(max_age) });
+		//ImGui::Unindent();
+	}
+
 	ImGui::Spacing();
 	ImGui::TextDisabled("Energy Tax");
 	toggle(snap, ctx, "work done energy", &CellManagerToggles::work_done_energy);

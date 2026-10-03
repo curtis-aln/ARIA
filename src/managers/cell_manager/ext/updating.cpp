@@ -1,4 +1,18 @@
 #include "../cell_manager.h"
+#include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <entities/body.h>
+#include <entities/cell/cell.h>
+#include <entities/matter/CellMatter.h>
+#include <entities/spring/spring.h>
+#include <iostream>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Mouse.hpp>
+#include <simulation/context/sim_snapshot.h>
+#include <simulation/context/state.h>
+#include <Utils/spatial_grid/simple_spatial_grid.h>
 
 bool CellManager::deselect_cell()
 {
@@ -21,7 +35,7 @@ void CellManager::add_new_cells_to_grid()
 		bool is_first_gen = cell->generation == 0; // we dont want the initial cells during the sim start to all tangle
 		if (!is_newborn || is_first_gen)
 			continue;
-		
+
 		Body* body = bodies_->at(cell->body_id_);
 		new_born_cell_grid_.add_object(body->position_.x, body->position_.y, cell->id_);
 	}
@@ -93,7 +107,7 @@ void CellManager::update_cell(Cell* cell)
 {
 	Body* body = bodies_->at(cell->body_id_);
 	cell->update_statistics();
-	cell->update_organics(spawn_immune, toggles_.friction_energy_loss);
+	cell->update_organics(spawn_immune, toggles_.friction_energy_loss, toggles_.old_age_death);
 	body->velocity_ *= cell->sinwave_current_friction_;
 
 	speed_tax_cell(cell);
@@ -180,7 +194,7 @@ void CellManager::update_position_container(RenderData& rend_data, const sf::Flo
 
 		// The reason why we cant use indexing to fill this array is because we dont know how many bodies are not active,
 		// so it messes with the indexing and leads to null connections
- 		rend_data.spring_connections.push_back({
+		rend_data.spring_connections.push_back({
 			get_cell_pos(spring->cell_A_id),
 			get_cell_pos(spring->cell_B_id),
 			spring->genome.outer_r, spring->genome.outer_g, spring->genome.outer_b,
@@ -243,6 +257,7 @@ void CellManager::try_connect_newborn_cell(Cell* cell)
 	}
 }
 
+
 void CellManager::update_springs(bool immune)
 {
 	springs_to_remove_.clear();
@@ -254,13 +269,6 @@ void CellManager::update_springs(bool immune)
 		bool true_immune = immune || !toggles_.spring_stress_integrity_damage;
 		spring->update_organics(*cell_a, *cell_b, !true_immune, toggles_.work_done_energy);
 
-		// if the spring has broken on its own
-		if (spring->is_spring_broken())
-		{
-			springs_to_remove_.push_back(spring->id_);
-			continue;
-		}
-
 		// otherwise we update the spring physics and organics
 		Body* body_a = bodies_->at(cell_a->body_id_);
 		Body* body_b = bodies_->at(cell_b->body_id_);
@@ -270,15 +278,7 @@ void CellManager::update_springs(bool immune)
 		spring->update_physics(body_a->position_, body_a->velocity_, body_b->position_, body_b->velocity_, disable_length_breakage, disable_force_breakage);
 		body_a->accelerate(spring->movement_vector);
 		body_b->accelerate(-spring->movement_vector);
-		
-	}
 
-	// Remove the broken springs
-	for (uint32_t spring_id : springs_to_remove_)
-	{
-		Spring* spring = all_springs_.at(spring_id);
-		spring->reset_cell_manager();
-		all_springs_.remove(spring_id);
 	}
 }
 
@@ -286,7 +286,7 @@ void CellManager::update_springs(bool immune)
 void CellManager::check_for_extinction_event()
 {
 	// if protozoas are still alivee or if auto reset on extinction is disabled, we dont need to do anything
-	if (all_cells_.size() > extincion_threshold)
+	if (all_cells_.size() >= extincion_threshold)
 		return;
 
 	// printing statistics about the simulation
@@ -358,7 +358,7 @@ void CellManager::drag_selected_cell_to_point(const sf::Vector2f& target_positio
 
 	Body* body = bodies_->at(all_cells_.at(selected_cell_id_)->body_id_);
 	body->position_ = target_position;
-	
+
 	const sf::Vector2f mouse_pos = m_window_->mapPixelToCoords(sf::Mouse::getPosition(*m_window_));
 	const sf::Vector2f diff = mouse_pos - body->position_;
 	body->position_ += diff * move_fraction; // apply a small force towards the mouse position
@@ -411,12 +411,12 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id)
 {
 	Spring* spring = all_springs_.emplace(true, true);
-	
+
 	if (spring == nullptr)
 	{
 		return -1;
 	}
-	spring->reset_cell_manager();
+	spring->reset();
 	spring->cell_A_id = cell_a_id;
 	spring->cell_B_id = cell_b_id;
 	return spring->id_;

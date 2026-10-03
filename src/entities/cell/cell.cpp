@@ -45,6 +45,8 @@ void Cell::recreate()
 	reproduce_ = false;
 	dead_ = false;
 	immortal_ = false;
+
+	spring_links_.clear_connections();
 }
 
 bool Cell::eat(const float nutrients)
@@ -130,8 +132,8 @@ void Cell::turn_off_reproduction()
 {
 	// Range in terms of radii
 	return Random::rand_pos_in_rect(sf::FloatRect{
-		{body->position_.x - radius * range, body->position_.y - radius * range},
-		{radius * range * 2 , radius * range * 2}
+		{ body->position_.x - radius * range, body->position_.y - radius * range },
+		{ radius * range * 2 , radius * range * 2 }
 		});
 }
 
@@ -152,7 +154,7 @@ void  Cell::update_statistics()
 }
 
 
-void Cell::update_organics(bool immune, bool friction_energy_loss)
+void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_death)
 {
 	if (immune)
 		apply_immunity();
@@ -161,7 +163,7 @@ void Cell::update_organics(bool immune, bool friction_energy_loss)
 		apply_passive_decay();
 	process_nutrients();
 
-	if (check_death())
+	if (check_death(old_age_death))
 		return; // dead cells don't repair or reproduce
 
 	repair_integrity();
@@ -193,11 +195,9 @@ void Cell::flush_deltas()
 	delta_integrity = 0.f;
 }
 
-bool Cell::check_death()
+bool Cell::check_death(bool old_age_death)
 {
 	/* Check if the cell is dead or should die */
-	constexpr float death_energy_threshold = 1000.0f;
-	constexpr float death_energy_rate = 0.02f;
 
 	if (energy <= 0.f) // if the cell has no energy, it dies
 	{
@@ -209,9 +209,9 @@ bool Cell::check_death()
 		integrity = 0.f;
 		dead_ = true;
 	}
-	else if (internal_clock_ > death_energy_threshold) // if the cell has been alive for too long, it dies
+	else if (old_age_death && internal_clock_ > death_age_threshold) // if the cell has been alive for too long, it dies
 	{
-		dead_ = true;
+		energy -= death_energy_rate;
 	}
 
 	return dead_;

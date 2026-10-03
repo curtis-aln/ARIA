@@ -9,8 +9,8 @@
 vsync             = false
 full_screen       = false
 ui_scale_percent  = 100.0
-max_fps_rendering = 144    # 0 = uncapped
-max_fps_updating  = 0
+max_fps_rendering = 60    # 0 = uncapped
+max_fps_updating  = 60
 max_runtime = 0 # simulation ends after this many seconds have passed, 0 = infinite
 max_iterations = 0 # simulation ends after this many iterations, 0 = infinite
 
@@ -20,7 +20,7 @@ max_iterations = 0 # simulation ends after this many iterations, 0 = infinite
 bounds_radius               = 18000
 border_repulsion_magnitude  = 0.000000085
 updating_threads = 16
-tick_sim_multiplier = 40
+tick_sim_multiplier = 1
 
 # 5 = 32, 6 = 64, 7 = 128, 8 = 256, 9 = 512, 10 = 1024, 11 = 2048
 # each of these is used to calculate the size of a square spatial grid using the formula: 2^n

@@ -79,7 +79,7 @@ add_executable(ProjectARIA
 
     # ── Entities
     src/entities/body.h
-    src/entities/CellMatter.h
+    src/entities/matter/CellMatter.h
     src/entities/cell/cell.cpp
     src/entities/cell/cell_settings.h
     src/entities/spring/spring_settings.h
@@ -152,7 +152,7 @@ add_executable(ProjectARIA
     # ── ImPlot (header-only library — sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
-)
+ "src/entities/cell/spring_links.h")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

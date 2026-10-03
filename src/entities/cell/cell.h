@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <string.h>
 
+#include "spring_links.h"
+
 // Each organism consists of cells which work together via springs
 // Each cell has their own radius and friction coefficient, as well as cosmetic factors such as color
 
@@ -66,6 +68,7 @@ private:
 public:
 	uint32_t id_ = 0;        // The unique identifier for this cell
 	uint32_t body_id_ = 0;   // Reference to the body 
+	SpringLinks spring_links_; // The springs that connect this cell to other cells
 
 	bool immortal_ = false;  // cell is unaffected by death
 
@@ -151,7 +154,7 @@ public:
 
 	// ------------ Cell functionality ------------
 	void update_statistics();
-	void update_organics(bool immune, bool friction_energy_loss);
+	void update_organics(bool immune, bool friction_energy_loss, bool old_age_death);
 
 	[[nodiscard]] bool eat(const float nutrients);
 	void create_offspring(Body* this_body, Cell* child, Body* child_body, const bool mutate);
@@ -182,7 +185,7 @@ private:
 	void apply_immunity();
 	void apply_passive_decay();
 	void flush_deltas();
-	[[nodiscard]] bool check_death();       // returns true (and sets dead_) if energy or integrity hit 0
+	[[nodiscard]] bool check_death(bool old_age_death);       // returns true (and sets dead_) if energy or integrity hit 0
 	void update_reproduction_flag();
 
 	void process_nutrients();

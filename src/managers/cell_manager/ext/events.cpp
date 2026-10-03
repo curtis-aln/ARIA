@@ -1,4 +1,22 @@
 #include "../cell_manager.h"
+#include <algorithm>
+#include <cstdint>
+#include <entities/body.h>
+#include <entities/cell/cell.h>
+#include <entities/cell/cell_settings.h>
+#include <entities/matter/CellMatter.h>
+#include <entities/matter/matter_settings.h>
+#include <entities/spring/spring.h>
+#include <iostream>
+#include <managers/cell_manager/cell_manager_settings.h>
+#include <ostream>
+#include <SFML/System/Vector2.hpp>
+#include <simulation/context/sim_command.h>
+#include <unordered_map>
+#include <Utils/o_vec/o_vector.hpp>
+#include <Utils/random.h>
+#include <Utils/spatial_grid/fixed_span.h>
+#include <Utils/spatial_grid/simple_spatial_grid.h>
 
 template<typename T>
 void CellManager::gather_objects_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, const o_vector<T>& objects, const sf::Vector2f& position, const float radius)
@@ -9,7 +27,7 @@ void CellManager::gather_objects_in_radius(FixedSpan<cell_idx, uint16_t>& indexe
 	{
 		Body* body = bodies_->at(object->body_id_);
 		float dist_sq = (body->position_ - position).lengthSquared();
-		
+
 		if (dist_sq < radius * radius)
 			indexes.add(object->id_);
 	}
@@ -30,6 +48,7 @@ void CellManager::remove_cells_in_radius(const sf::Vector2f& position, const flo
 
 void CellManager::check_for_dangling_springs()
 {
+	std::cout << "cell manager events.cpp: check_for_dangling_springs() called, checking for dangling springs..." << std::endl;
 	/* Check for springs that are connected to cells that have been removed */
 	for (Spring* spring : all_springs_)
 	{
@@ -37,6 +56,7 @@ void CellManager::check_for_dangling_springs()
 		Cell* cell_b = all_cells_.at(spring->cell_B_id);
 		if (all_cells_.is_obj_active(cell_a->id_) == false || all_cells_.is_obj_active(cell_b->id_) == false)
 		{
+			std::cout << "cell manager events.cpp: found dangling spring, removing..." << std::endl;
 			all_springs_.remove(spring);
 		}
 	}
@@ -285,10 +305,10 @@ void CellManager::force_reproduce_selected_protozoa()
 	{
 		Cell* cell = all_cells_.at(fake_cell.id_);
 		cell->nutrients_ = std::max(cell->nutrients_, cell->birth_nutrients_thresh * CellSettings::max_nutrients);
-		
+
 		cell->set_energy(std::max(cell->get_energy(), cell->birth_energy_thresh * CellSettings::max_energy));
 		cell->set_integrity(std::max(cell->get_integrity(), cell->birth_integrity_thresh * CellSettings::max_integrity));
-		
+
 		cell->repro_timer_ = std::max(cell->repro_timer_, uint16_t(cell->repro_cooldown));
 		cell->force_reproduce();
 	}

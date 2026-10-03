@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 struct CellSettings
 {
@@ -21,4 +22,7 @@ struct CellSettings
 
 	inline static float friction_energy_loss_const;
 	inline static constexpr uint8_t max_cell_connections = 2;
+
+	inline static int death_age_threshold = 2700;
+	inline static float death_energy_rate = 0.001f;
 };

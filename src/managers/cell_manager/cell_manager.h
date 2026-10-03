@@ -1,9 +1,6 @@
 #pragma once
-#include <algorithm>
-#include <iostream>
 
 #include "../../Utils/o_vec/o_vector.hpp"
-#include <SFML/Graphics.hpp>
 
 #include "cell_manager_settings.h"
 
@@ -11,12 +8,25 @@
 #include "../../entities/spring/spring.h"
 #include "world/world_border.h"
 
-#include "../food_manager/food_manager.h"
-#include "organism_tracker.h"
 #include "../../simulation/context/sim_snapshot.h"
+#include "organism_tracker.h"
 
-#include <simulation/context/sim_command.h>
+#include <cstdint>
+#include <deque>
+#include <entities/body.h>
 #include <entities/matter/CellMatter.h>
+#include <functional>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <simulation/context/sim_command.h>
+#include <simulation/context/state.h>
+#include <Utils/spatial_grid/fixed_span.h>
+#include <Utils/spatial_grid/simple_spatial_grid.h>
+#include <Utils/thread_pool.h>
+#include <vector>
+#include <world/world_settings.h>
 
 
 struct CellBodyPair
@@ -41,7 +51,7 @@ The birth manager then processes this request by
 
 This keeps happening until a spring detects that both its cell's have a valid offspring index
 The spring then
-- sets cell_a.connection_index = cell_b.offspring_index; 
+- sets cell_a.connection_index = cell_b.offspring_index;
 - cell_a.spring_to_copy_index = id; this is the spring data that will be used
 This tells the protozoa manager what to connect (cell_a.connection_index, cell_b.offspring_index)
 
@@ -70,7 +80,7 @@ struct ConnectionRequest
 inline static constexpr uint16_t max_mouse_selection_count = static_cast<uint16_t>(10000);
 
 // A Class which handles all protozoa related stuff in the world. updating, collisions, reproduction, etc.
-class CellManager: protected CellManagerSettings
+class CellManager : protected CellManagerSettings
 {
 	sf::RenderWindow* m_window_ = nullptr;
 	WorldBorder* world_bounds_ = nullptr;
@@ -85,7 +95,7 @@ class CellManager: protected CellManagerSettings
 	// header
 	std::deque<float> recent_lifetimes_;
 	float recent_lifetimes_sum_ = 0.f; // a vector storing the lifetimes of the 500 most recent protozoa deaths, used to calculate average_lifetime_
-	
+
 	std::vector<float> distribution_{}; // a vector storing the generation of all protozoa in the world, used to calculate average generation
 
 	// used to store requests for new protozoa to be created, and for new connections to be made between cells
@@ -118,7 +128,7 @@ class CellManager: protected CellManagerSettings
 	// this spatial grid holds new born cells so that the they can form connections between other newly born cells
 	uint32_t cells_x = 2 << WorldSettings::birth_cell_power;
 	SimpleSpatialGrid new_born_cell_grid_{ cells_x, cells_x, WorldSettings::birth_max_capacity, WorldSettings::bounds_radius * 2.0f, WorldSettings::bounds_radius * 2.0f };
-	
+
 	bool spawn_immune = false;
 
 public:
@@ -127,7 +137,7 @@ public:
 	// These two are used for when the mouse wants to manipulate cells and matter inside of a certain radius
 	FixedSpan<cell_idx, uint16_t> selected_cells_indexes_{ max_mouse_selection_count };
 	FixedSpan<cell_idx, uint16_t> selected_matter_indexes_{ max_mouse_selection_count };
-	
+
 	bool extinction_event = false;
 
 public:
@@ -156,12 +166,12 @@ public:
 	unsigned get_matter_count() const { return all_cell_matter_.size(); }
 
 	bool has_cell_with_body_id(int body_id);
-	
+
 	Cell* find_cell_by_id(const int id) { return all_cells_.at(id); }
 	Cell* find_cell_at_point(const sf::Vector2f mouse_position, bool make_selected_cell);
 	sf::Vector2f& get_cell_pos(int cell_id);
 	Body* get_cell_body(int cell_id);
-	
+
 	const sf::Vector2f* get_selected_protozoa_pos() const;
 
 	const o_vector<Cell>& get_all_cells() const { return all_cells_; }
@@ -172,7 +182,7 @@ public:
 	o_vector<Spring>& get_all_springs() { return all_springs_; }
 
 	SimpleSpatialGrid* get_new_born_cell_grid() { return &new_born_cell_grid_; }
-	
+
 
 	// selected cell management
 	bool deselect_cell();
@@ -183,14 +193,14 @@ public:
 	const std::vector<float>& get_generation_distribution();
 	void update_100frame_stats(int iterations);
 	void update_statistics();
-	
+
 
 private: // only functions this class can access
 	// Utility
 
 	template<typename T>
 	void gather_objects_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, const o_vector<T>& objects, const sf::Vector2f& position, const float radius);
-	
+
 	void check_for_extinction_event();
 	void inject_selected_protozoa(bool is_energy, float amount);
 
@@ -213,6 +223,8 @@ private: // only functions this class can access
 	void add_new_cells_to_grid();
 	void try_connect_newborn_cell(Cell* cell);
 
+
+
 	// birth - springs
 	int32_t create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id);
 	void create_weak_offspring(uint32_t parent_id);
@@ -227,18 +239,22 @@ private: // only functions this class can access
 	void collect_reproduction_requests();
 	void apply_reproduction_requests();
 
-	// death
+	// death - cell matter
 	void collect_matter_death_requests();
-	void collect_cell_death_requests();
-	
-	void speed_tax_cell(Cell* cell);
-
-	void remove_cell(cell_idx cell_id);
+	void apply_matter_death_requests();
 	void remove_cell_matter(cell_idx matter_id);
 
+
+	// death - cell
+	void collect_cell_death_requests();
 	void apply_cell_death_requests();
-	void apply_matter_death_requests();
+	void remove_cell(cell_idx cell_id);
+	void speed_tax_cell(Cell* cell);
+
+	// death - springs
+	void collect_spring_death_requests();
+	void apply_spring_death_requests();
 
 	void check_for_dangling_springs();
-	
+	void remove_spring(uint32_t spring_id);
 };

@@ -1,13 +1,11 @@
 #pragma once
-#include "../../entities/body.h"
-#include "../../entities/cell/cell.h"
-#include "../../entities/food/food.h"
-#include "../../entities/spring/spring.h"
 #include "../../Utils/o_vec/o_vec_snapshot.h"
-#include "../../Utils/o_vec/o_vector.hpp"
 #include "world/world_renderer/connection_renderer.h"
+#include <cstdint>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <vector>
 #include <vector>
 #include <world/world_renderer/connection_renderer.h>
@@ -68,6 +66,7 @@ struct CellManagerToggles
 
 	bool work_done_energy = true;
 	bool friction_energy_loss = true;
+	bool old_age_death = true;
 
 	// newborns
 	bool show_only_newborns = false;

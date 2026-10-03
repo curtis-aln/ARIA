@@ -1,9 +1,19 @@
 #pragma once
-#include <SFML/System/Vector2.hpp>
 #include <algorithm>
+#include <SFML/System/Vector2.hpp>
 
 #include "../cell/cell.h"
 #include "spring_settings.h"
+#include <cstdint>
+#include <cstdint>
+#include <cstdlib>
+#include <cstdlib>
+#include <entities/cell/cell_genome.h>
+#include <entities/cell/cell_genome.h>
+#include <entities/cell/cell_settings.h>
+#include <entities/cell/cell_settings.h>
+#include <Utils/random.h>
+#include <Utils/random.h>
 
 struct SpringResult { float work_done; float force_magnitude; bool broken; };
 
@@ -38,15 +48,15 @@ public:
 
 	sf::Vector2f movement_vector{ 0 ,0 };
 
-	
 
-	Spring(const uint8_t _id=0, const uint8_t _cell_A_id=0, const uint8_t _cell_B_id=0)
+
+	Spring(const uint8_t _id = 0, const uint8_t _cell_A_id = 0, const uint8_t _cell_B_id = 0)
 		: cell_A_id(_cell_A_id), cell_B_id(_cell_B_id), id_(_id)
 	{
 
 	}
 
-	void reset_cell_manager()
+	void reset()
 	{
 		cell_A_id = 0;
 		cell_B_id = 0;
@@ -91,8 +101,8 @@ public:
 
 	// returns a movement vector
 	void update_physics(
-		const sf::Vector2f& pos_a, const sf::Vector2f& vel_a, 
-		const sf::Vector2f& pos_b, const sf::Vector2f& vel_b, 
+		const sf::Vector2f& pos_a, const sf::Vector2f& vel_a,
+		const sf::Vector2f& pos_b, const sf::Vector2f& vel_b,
 		bool disable_length_breakage, bool disable_force_breakage)
 	{
 		internal_clock_++;
@@ -120,7 +130,7 @@ public:
 		spring_force = get_spring_constant() * length_diff;
 
 		// Calculating the damping force
-		const sf::Vector2f normalised_dir{ dir.x * inv_length, dir.y * inv_length};
+		const sf::Vector2f normalised_dir{ dir.x * inv_length, dir.y * inv_length };
 		const sf::Vector2f vel_difference = (vel_b - vel_a);
 		damping_force = normalised_dir.dot(vel_difference) * genome.damping;
 
@@ -250,7 +260,7 @@ private:
 		// never drain the sender below the protected floor - this is what lets the priority
 		// transfer above run without starving whichever cell just reproduced
 		const float sendable = *sender;
-		
+
 		const float send_amount = priority_transfer
 			? std::min({ rate, sendable, space / (1.0f - nutrients_transfer_loss) })
 			: std::min({ rate, sendable, diff, space / (1.0f - nutrients_transfer_loss) });
