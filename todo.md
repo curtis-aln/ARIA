@@ -95,10 +95,10 @@ void protozoa_reproduce(FixedSpan<cell_id> cell_ids)
 
 ##### TODO
 pre-requisites
-- Cells need to have ID's (array) attaching them to the springs they are connected to.
-- When a spring is removed, it needs to remove the ID from the cells array it was connected to
-- When a cell is removed, it needs to remove the ID from the springs array it was connected to
-- When a cell is created, it needs its spring ID's to be zero
+[DONE] Cells need to have ID's (array) attaching them to the springs they are connected to.
+[DONE] When a spring is removed, it needs to remove the ID from the cells array it was connected to
+[DONE] When a cell is removed, it needs to remove the ID from the springs array it was connected to
+[DONE] When a cell is created, it needs its spring ID's to be zero
 - In the Cell ImGui, show the array of spring ID's that are connected to the cell, as well as the size
 
 - Create an ImGui toggle to switch between natual reproduction and primitive reproduction

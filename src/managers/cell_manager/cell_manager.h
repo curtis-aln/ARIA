@@ -102,7 +102,7 @@ class CellManager : protected CellManagerSettings
 	std::vector<BirthRequest> cell_birth_requests;
 	std::vector<MatterBirthRequest> matter_birth_requests;
 	std::vector<ConnectionRequest> connection_requests;
-	std::vector<uint32_t> springs_to_remove_;
+	std::vector<uint32_t> spring_death_requests;
 	CellManagerStatistics statistics_{};
 
 	// death requests stop us from removing cells while we are iterating over them, we store the ids of the cells to be removed here and remove them after the iteration is done

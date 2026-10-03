@@ -15,7 +15,7 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	cell_death_requests_.reserve(initial_request_capacity);
 	matter_death_requests_.reserve(initial_request_capacity);
 	matter_birth_requests.reserve(initial_request_capacity);
-	springs_to_remove_.reserve(initial_request_capacity);
+	spring_death_requests.reserve(initial_request_capacity);
 
 	std::cout << "[INFO]: CellManager initialized with protozoa: " << all_cells_.size() << "\n";
 	if (window == nullptr)

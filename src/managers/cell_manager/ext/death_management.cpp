@@ -15,11 +15,11 @@
 // ---------------------------- collect death requests ----------------------------
 void CellManager::collect_spring_death_requests()
 {
-	springs_to_remove_.clear();
+	spring_death_requests.clear();
 	for (Spring* spring : all_springs_)
 	{
 		if (spring->is_spring_broken())
-			springs_to_remove_.push_back(spring->id_);
+			spring_death_requests.push_back(spring->id_);
 	}
 }
 
@@ -75,7 +75,7 @@ void CellManager::remove_cell(cell_idx cell_id)
 	for (int i = 0; i < cell->spring_links_.size_; ++i)
 	{
 		uint32_t spring_id = cell->spring_links_.connected_cell_ids_[i];
-		springs_to_remove_.push_back(spring_id);
+		spring_death_requests.push_back(spring_id);
 	}
 
 	// removing the cell and body from their respective containers
@@ -136,8 +136,9 @@ void CellManager::apply_matter_death_requests()
 
 void CellManager::apply_spring_death_requests()
 {
-	for (uint32_t spring_id : springs_to_remove_)
+	for (uint32_t spring_id : spring_death_requests)
 	{
 		remove_spring(spring_id);
 	}
+	spring_death_requests.clear();
 }

@@ -68,9 +68,11 @@ void CellManager::update(int iterations)
 	// --------------- death management ---------------
 	collect_cell_death_requests();
 	collect_matter_death_requests();
+	collect_spring_death_requests();
 
 	apply_cell_death_requests();
 	apply_matter_death_requests();
+	apply_spring_death_requests();
 
 	// --------------- updating cells and matter ---------------
 	spawn_immune = iterations < init_spring_immunity_time;
@@ -260,7 +262,6 @@ void CellManager::try_connect_newborn_cell(Cell* cell)
 
 void CellManager::update_springs(bool immune)
 {
-	springs_to_remove_.clear();
 	for (Spring* spring : all_springs_)
 	{
 		Cell* cell_a = all_cells_.at(spring->cell_A_id);
@@ -273,12 +274,11 @@ void CellManager::update_springs(bool immune)
 		Body* body_a = bodies_->at(cell_a->body_id_);
 		Body* body_b = bodies_->at(cell_b->body_id_);
 
-		bool  disable_length_breakage = immune || !toggles_.spring_too_long_breakage;
-		bool   disable_force_breakage = immune || !toggles_.spring_too_much_force_breakage;
+		bool disable_length_breakage = immune || !toggles_.spring_too_long_breakage;
+		bool disable_force_breakage = immune || !toggles_.spring_too_much_force_breakage;
 		spring->update_physics(body_a->position_, body_a->velocity_, body_b->position_, body_b->velocity_, disable_length_breakage, disable_force_breakage);
 		body_a->accelerate(spring->movement_vector);
 		body_b->accelerate(-spring->movement_vector);
-
 	}
 }
 
@@ -410,6 +410,14 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 
 int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id)
 {
+	// fetching the two cells
+	Cell* cell_a = all_cells_.at(cell_a_id);
+	Cell* cell_b = all_cells_.at(cell_b_id);
+
+	// if either of the cells have reached their maximum number of connections, we cannot create a spring between them
+	if (cell_a->spring_links_.is_full() || cell_b->spring_links_.is_full())
+		return -1;
+
 	Spring* spring = all_springs_.emplace(true, true);
 
 	if (spring == nullptr)
@@ -419,5 +427,9 @@ int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell
 	spring->reset();
 	spring->cell_A_id = cell_a_id;
 	spring->cell_B_id = cell_b_id;
+
+	cell_a->spring_links_.add_connection(spring->id_);
+	cell_b->spring_links_.add_connection(spring->id_);
+
 	return spring->id_;
 }
