@@ -144,7 +144,7 @@ void CellManager::apply_connection_requests()
 			continue;
 
 		Spring* new_spring = all_springs_.at(new_spring_id);
-		new_spring->genome.sexually_reproduce(cell->spring_genome, other_cell->spring_genome, true);
+		new_spring->genome.sexually_reproduce(cell->spring_genome, other_cell->spring_genome);
 	}
 
 	connection_requests.clear();

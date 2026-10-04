@@ -60,7 +60,8 @@ void CellManager::create_protozoa_from_pool(const sf::Vector2f position, const u
 			return false;
 
 		Spring* spring = all_springs_.at(result);
-		spring->genome.randomize();
+		spring->genome.sexually_reproduce(all_cells_.at(cell_a)->spring_genome,
+			all_cells_.at(cell_b)->spring_genome);
 
 		used_pairs.insert(key);
 		++springs_placed;

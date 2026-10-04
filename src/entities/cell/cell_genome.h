@@ -7,7 +7,11 @@
 struct Range
 {
 	float min, max;
-	float clamp(float v) const { return std::clamp(v, min, max); }
+	constexpr float clamp(float v) const { return std::clamp(v, min, max); }
+	constexpr bool contains(const Range& inner) const
+	{
+		return inner.min <= inner.max && inner.min >= min && inner.max <= max;
+	}
 };
 
 // ---------------------------------------------------------------------------
@@ -15,13 +19,13 @@ struct Range
 // ---------------------------------------------------------------------------
 struct BaseConstants
 {
-	inline static float     colour_mutation_range = 0.01f;
+	inline static constexpr float colour_mutation_range = 0.01f;
 	inline static constexpr float mutation_rate_range = 0.006f;
 
-	inline static Range init_mutation_range_spread = { 0.005f, 0.045f };
+	inline static constexpr Range init_mutation_range_spread = { 0.005f, 0.045f };
 
-	inline static Range gaussian_const_limits = { 0.05f, 0.5f };   // hard evolutionary bounds
-	inline static Range init_gaussian_const_spread = { 0.01f, 0.065f };  // spawn range
+	inline static constexpr Range gaussian_const_limits = { 0.05f, 0.5f };   // hard evolutionary bounds
+	inline static constexpr Range init_gaussian_const_spread = { 0.01f, 0.065f };  // spawn range
 };
 
 struct GenomeBase : protected BaseConstants
@@ -112,26 +116,26 @@ private:
 // ---------------------------------------------------------------------------
 struct SpringGeneticConstraints
 {
-	inline static Range amplitude = { 0.f,          1.f };
-	inline static Range frequency = { -1.f / 5.f, 1.f / 5.f };
-	inline static Range offset = { -3.14159f,    3.14159f };
-	inline static Range vertical_shift = { -0.5f,        0.5f };
-	inline static Range spring_const = { 0.f,          1.f };
-	inline static Range damping = { 0.f,          1.f };
-	inline static Range nutrient_transfer_rate = { -1.f,          1.f };
+	inline static constexpr Range amplitude = { 0.f,          1.f };
+	inline static constexpr Range frequency = { -1.f / 120.f, 1.f };
+	inline static constexpr Range offset = { -3.14159f,    3.14159f };
+	inline static constexpr Range vertical_shift = { -1.f,        1.f };
+	inline static constexpr Range spring_const = { 0.f,          1.f };
+	inline static constexpr Range damping = { 0.f,          1.f };
+	inline static constexpr Range nutrient_transfer_rate = { -1.f,          1.f };
 };
 
 struct SpringInitialSpawnRanges
 {
-	inline static Range amplitude = { 0.1f,         0.7f };
-	inline static Range frequency = { 1.f / 60.f,  1.f / 2.f };
-	inline static Range offset = SpringGeneticConstraints::offset;
-	inline static Range vertical_shift = { 0.7f,          0.7f };
+	inline static constexpr Range amplitude = { 0.1f,         0.7f };
+	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
+	inline static constexpr Range offset = SpringGeneticConstraints::offset;
+	inline static constexpr Range vertical_shift = { 0.7f,          0.7f };
 
-	inline static Range spring_const = { 0.01f, 0.3f };
-	inline static Range damping = { 0.01f, 0.1f };
+	inline static constexpr Range spring_const = { 0.01f, 0.3f };
+	inline static constexpr Range damping = { 0.01f, 0.1f };
 
-	inline static Range nutrient_transfer_rate = { -0.1f, 0.5f };
+	inline static constexpr Range nutrient_transfer_rate = { -0.1f, 0.5f };
 };
 
 struct SpringGenome : GenomeBase
@@ -192,41 +196,30 @@ struct SpringGenome : GenomeBase
 
 		guassian_const = parent.guassian_const;
 		mutation_range = parent.mutation_range;
+
+		outer_r = parent.outer_r; outer_g = parent.outer_g; outer_b = parent.outer_b;
+		inner_r = parent.inner_r; inner_g = parent.inner_g; inner_b = parent.inner_b;
 	}
 
-	void sexually_reproduce(const SpringGenome& parentA, const SpringGenome& parentB, bool cross_mutate = true)
+	void sexually_reproduce(const SpringGenome& a, const SpringGenome& b)
 	{
-		const auto& C = SpringGeneticConstraints{};
+		auto mid = [](float x, float y) { return (x + y) * 0.5f; };
+		auto midc = [](uint8_t x, uint8_t y) { return static_cast<uint8_t>((int(x) + int(y)) / 2); };
 
-		// Inherit mutation_rate/mutation_range the same way genes are inherited below,
-		// so the rate used to mutate this child's genes reflects its own lineage.
-		guassian_const = cross_mutate
-			? (Random::rand01_float() < 0.5f ? parentA.guassian_const : parentB.guassian_const)
-			: (parentA.guassian_const + parentB.guassian_const) * 0.5f;
+		amplitude = mid(a.amplitude, b.amplitude);
+		frequency = mid(a.frequency, b.frequency);
+		offset = mid(a.offset, b.offset);
+		vertical_shift = mid(a.vertical_shift, b.vertical_shift);
+		spring_const = mid(a.spring_const, b.spring_const);
+		damping = mid(a.damping, b.damping);
+		nutrient_transfer_rate = mid(a.nutrient_transfer_rate, b.nutrient_transfer_rate);
 
-		mutation_range = cross_mutate
-			? (Random::rand01_float() < 0.5f ? parentA.mutation_range : parentB.mutation_range)
-			: (parentA.mutation_range + parentB.mutation_range) * 0.5f;
+		guassian_const = mid(a.guassian_const, b.guassian_const);
+		mutation_range = mid(a.mutation_range, b.mutation_range);
+		generation = std::max(a.generation, b.generation) + 1;
 
-		generation = std::max(parentA.generation, parentB.generation) + 1;
-
-		// Picks (cross_mutate) or blends (!cross_mutate) a gene from both parents, then mutates it.
-		auto inherit = [&](float a, float b, Range limit) -> float {
-			const float value = cross_mutate
-				? (Random::rand01_float() < 0.5f ? a : b)
-				: (a + b) * 0.5f;
-			return maybe_mutate_gaussian(value, limit, mutation_range, guassian_const);
-			};
-
-		amplitude = inherit(parentA.amplitude, parentB.amplitude, C.amplitude);
-		frequency = inherit(parentA.frequency, parentB.frequency, C.frequency);
-		offset = inherit(parentA.offset, parentB.offset, C.offset);
-		vertical_shift = inherit(parentA.vertical_shift, parentB.vertical_shift, C.vertical_shift);
-		spring_const = inherit(parentA.spring_const, parentB.spring_const, C.spring_const);
-		damping = inherit(parentA.damping, parentB.damping, C.damping);
-		nutrient_transfer_rate = inherit(parentA.nutrient_transfer_rate, parentB.nutrient_transfer_rate, C.nutrient_transfer_rate);
-
-		mutate_meta();
+		outer_r = midc(a.outer_r, b.outer_r); outer_g = midc(a.outer_g, b.outer_g); outer_b = midc(a.outer_b, b.outer_b);
+		inner_r = midc(a.inner_r, b.inner_r); inner_g = midc(a.inner_g, b.inner_g); inner_b = midc(a.inner_b, b.inner_b);
 	}
 };
 
@@ -235,34 +228,34 @@ struct SpringGenome : GenomeBase
 // ---------------------------------------------------------------------------
 struct CellGeneticConstraints
 {
-	inline static Range radius = { 25.f,         120.f };
-	inline static Range amplitude = { -2.f,         2.f };
-	inline static Range frequency = { 1.f / 60.f,  1.f / 2.f };
-	inline static Range offset = { -3.14159f,    3.14159f };
-	inline static Range vertical_shift = { -0.6f,        0.6f };
+	inline static constexpr Range radius = { 25.f,         120.f };
+	inline static constexpr Range amplitude = { -2.f,         2.f };
+	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
+	inline static constexpr Range offset = { -3.14159f,    3.14159f };
+	inline static constexpr Range vertical_shift = { -1.f,        1.f };
 
-	inline static Range newborn_search = { 0.f, radius.max * 4.f };
+	inline static constexpr Range newborn_search = { 0.f, radius.max * 4.f };
 };
 
 struct CellInitialSpawnRanges
 {
-	inline static Range radius = { 25.f,          85.f };
+	inline static constexpr Range radius = { 25.f,          85.f };
 
-	inline static Range amplitude = { 0.01f,          0.08f };
-	inline static Range frequency = { 1.f / 60.f,  1.f / 2.f };
-	inline static Range offset = CellGeneticConstraints::offset;
-	inline static Range vertical_shift = { 0.965f,           0.99f };
+	inline static constexpr Range amplitude = { 0.01f,          0.08f };
+	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
+	inline static constexpr Range offset = CellGeneticConstraints::offset;
+	inline static constexpr Range vertical_shift = { 0.965f,           0.99f };
 };
 
 struct HardConstants
 {
-	inline static float     add_cell_chance = 0.02f;
-	inline static uint8_t   outer_transparency = 150;
-	inline static uint8_t   inner_transparency = 125;
+	inline static constexpr float     add_cell_chance = 0.02f;
+	inline static constexpr uint8_t   outer_transparency = 150;
+	inline static constexpr uint8_t   inner_transparency = 125;
 
-	inline static float radius_mutation_multiplier = 5.f;
-	inline static float newborn_search_radius_multiplier = 5.f;
-	inline static float friction_multiplier = 0.95f;
+	inline static constexpr float radius_mutation_multiplier = 5.f;
+	inline static constexpr float newborn_search_radius_multiplier = 5.f;
+	inline static constexpr float friction_multiplier = 0.95f;
 };
 
 struct CellGenome : GenomeBase, HardConstants
@@ -365,3 +358,27 @@ struct CellGenome : GenomeBase, HardConstants
 	}
 
 };
+
+// Compile-time guard: every spawn range must sit inside its evolutionary constraint,
+// otherwise the first mutation clamps the child to the constraint (see the vertical_shift bug).
+#define GENOME_RANGE_CHECK(Constraint, Spawn, Field) \
+	static_assert(Constraint::Field.contains(Spawn::Field), \
+		#Spawn "::" #Field " is outside " #Constraint "::" #Field)
+
+// Cell
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, radius);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, amplitude);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, frequency);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, offset);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, vertical_shift);
+
+// Spring
+GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, amplitude);
+GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, frequency);
+GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, offset);
+GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, vertical_shift);
+GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, spring_const);
+GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, damping);
+GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, nutrient_transfer_rate);
+
+#undef GENOME_RANGE_CHECK
