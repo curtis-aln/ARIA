@@ -47,6 +47,10 @@ void CellManager::update(int iterations)
 	if (extinction_event)
 		return;
 
+	// this has to happen before we move about the cells
+	if (!toggles_.easy_reproduction) // if easy reproduction is on, we dont want to add new cells to the grid because they will be connected immediately
+		add_new_cells_to_grid();
+
 	// if we have a selected cell and it has died, we need to deselect it to avoid null errors
 	if (selected_cell_id_ == -1 || !all_cells_.at(selected_cell_id_)->is_alive())
 	{
@@ -76,8 +80,6 @@ void CellManager::update(int iterations)
 
 	// --------------- updating cells and matter ---------------
 	spawn_immune = iterations < init_spring_immunity_time;
-
-	add_new_cells_to_grid();
 
 	update_springs(spawn_immune);
 	update_cells();

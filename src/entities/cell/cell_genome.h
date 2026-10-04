@@ -15,13 +15,13 @@ struct Range
 // ---------------------------------------------------------------------------
 struct BaseConstants
 {
-	inline static float     colour_mutation_range = 0.055f;
-	inline static constexpr float mutation_rate_range = 0.015f;
+	inline static float     colour_mutation_range = 0.01f;
+	inline static constexpr float mutation_rate_range = 0.006f;
 
-	inline static Range init_mutation_range_spread = { 0.005f, 0.08f };
+	inline static Range init_mutation_range_spread = { 0.005f, 0.045f };
 
 	inline static Range gaussian_const_limits = { 0.05f, 0.5f };   // hard evolutionary bounds
-	inline static Range init_gaussian_const_spread = { 0.05f, 0.15f };  // spawn range
+	inline static Range init_gaussian_const_spread = { 0.01f, 0.065f };  // spawn range
 };
 
 struct GenomeBase : protected BaseConstants
@@ -237,7 +237,7 @@ struct CellGeneticConstraints
 {
 	inline static Range radius = { 25.f,         120.f };
 	inline static Range amplitude = { -2.f,         2.f };
-	inline static Range frequency = { -1.f / 1.f,  1.f / 1.f };
+	inline static Range frequency = { 1.f / 60.f,  1.f / 2.f };
 	inline static Range offset = { -3.14159f,    3.14159f };
 	inline static Range vertical_shift = { -0.6f,        0.6f };
 
@@ -249,7 +249,7 @@ struct CellInitialSpawnRanges
 	inline static Range radius = { 25.f,          85.f };
 
 	inline static Range amplitude = { 0.01f,          0.08f };
-	inline static Range frequency = { 1.f / 90.f,   1.f / 30.f };
+	inline static Range frequency = { 1.f / 60.f,  1.f / 2.f };
 	inline static Range offset = CellGeneticConstraints::offset;
 	inline static Range vertical_shift = { 0.965f,           0.99f };
 };

@@ -78,7 +78,7 @@ struct CellManagerToggles
 	bool show_bounding_boxes = true;  // show protozoa bounding boxes
 
 	// other
-	bool easy_reproduction = false;  // cells can reproduce through hardcoded copy paste
+	bool easy_reproduction = true;  // cells can reproduce through hardcoded copy paste
 };
 
 struct FoodToggles

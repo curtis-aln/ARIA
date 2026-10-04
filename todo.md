@@ -75,20 +75,4 @@ all_protozoa_ - has a constant size, so when there is 100 protozoa it can hold t
 - Food should be repelled from Cells
 
 
-------------------------------------------------------------
-The next goal i should work on is the "primitive reproduction"
-- This is hardcoded reproduction where the child organism will be copied and pasted next to its parent
-- The reason for this is that i need to see if the reproduction is or isnt the bottleneck in certain situations.
-
-implementation
-when a cell is ready to reproduce, it will trigger a search function called:
-bool can_protozoa_reproduce(FixedSpan<cell_id> cell_ids)
-- searches through the chain of cell->spring->cell connections to make sure all the cells connected are ready to reproduce
-- if the search size excedes a certain limit, it will return false and the organism will not be able to reproduce
-- The function writes to a smart array all the ID's of the cells that are ready to reproduce
-- The function returns a bool indicating if the organism is ready to reproduce or not
-
-After the search is complete, if the protozoa can reproduce, it will trigger a function called:
-void protozoa_reproduce(FixedSpan<cell_id> cell_ids)
-- This function will take the array of cell ID's and copy the cells and springs to a new location next to the parent organism
-- It will also mutate the new cells and springs based on the mutation settings in the simulation
+/ 104k
