@@ -184,8 +184,9 @@ private:
 	// ------------ Organics sub-steps, run in this order by update_organics ------------
 	void apply_immunity();
 	void apply_passive_decay();
+	void apply_old_age_decay();
 	void flush_deltas();
-	[[nodiscard]] bool check_death(bool old_age_death);       // returns true (and sets dead_) if energy or integrity hit 0
+	[[nodiscard]] bool check_death();       // returns true (and sets dead_) if energy or integrity hit 0
 	void update_reproduction_flag();
 
 	void process_nutrients();

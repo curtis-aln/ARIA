@@ -1,4 +1,10 @@
 #include "food_tab.h"
+#include <imgui.h>
+#include <managers/food_manager/food_manager_settings.h>
+#include <simulation/context/sim_command.h>
+#include <simulation/context/sim_snapshot.h>
+#include <simulation/context/state.h>
+#include <Utils/Graphics/pheromone_grid.h>
 
 void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
@@ -21,11 +27,11 @@ void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		int spawns_per_frame = FoodManagerSettings::food_random_spawn_per_frame;
 		if (ImGui::SliderInt("##random_intensity", &spawns_per_frame, 0, 10, "spawns per frame %d"))
 			ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetRandomSpawnsPerFrame, .int_val = spawns_per_frame });
-		
+
 		float spawn_chance = FoodManagerSettings::food_random_spawn_chance;
 		if (ImGui::SliderFloat("##random_chance", &spawn_chance, 0.f, 1.f, "spawn chance %.2f"))
 			ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetRandomSpawnChance, .float_val = spawn_chance });
-		
+
 		ImGui::Unindent();
 	}
 
@@ -38,13 +44,13 @@ void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	{
 		ImGui::Indent();
 		float constant = FoodManagerSettings::spawn_proportionality_constant;
-		if (ImGui::SliderFloat("##mitosis_intensity", &constant, 0.f, 0.1f, "spawn constant %.3f"))
+		if (ImGui::SliderFloat("##mitosis_intensity", &constant, 0.f, .01f, "spawn constant %.4f"))
 			ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetMitosisConstant, .float_val = constant });
 		ImGui::Unindent();
 	}
 
 	ImGui::EndChild();
-	ImGui::SameLine(); 
+	ImGui::SameLine();
 
 	// ----------------------------------------------
 
@@ -80,7 +86,7 @@ void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	float max_pheromone = PheromoneGridSettings::max_pheromone;
 	if (ImGui::SliderFloat("##max_pheromone", &max_pheromone, 20.f, 200.f, "Max Pheromone %.2f"))
 		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetPheromoneMaxPheromone, .float_val = max_pheromone });
-	
+
 	ImGui::Separator();
 	ImGui::Spacing();
 	int update_freq = FoodManagerSettings::pheromone_update_freq;

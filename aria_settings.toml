@@ -17,17 +17,17 @@ max_iterations = 0 # simulation ends after this many iterations, 0 = infinite
 
 # ── World ────────────────────────────────────────────────────────────────
 [world]
-bounds_radius               = 18000
+bounds_radius               = 42000
 border_repulsion_magnitude  = 0.000000085
 updating_threads = 16
 tick_sim_multiplier = 1
 
 # 5 = 32, 6 = 64, 7 = 128, 8 = 256, 9 = 512, 10 = 1024, 11 = 2048
 # each of these is used to calculate the size of a square spatial grid using the formula: 2^n
-collision_grid_power = 8          # The grid used to handle collisions between all bodies
-food_resolution_cell_power = 8    # the grid used to handle cell food interactions
-birth_cell_power = 6              # The grid used to let newborns connect with eachover
-food_pheromone_grid_power = 8      # The grid used to handle food pheromone interactions
+collision_grid_power = 9          # The grid used to handle collisions between all bodies
+food_resolution_cell_power = 9    # the grid used to handle cell food interactions
+birth_cell_power = 8              # The grid used to let newborns connect with eachover
+food_pheromone_grid_power = 9      # The grid used to handle food pheromone interactions
 
 # Max Capacities for each aswell 
 collision_grid_max_capacity           = 14
@@ -51,15 +51,15 @@ digestive_time                = 50
 initial_energy                = 70.0
 bite_amount = 10.0 
 
-integrity_conversion_rate = 0.05
-nutrients_conversion_rate = 0.185
+integrity_conversion_rate = 0.01
+nutrients_conversion_rate = 0.07
 
-friction_energy_loss_const = 0.0025
+friction_energy_loss_const = 0.0075
 
 # ── Spring ─────────────────────────────────────────────────────────────────
 [spring]
-maximum_extension = 380.0
-spring_work_const = 0.00001
+maximum_extension = 380.0               # how far a spring can stretch before it breaks
+spring_work_const = 0.00001             # 
 spring_break_force  = 35
 spring_break_length_factor = 1.5
 spring_damage_threshold = 30.5
@@ -81,7 +81,7 @@ food_max_alpha                = 200.0
 food_random_spawn_per_frame = 1
 food_random_spawn_chance = 0.03
 
-spawn_proportionality_constant = 0.05
+spawn_proportionality_constant = 0.003
 food_spawn_distance           = 200.0
 
 death_age_chance               = 0.03
@@ -93,7 +93,7 @@ food_launch_chance = 0.05
 
 # ── Food ─────────────────────────────────────────────────────────────────
 [food]
-reproductive_cooldown          = 1400
+reproductive_cooldown          = 400
 nutrient_reproductive_threshold = 0.99 # ratio
 
 initial_nutrients             = 20.0

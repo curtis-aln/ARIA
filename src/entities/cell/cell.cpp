@@ -157,12 +157,14 @@ void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_
 {
 	if (immune)
 		apply_immunity();
-
 	if (friction_energy_loss)
 		apply_passive_decay();
+	if (old_age_death)
+		apply_old_age_decay();
+
 	process_nutrients();
 
-	if (check_death(old_age_death))
+	if (check_death())
 		return; // dead cells don't repair or reproduce
 
 	repair_integrity();
@@ -183,6 +185,12 @@ void Cell::apply_passive_decay()
 	delta_energy -= (1.f - sinwave_current_friction_) * friction_energy_loss_const;
 }
 
+void Cell::apply_old_age_decay()
+{
+	if (internal_clock_ > death_age_threshold) // if the cell has been alive for too long, it dies
+		delta_energy -= death_energy_rate;
+}
+
 // Applies accumulated change_energy()/change_integrity() calls from this tick
 // (springs, impulse damage, etc.) in one clamped step.
 void Cell::flush_deltas()
@@ -194,7 +202,7 @@ void Cell::flush_deltas()
 	delta_integrity = 0.f;
 }
 
-bool Cell::check_death(bool old_age_death)
+bool Cell::check_death()
 {
 	/* Check if the cell is dead or should die */
 
@@ -207,10 +215,6 @@ bool Cell::check_death(bool old_age_death)
 	{
 		integrity = 0.f;
 		dead_ = true;
-	}
-	else if (old_age_death && internal_clock_ > death_age_threshold) // if the cell has been alive for too long, it dies
-	{
-		energy -= death_energy_rate;
 	}
 
 	return dead_;

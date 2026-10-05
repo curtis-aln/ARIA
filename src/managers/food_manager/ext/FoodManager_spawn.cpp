@@ -1,4 +1,13 @@
 #include "../food_manager.h"
+#include <algorithm>
+#include <cstdint>
+#include <entities/body.h>
+#include <entities/food/food.h>
+#include <iostream>
+#include <managers/food_manager/food_manager_settings.h>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <Utils/random.h>
 
 
 void FoodManager::spawn_random_food()
@@ -53,8 +62,8 @@ void FoodManager::reproduce_food(Food* parent_food)
 
 	// spawning the food next to another existing food 
 	sf::FloatRect spawn_rect = {
-		{parent_pos.x - food_spawn_distance, parent_pos.y - food_spawn_distance},
-		{food_spawn_distance * 2, food_spawn_distance * 2} };
+		{ parent_pos.x - food_spawn_distance, parent_pos.y - food_spawn_distance },
+		{ food_spawn_distance * 2, food_spawn_distance * 2 } };
 
 	// setting the attributes for this new_body
 	child_body->position_ = Random::rand_pos_in_rect(spawn_rect);
@@ -66,6 +75,7 @@ void FoodManager::reproduce_food(Food* parent_food)
 	parent_food->reproduce();
 	return;
 }
+
 
 FoodBodyPair FoodManager::create_food_body_pair(const sf::Vector2f& position)
 {

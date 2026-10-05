@@ -228,7 +228,7 @@ struct SpringGenome : GenomeBase
 // ---------------------------------------------------------------------------
 struct CellGeneticConstraints
 {
-	inline static constexpr Range radius = { 25.f,         120.f };
+	inline static constexpr Range radius = { 55.f,         135.f };
 	inline static constexpr Range amplitude = { -2.f,         2.f };
 	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
 	inline static constexpr Range offset = { -3.14159f,    3.14159f };
@@ -239,7 +239,7 @@ struct CellGeneticConstraints
 
 struct CellInitialSpawnRanges
 {
-	inline static constexpr Range radius = { 25.f,          85.f };
+	inline static constexpr Range radius = { 55.f,          135.f };
 
 	inline static constexpr Range amplitude = { 0.01f,          0.08f };
 	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };

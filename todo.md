@@ -76,3 +76,6 @@ all_protozoa_ - has a constant size, so when there is 100 protozoa it can hold t
 
 
 / 104k
+
+
+- half nutrient transfer rate
