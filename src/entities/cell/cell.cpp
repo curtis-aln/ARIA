@@ -187,8 +187,11 @@ void Cell::apply_passive_decay()
 
 void Cell::apply_old_age_decay()
 {
-	if (internal_clock_ > death_age_threshold) // if the cell has been alive for too long, it dies
-		delta_energy -= death_energy_rate;
+	if (internal_clock_ <= death_age_threshold)
+		return;
+
+	const float ticks_over = static_cast<float>(internal_clock_ - death_age_threshold);
+	delta_integrity -= death_integrity_rate * (1.f + ticks_over * death_decay_growth);
 }
 
 // Applies accumulated change_energy()/change_integrity() calls from this tick
