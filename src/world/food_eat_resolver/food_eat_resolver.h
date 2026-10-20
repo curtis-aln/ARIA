@@ -16,90 +16,31 @@ Foodmanager will handle if the food gets removed
 
 #pragma once
 
-#include "../Utils/thread_pool.h" // Multithreadding
+#include "../../Utils/thread_pool.h" // Multithreadding
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 #include <entities/body.h>
 #include <entities/cell/cell.h>
 #include <entities/cell/cell_settings.h>
 #include <entities/food/food.h>
 #include <functional>
-#include <iterator>
 #include <SFML/Graphics/Rect.hpp>
 #include <Utils/o_vec/o_vector.hpp>
 #include <Utils/spatial_grid/fixed_span.h>
 #include <Utils/spatial_grid/simple_spatial_grid.h>
 #include <vector>
 
-struct Bite { Cell* cell; obj_idx food_id; };
-
-struct alignas(64) BiteResolution
-{
-	struct Iterator
-	{
-
-		using iterator_category = std::forward_iterator_tag;
-		using value_type = Bite;
-		using pointer = const Bite*;
-		using reference = const Bite&;
-		explicit Iterator(const Bite* ptr) : ptr_(ptr) {}
-
-		reference operator*() const { return *ptr_; }
-
-		Iterator& operator++() { ++ptr_; return *this; }
-		Iterator operator++(int) { Iterator tmp = *this; ++ptr_; return tmp; }
-
-		bool operator==(const Iterator& other) const { return ptr_ == other.ptr_; }
-		bool operator!=(const Iterator& other) const { return ptr_ != other.ptr_; }
-
-	private:
-		const Bite* ptr_;
-	};
-
-	explicit BiteResolution(int reserve)
-	{
-		bites_.resize(reserve);
-	}
-
-	void add(const Bite& b)
-	{
-		assert(size_ < static_cast<int>(bites_.size()) && "BiteResolution capacity exceeded");
-		bites_[size_++] = b;
-	}
-
-
-	void clear() { size_ = 0; }
-
-	[[nodiscard]] int  size()     const { return size_; }
-	[[nodiscard]] bool empty()    const { return size_ == 0; }
-	[[nodiscard]] int  capacity() const { return static_cast<int>(bites_.size()); }
-
-	[[nodiscard]] Bite operator[](int i) const { assert(i >= 0 && i < size_); return bites_[i]; }
-
-	Iterator begin() const { return Iterator(bites_.data()); }
-	Iterator end()   const { return Iterator(bites_.data() + size_); }
-
-private:
-	std::vector<Bite> bites_{};
-	int size_ = 0;
-};
-
-struct FoodResolutionSettings
-{
-	inline static uint32_t cells_x = (1u << 6); // for morton indexing, must be a power of 2
-	inline static uint32_t cells_y = cells_x;     // square worlds
-	inline static const uint32_t cell_max_capacity = 6; // maximum number of particles per cell, must be less than 256, but really shouldnt be any greater than 6
-	inline static const int threads = 16;
-};
+#include "bite_resolution.h"
+#include "food_resolution_settings.h"
 
 inline static thread_local FixedSpan<uint32_t> tl_nearby_ids_{ 100 };
 
 class FoodEatResolver : private FoodResolutionSettings
 {
-	o_vector<Food>* food_vector_ = nullptr; // pointer to the food vector, not owned by this class
-	o_vector<Body>* body_vector_ = nullptr; // pointer to the body vector, not owned by this class
-	o_vector<Cell>* cell_vector_ = nullptr; // pointer to the cell vector, not owned by this class
+	// pointers to the food and cell vectors
+	o_vector<Food>* food_vector_ = nullptr;
+	o_vector<Body>* body_vector_ = nullptr;
+	o_vector<Cell>* cell_vector_ = nullptr;
 
 	SimpleSpatialGrid spatial_grid_; // The grid used for food resolution
 

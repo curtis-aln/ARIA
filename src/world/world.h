@@ -17,7 +17,7 @@
 #include "../Utils/spatial_grid/simple_spatial_grid.h"
 #include "../Utils/thread_pool.h"
 
-#include "food_eat_resolver.h"
+#include "food_eat_resolver/food_eat_resolver.h"
 #include "world_border.h"
 #include "world_renderer/world_renderer.h"
 #include <entities/body.h>
@@ -39,8 +39,8 @@ class World : public WorldSettings
 
 	sf::RenderWindow* m_window_ = nullptr;
 
-	WorldBorder        world_circular_bounds_{ {bounds_radius, bounds_radius}, bounds_radius };
-	sf::FloatRect world_rect_bounds_{ {0.f, 0.f}, {bounds_radius * 2.f, bounds_radius * 2.f} };
+	WorldBorder        world_circular_bounds_{ { bounds_radius, bounds_radius }, bounds_radius };
+	sf::FloatRect world_rect_bounds_{ { 0.f, 0.f },{ bounds_radius * 2.f, bounds_radius * 2.f } };
 
 	WorldStatistics statistics_{}; // Statistics accumulated each tick by the update thread.
 
@@ -55,7 +55,7 @@ class World : public WorldSettings
 	FoodManager        food_manager_{ m_window_, &world_circular_bounds_, &bodies_ };
 	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_, &bodies_ };
 
-	sf::FloatRect bounds = { {0, 0}, {bounds_radius * 2, bounds_radius * 2} };
+	sf::FloatRect bounds = { { 0, 0 },{ bounds_radius * 2, bounds_radius * 2 } };
 
 	CollisionResolver collision_resolver_{ &bounds, &bodies_, updating_threads, max_entities, max_entities };
 	FoodEatResolver food_eat_resolver_{

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include "entities/body.h"
-#include "../../Utils/random.h"
 #include "../../managers/food_manager/food_manager_settings.h"
+#include "../../Utils/random.h"
 #include "food_settings.h"
+#include <algorithm>
+#include <cstdint>
+#include <SFML/Graphics/Color.hpp>
 
 
 struct Food : FoodSettings
@@ -139,14 +139,14 @@ private:
 		if (reached_target)
 			return;
 
+
 		nutrients = std::clamp(
 			nutrients + increment,
-			std::min(initial_nutrients, final_nutrients),
-			std::max(initial_nutrients, final_nutrients)
-		);
+			std::min(0.f, final_nutrients),
+			std::max(0.f, final_nutrients));
 	}
 
-	
+
 
 	void vibrate_food(float strength)
 	{
