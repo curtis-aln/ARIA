@@ -181,12 +181,14 @@ void Cell::apply_immunity()
 
 void Cell::apply_passive_decay()
 {
+	/* when a cell grips onto the world it costs energy */
 	sinwave_current_friction_ = calculate_friction();
 	delta_energy -= (1.f - sinwave_current_friction_) * friction_energy_loss_const;
 }
 
 void Cell::apply_old_age_decay()
 {
+	/* when a cell reaches its maximum age, it starts to decay based on how far past its death age it is */
 	if (internal_clock_ <= death_age_threshold)
 		return;
 

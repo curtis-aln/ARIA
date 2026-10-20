@@ -103,7 +103,7 @@ public:
 	void update_physics(
 		const sf::Vector2f& pos_a, const sf::Vector2f& vel_a,
 		const sf::Vector2f& pos_b, const sf::Vector2f& vel_b,
-		bool disable_length_breakage, bool disable_force_breakage)
+		bool disable_length_breakage, bool disable_force_breakage, float min_rest_length)
 	{
 		internal_clock_++;
 
@@ -119,17 +119,18 @@ public:
 		}
 
 		// finding the rest length of the spring
-		rest_length = calculate_rest_length(internal_clock_);
+		rest_length = std::max(calculate_rest_length(internal_clock_), min_rest_length);
 
 		current_length = fast_sqrt(length_squared);
+		if (current_length < 1e-6f) { movement_vector = { 0, 0 }; return; } // avoid 1/0 -> NaN
 		const float length_diff = current_length - rest_length;
-		const float inv_length = 1.0f / current_length;
 
 
 		// Calculating the spring force: Fs = K * (|B - A| - L)
 		spring_force = get_spring_constant() * length_diff;
 
 		// Calculating the damping force
+		const float inv_length = 1.0f / current_length;
 		const sf::Vector2f normalised_dir{ dir.x * inv_length, dir.y * inv_length };
 		const sf::Vector2f vel_difference = (vel_b - vel_a);
 		damping_force = normalised_dir.dot(vel_difference) * genome.damping;

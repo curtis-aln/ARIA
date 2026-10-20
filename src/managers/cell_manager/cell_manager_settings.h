@@ -10,7 +10,7 @@ struct CellManagerSettings
 	inline static float speed_energy_tax; // The Tax for not traveling fast enough
 
 	// DAMAGE
-	inline static float impulse_damage_thresh = 30.0f;
+	inline static float impulse_damage_thresh = 50.0f;
 	inline static float impulse_damage_multiplier = 0.0002f;
 	inline static float max_single_hit_integrity_fraction = 0.2f;
 
@@ -23,7 +23,6 @@ struct CellManagerSettings
 	inline static constexpr float delta_min_speed = 0.f; //1.f / 3'000.f;
 	inline static constexpr int extincion_threshold = 0; // if there are less than this number of protozoas, we consider it an extinction event
 	inline static constexpr int init_spring_immunity_time = 400; // for the start of the sim the springs are immune to damage
-
 
 	// GRAPHICS
 	inline static constexpr float cell_outline_thickness = 1.3f;

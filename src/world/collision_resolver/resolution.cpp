@@ -1,16 +1,23 @@
 #include "collision_resolver.h"
-#include "../../Utils/random.h"
-#include "../../Utils/spatial_grid/simple_spatial_grid.h"
+#include "collision_vector.h"
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <entities/body.h>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <Utils/o_vec/o_vector.hpp>
+#include <Utils/spatial_grid/fixed_span.h>
 
 thread_local FixedSpan<uint32_t> CollisionResolver::tl_nearby_ids_{ nearby_ids_max };
 
 CollisionResolver::CollisionResolver(sf::Rect<float>* bounds, o_vector<Body>* entities,
 	unsigned int init_thread_count, unsigned int max_collisions_per_thread, unsigned int max_particles)
-	: 
+	:
 	collision_bodies_(entities), thread_count_(init_thread_count),
 	spatial_grid_(2 << grid_power, 2 << grid_power, cell_max_capacity, bounds->size.x, bounds->size.y),
-	collision_thread_pool_( static_cast<int>(thread_count_)),
-	add_to_grid_thread_pool_( static_cast<int>(thread_count_)),
+	collision_thread_pool_(static_cast<int>(thread_count_)),
+	add_to_grid_thread_pool_(static_cast<int>(thread_count_)),
 	quick_collision_thread_pool_(static_cast<int>(thread_count_))
 {
 
@@ -37,7 +44,7 @@ void CollisionResolver::resolve_existing_detections()
 
 void CollisionResolver::handle_collision_resolutions()
 {
-
+	// stops the impulse from accumulating across frames
 	for (Body* body : *collision_bodies_)
 		body->impulse_ = 0.f;
 

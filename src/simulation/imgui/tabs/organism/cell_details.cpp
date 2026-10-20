@@ -1,6 +1,7 @@
 #include "organism_tab.h"
 #include <algorithm>
 #include <cstdio>
+#include <entities/body.h>
 #include <entities/cell/cell.h>
 #include <entities/cell/cell_genome.h>
 #include <entities/cell/cell_settings.h>
@@ -10,12 +11,12 @@
 #include <simulation/imgui/tabs/i_tab.h>
 #include <vector>
 
-void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::Vector2f& pos, const sf::Vector2f& vel)
+void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body& body)
 {
-	const float speed_sq = vel.lengthSquared();
+	const float speed_sq = body.velocity_.lengthSquared();
 	float speed = -1;
 	if (speed_sq != 0)
-		speed = vel.length();
+		speed = body.velocity_.length();
 
 	const int frames_alive = c.internal_clock_;
 	const float current_friction = c.calculate_friction();
@@ -36,7 +37,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const sf::V
 		}
 		if (ImGui::BeginTabItem("Body"))
 		{
-			draw_cell_detail_body_tab(ctx, c, pos, speed);
+			draw_cell_detail_body_tab(ctx, c, body);
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
@@ -151,12 +152,18 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 
 // ── Cell detail: "Body" sub-tab — spatial / physical ────────────────────────
 void OrganismTab::draw_cell_detail_body_tab(ImGuiContext& ctx, const Cell& c,
-	const sf::Vector2f& pos, const float speed)
+	const Body& body)
 {
 	ImGui::Text("ID       %d", c.body_id_);
-	ImGui::Text("Pos      (%.0f, %.0f)", pos.x, pos.y);
-	ImGui::Text("Speed    %.3f", speed);
+	ImGui::Text("Pos      (%.0f, %.0f)", body.position_.x, body.position_.y);
+	ImGui::Text("Speed    %.3f", body.velocity_.length());
+	ImGui::Spacing();
+	ImGui::Text("Mass     %.3f", body.mass_);
+	ImGui::Text("Density  %.3f", body.density);
 	ImGui::Text("Radius   %.1f", c.radius);
+	ImGui::Spacing();
+	ImGui::Text("Impulse   %.3f", body.impulse_);
+	ImGui::Text("Nearby count %d", body.nearby_ids_size_);
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(-1.f);

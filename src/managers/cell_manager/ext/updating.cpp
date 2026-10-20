@@ -120,6 +120,7 @@ void CellManager::update_cell(Cell* cell)
 
 void CellManager::impulse_tax_cell(Cell* cell, const float impulse) const
 {
+	/* Apply a tax to the cell based on the impulse it has received, sort of like a collision injury */
 	if (impulse < impulse_damage_thresh || spawn_immune || !toggles_.collision_integrity_damage_)
 		return;
 
@@ -278,7 +279,11 @@ void CellManager::update_springs(bool immune)
 
 		bool disable_length_breakage = immune || !toggles_.spring_too_long_breakage;
 		bool disable_force_breakage = immune || !toggles_.spring_too_much_force_breakage;
-		spring->update_physics(body_a->position_, body_a->velocity_, body_b->position_, body_b->velocity_, disable_length_breakage, disable_force_breakage);
+
+		const float contact_dist = (body_a->radius_ + body_b->radius_) * 1.02f; // 2% margin so rest state isn't sitting on the collision boundary
+		spring->update_physics(body_a->position_, body_a->velocity_, body_b->position_, body_b->velocity_,
+			disable_length_breakage, disable_force_breakage, contact_dist);
+
 		body_a->accelerate(spring->movement_vector);
 		body_b->accelerate(-spring->movement_vector);
 	}
