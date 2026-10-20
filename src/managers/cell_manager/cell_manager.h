@@ -269,6 +269,8 @@ private: // only functions this class can access
 	void collect_spring_death_requests();
 	void apply_spring_death_requests();
 
+	void debug_check_spring_death_request_duplicates();
+
 	void check_for_dangling_springs();
 	void remove_spring(uint32_t spring_id);
 };

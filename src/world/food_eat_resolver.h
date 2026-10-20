@@ -16,29 +16,34 @@ Foodmanager will handle if the food gets removed
 
 #pragma once
 
-#include <vector>
-#include <assert.h>
-#include <cstdint>
-#include <iterator>
-#include <Utils/spatial_grid/simple_spatial_grid.h>
-#include <Utils/o_vec/o_vector.hpp>
-#include <entities/food/food.h>
-#include <entities/cell/cell.h>
 #include "../Utils/thread_pool.h" // Multithreadding
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <entities/body.h>
+#include <entities/cell/cell.h>
+#include <entities/cell/cell_settings.h>
+#include <entities/food/food.h>
+#include <functional>
+#include <iterator>
+#include <SFML/Graphics/Rect.hpp>
+#include <Utils/o_vec/o_vector.hpp>
+#include <Utils/spatial_grid/fixed_span.h>
+#include <Utils/spatial_grid/simple_spatial_grid.h>
+#include <vector>
 
-
+struct Bite { Cell* cell; obj_idx food_id; };
 
 struct alignas(64) BiteResolution
 {
 	struct Iterator
 	{
-		using iterator_category = std::forward_iterator_tag;
-		using value_type = obj_idx;
-		using difference_type = std::ptrdiff_t;
-		using pointer = const obj_idx*;
-		using reference = const obj_idx&;
 
-		explicit Iterator(const obj_idx* ptr) : ptr_(ptr) {}
+		using iterator_category = std::forward_iterator_tag;
+		using value_type = Bite;
+		using pointer = const Bite*;
+		using reference = const Bite&;
+		explicit Iterator(const Bite* ptr) : ptr_(ptr) {}
 
 		reference operator*() const { return *ptr_; }
 
@@ -49,39 +54,34 @@ struct alignas(64) BiteResolution
 		bool operator!=(const Iterator& other) const { return ptr_ != other.ptr_; }
 
 	private:
-		const obj_idx* ptr_;
+		const Bite* ptr_;
 	};
 
 	explicit BiteResolution(int reserve)
 	{
-		food_ids_.resize(reserve);
+		bites_.resize(reserve);
 	}
 
-	void add(obj_idx food_id)
+	void add(const Bite& b)
 	{
-		assert(size_ < static_cast<int>(food_ids_.size())
-			&& "BiteResolution capacity exceeded — increase reserve size.");
-
-		food_ids_[size_++] = food_id;
+		assert(size_ < static_cast<int>(bites_.size()) && "BiteResolution capacity exceeded");
+		bites_[size_++] = b;
 	}
+
 
 	void clear() { size_ = 0; }
 
 	[[nodiscard]] int  size()     const { return size_; }
 	[[nodiscard]] bool empty()    const { return size_ == 0; }
-	[[nodiscard]] int  capacity() const { return static_cast<int>(food_ids_.size()); }
+	[[nodiscard]] int  capacity() const { return static_cast<int>(bites_.size()); }
 
-	[[nodiscard]] obj_idx operator[](int index) const
-	{
-		assert(index >= 0 && index < size_ && "BiteResolution index out of range.");
-		return food_ids_[index];
-	}
+	[[nodiscard]] Bite operator[](int i) const { assert(i >= 0 && i < size_); return bites_[i]; }
 
-	Iterator begin() const { return Iterator(food_ids_.data()); }
-	Iterator end()   const { return Iterator(food_ids_.data() + size_); }
+	Iterator begin() const { return Iterator(bites_.data()); }
+	Iterator end()   const { return Iterator(bites_.data() + size_); }
 
 private:
-	std::vector<obj_idx> food_ids_{};
+	std::vector<Bite> bites_{};
 	int size_ = 0;
 };
 
@@ -93,9 +93,9 @@ struct FoodResolutionSettings
 	inline static const int threads = 16;
 };
 
-inline static thread_local FixedSpan<uint32_t> tl_nearby_ids_{100};
+inline static thread_local FixedSpan<uint32_t> tl_nearby_ids_{ 100 };
 
-class FoodEatResolver: private FoodResolutionSettings
+class FoodEatResolver : private FoodResolutionSettings
 {
 	o_vector<Food>* food_vector_ = nullptr; // pointer to the food vector, not owned by this class
 	o_vector<Body>* body_vector_ = nullptr; // pointer to the body vector, not owned by this class
@@ -111,7 +111,7 @@ class FoodEatResolver: private FoodResolutionSettings
 
 	BarrierThreadPool quick_collision_thread_pool_;
 	std::vector<std::function<void()>> quick_collision_jobs_;
-	
+
 	std::vector<BiteResolution> bite_resolutions_;
 
 	int  current_total_cells_ = 0;
@@ -124,34 +124,34 @@ class FoodEatResolver: private FoodResolutionSettings
 	template <class FoodIdContainer>
 	void resolve_bites_against_candidates(Cell* cell, Body* body, const FoodIdContainer& food_ids, int count, BiteResolution& resolution)
 	{
+		if (!cell->can_eat())
+			return; // also skips all the distance math for digesting cells
+
 		for (int i = 0; i < count; ++i)
 		{
 			const int food_id = food_ids[i];
 			Food* food = food_vector_->at(food_id);
+			if (!food->active || food->nutrients <= 0.f)
+				continue;
+
 			Body* food_body = body_vector_->at(food->body_id_);
+			const float rel_rad = food_body->radius_ + body->radius_;
+			const float dist_sq = (food_body->position_ - body->position_).lengthSquared();
 
-			const sf::Vector2f food_pos = food_body->position_;
-			const float food_radius = food_body->radius_;
-
-			const float dist_sq = (food_pos - body->position_).lengthSquared();
-			const float rel_rad = food_radius + body->radius_;
-			const float rel_rad_sq = rel_rad * rel_rad;
-
-			if (dist_sq < rel_rad_sq + 1.f)
+			if (dist_sq < rel_rad * rel_rad + 1.f)
 			{
-				bool ate = cell->eat(std::min(CellSettings::bite_amount, food->nutrients));
-				if (ate)
-					resolution.add(food_id);
+				resolution.add({ cell, static_cast<obj_idx>(food_id) });
+				return; // a cell can only eat once per pass anyway
 			}
 		}
 	}
 
 public:
 	FoodEatResolver(
-		o_vector<Food>* food_vector, o_vector<Body>* body_vector, o_vector<Cell>* cell_vector, 
+		o_vector<Food>* food_vector, o_vector<Body>* body_vector, o_vector<Cell>* cell_vector,
 		unsigned thread_count, unsigned reserve_per_thread, sf::FloatRect world_bounds)
 		: food_vector_(food_vector), body_vector_(body_vector), cell_vector_(cell_vector),
-		spatial_grid_(cells_x, cells_y, cell_max_capacity, world_bounds.size.x, world_bounds.size.y), 
+		spatial_grid_(cells_x, cells_y, cell_max_capacity, world_bounds.size.x, world_bounds.size.y),
 		world_bounds_(world_bounds), thread_pool_(thread_count), quick_collision_thread_pool_(thread_count)
 	{
 		init_bite_resolutions(reserve_per_thread);
@@ -252,7 +252,7 @@ public:
 		food_bite_resolution();
 	}
 
-	
+
 
 	// Fetching Functions
 	SimpleSpatialGrid& get_spatial_grid() { return spatial_grid_; }
@@ -322,11 +322,17 @@ private:
 	{
 		for (BiteResolution& br : bite_resolutions_)
 		{
-			for (obj_idx food_id : br)
+			for (const Bite& b : br)
 			{
-				Food* food = food_vector_->at(food_id);
-				float transfer = std::min( CellSettings::bite_amount, food->nutrients );
-				food->nutrients -= transfer;
+				Food* food = food_vector_->at(b.food_id);
+				const float take = std::min({ CellSettings::bite_amount,
+											  food->nutrients,
+											  CellSettings::max_nutrients - b.cell->nutrients_ });
+				if (take <= 0.f)
+					continue;
+
+				if (b.cell->eat(take))      // re-checks digestion; first claimant wins
+					food->nutrients -= take;
 			}
 		}
 	}

@@ -105,6 +105,8 @@ public:
 	// cell.h, public section
 	std::array<uint32_t, max_cell_connections> connected_partner_ids_{};
 
+	[[nodiscard]] bool can_eat() const { return time_since_last_ate_ >= digestive_time && nutrients_ < max_nutrients; }
+
 	[[nodiscard]] bool already_connected_to(uint32_t other_id) const
 	{
 		for (uint8_t i = 0; i < new_connections_made; ++i)

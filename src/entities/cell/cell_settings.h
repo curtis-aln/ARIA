@@ -23,8 +23,8 @@ struct CellSettings
 	inline static float friction_energy_loss_const;
 	inline static constexpr uint8_t max_cell_connections = 2;
 
-	inline static int death_age_threshold = 2000;
-	inline static float death_integrity_rate = 0.002f;
-	inline static float death_decay_growth = 0.0001f; // extra multiplier per tick past the threshold
+	inline static int death_age_threshold = 8000;
+	inline static float death_integrity_rate = 0.004f;
+	inline static float death_decay_growth = 0.001f; // extra multiplier per tick past the threshold
 
 };

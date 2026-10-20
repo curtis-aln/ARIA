@@ -4,6 +4,8 @@
 #include <entities/cell/cell.h>
 #include <entities/matter/CellMatter.h>
 #include <entities/spring/spring.h>
+#include <iostream>
+#include <ostream>
 #include <SFML/System/Vector2.hpp>
 #include <Utils/spatial_grid/simple_spatial_grid.h>
 
@@ -75,7 +77,9 @@ void CellManager::remove_cell(cell_idx cell_id)
 	for (int i = 0; i < cell->spring_links_.size_; ++i)
 	{
 		uint32_t spring_id = cell->spring_links_.connected_spring_ids_[i];
-		spring_death_requests.push_back(spring_id);
+		Spring* spring = all_springs_.at(spring_id);
+		if (spring == nullptr) continue;
+		spring->break_spring();
 	}
 
 	// removing the cell and body from their respective containers
@@ -141,4 +145,20 @@ void CellManager::apply_spring_death_requests()
 		remove_spring(spring_id);
 	}
 	spring_death_requests.clear();
+}
+
+
+void CellManager::debug_check_spring_death_request_duplicates()
+{
+	// checks the spring_death_requests vector for duplicates, which should never happen. If it does, it indicates a bug in the code
+	for (size_t i = 0; i < spring_death_requests.size(); ++i)
+	{
+		for (size_t j = i + 1; j < spring_death_requests.size(); ++j)
+		{
+			if (spring_death_requests[i] == spring_death_requests[j])
+			{
+				std::cout << "Duplicate spring death request found: " << spring_death_requests[i] << std::endl;
+			}
+		}
+	}
 }
