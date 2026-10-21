@@ -105,7 +105,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	ImGui::TextDisabled("UI & Camera");
 	ImGui::Separator();
 
-	toggle(snap, ctx, "Hide Panels", &SimulationToggles::hide_panels, "Q");
+
 
 	ImGui::SetNextItemWidth(-1.f);
 	if (ImGui::SliderFloat("##uiscale", &m_ui_scale_, 50.f, 200.f, "UI Scale %.0f%%"))
@@ -121,8 +121,6 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 			.float_val = m_zoom_slider_ };
 		ctx.push(cmd);
 	}
-	ImGui::Spacing();
-
 	ImGui::SetNextItemWidth(-1.f);
 	ImGui::SliderFloat("##camfriction", &m_camera_friction_, 0.f, 1.f, "Camera Friction %.2f"); // controling the friction of the camera movement (depricated)
 

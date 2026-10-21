@@ -19,6 +19,45 @@
 #include <world/world_border.h>
 #include <world/world_settings.h>
 
+#ifdef _WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <dwmapi.h>
+#include <Windows.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+#include <algorithm>
+#include <cstdint>
+#include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/WindowEnums.hpp>
+
+#ifdef _WIN32
+namespace
+{
+	// Colours match the ImGui theme: WindowBg, title Text, SliderGrab accent
+	void style_native_titlebar(HWND hwnd)
+	{
+		constexpr DWORD ATTR_DARK_MODE = 20; // Win10 20H1+
+		constexpr DWORD ATTR_CORNER = 33; // Win11
+		constexpr DWORD ATTR_BORDER_COLOR = 34; // Win11
+		constexpr DWORD ATTR_CAPTION_COLOR = 35; // Win11
+		constexpr DWORD ATTR_TEXT_COLOR = 36; // Win11
+
+		const BOOL     dark = TRUE;
+		const int      corner = 2;                    // DWMWCP_ROUND
+		const COLORREF border = RGB(89, 158, 235);
+		const COLORREF caption = RGB(18, 18, 26);
+		const COLORREF text = RGB(184, 214, 255);
+
+		DwmSetWindowAttribute(hwnd, ATTR_DARK_MODE, &dark, sizeof(dark));
+		DwmSetWindowAttribute(hwnd, ATTR_CORNER, &corner, sizeof(corner));
+		DwmSetWindowAttribute(hwnd, ATTR_BORDER_COLOR, &border, sizeof(border));
+		DwmSetWindowAttribute(hwnd, ATTR_CAPTION_COLOR, &caption, sizeof(caption));
+		DwmSetWindowAttribute(hwnd, ATTR_TEXT_COLOR, &text, sizeof(text));
+	}
+}
+#endif
+
 
 Simulation::Simulation() : m_world_(&m_window_)
 {
@@ -78,7 +117,16 @@ void Simulation::run_simulation()
 	m_sim_thread_ = std::thread([this]
 		{
 			while (running)
+			{
+				if (m_window_swap_)
+				{
+					m_sim_parked_ = true;
+					std::this_thread::yield();
+					continue;
+				}
+				m_sim_parked_ = false;
 				update_one_frame();
+			}
 		});
 
 	while (running)
@@ -172,6 +220,7 @@ void Simulation::resolve_modifications()
 				// Handle food manager-related commands
 				m_world_.get_food_manager()->handle_food_manager_event(cmd);
 				break;
+
 			}
 
 			m_commands.pop();
@@ -269,4 +318,82 @@ void Simulation::fill_snapshot(SimSnapshot& snap)
 
 	snap.sim_stats = sim_state_;
 	snap.history = m_history_;
+}
+
+void Simulation::toggle_fullscreen()
+{
+	if (!m_fullscreen_) // leaving windowed: remember geometry
+	{
+		m_windowed_size_ = m_window_.getSize();
+		m_windowed_pos_ = m_window_.getPosition();
+	}
+	m_fullscreen_ = !m_fullscreen_;
+	recreate_window();
+}
+
+void Simulation::toggle_titlebar()
+{
+	if (m_fullscreen_)
+	{
+		// fullscreen -> windowed with titlebar, restoring the saved geometry
+		m_fullscreen_ = false;
+		m_titlebar_ = true;
+		recreate_window();
+		return;
+	}
+
+	m_windowed_size_ = m_window_.getSize();
+	m_windowed_pos_ = m_window_.getPosition();
+	m_titlebar_ = !m_titlebar_;
+	recreate_window();
+}
+
+void Simulation::recreate_window()
+{
+	// Park the sim thread (it touches the window via the camera)
+	m_window_swap_ = true;
+	while (!m_sim_parked_ && running)
+		std::this_thread::yield();
+
+	constexpr const char* title = "Project ARIA";
+
+	if (m_fullscreen_)
+	{
+		m_window_.create(sf::VideoMode::getDesktopMode(), title, sf::Style::None, sf::State::Fullscreen);
+	}
+	else
+	{
+		const sf::Vector2u desktop = sf::VideoMode::getDesktopMode().size;
+
+		sf::Vector2u size = m_windowed_size_;
+		if (size.x == 0 || size.y == 0)
+			size = getAdjustedVideoMode().size;
+
+		if (m_titlebar_) // leave room for the frame and taskbar
+		{
+			size.x = std::min(size.x, desktop.x - 20u);
+			size.y = std::min(size.y, desktop.y - 100u);
+		}
+
+		const std::uint32_t style = m_titlebar_ ? sf::Style::Default : sf::Style::None;
+		m_window_.create(sf::VideoMode(size), title, style, sf::State::Windowed);
+
+		sf::Vector2i pos = m_windowed_pos_;
+		pos.x = std::max(pos.x, 0);
+		pos.y = std::max(pos.y, 0);
+		m_window_.setPosition(pos);
+#ifdef _WIN32
+		if (m_titlebar_)
+			style_native_titlebar(m_window_.getNativeHandle());
+#endif
+	}
+
+	m_window_.setVerticalSyncEnabled(vsync);
+	set_icon();
+	camera_.update_window_view(); // create() resets the view
+
+	// Release the sim thread and wait until it has actually resumed
+	m_window_swap_ = false;
+	while (m_sim_parked_ && running)
+		std::this_thread::yield();
 }

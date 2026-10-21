@@ -20,6 +20,12 @@
 #include <mutex>
 #include <queue>
 
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/WindowEnums.hpp>
 #include <thread>
 
 
@@ -33,6 +39,17 @@ class Simulation : SimulationSettings
 		return sf::VideoMode({ (unsigned)(desktop.size.x * window_resize_shrinkage),
 							   (unsigned)(desktop.size.y * window_resize_shrinkage) });
 	}
+
+	// Window mode
+	bool         m_fullscreen_ = false;
+	bool         m_titlebar_ = false;
+	sf::Vector2u m_windowed_size_{};
+	sf::Vector2i m_windowed_pos_{};
+
+	// Handshake so the sim thread isn't touching the window while it's recreated
+	std::atomic<bool> m_window_swap_{ false };
+	std::atomic<bool> m_sim_parked_{ false };
+
 
 	sf::VideoMode   videoMode = full_screen ? sf::VideoMode::getDesktopMode() : getAdjustedVideoMode();
 	std::uint32_t   windowStyle = sf::Style::None;
@@ -93,6 +110,11 @@ private:
 	void manage_updating_frame_rate();
 	void fill_snapshot(SimSnapshot& snapshot);
 	void resolve_modifications();
+
+	// window management
+	void toggle_fullscreen();
+	void toggle_titlebar();
+	void recreate_window();
 
 	// events
 	void handle_events();

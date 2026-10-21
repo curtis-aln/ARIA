@@ -54,8 +54,9 @@ void ControlPanel::draw(const SimSnapshot& snap, ImGuiContext& ctx, float dt)
 		return;
 	}
 
-	constexpr float PANEL_W = 1520.f;
-	constexpr float PANEL_H = 340.f;
+	const ImVec2 disp = ImGui::GetIO().DisplaySize;
+	const float PANEL_W = (4.f / 5.f) * disp.x;
+	const float PANEL_H = (7.f / 20.f) * disp.y;
 
 	ImGui::SetNextWindowPos({ 10.f, 10.f }, ImGuiCond_Always);
 	ImGui::SetNextWindowSize({ PANEL_W, m_collapsed_ ? 0.f : PANEL_H }, ImGuiCond_Always);

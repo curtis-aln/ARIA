@@ -61,6 +61,8 @@ void Simulation::handle_keyboard_events(const sf::Keyboard::Key& event_key_code)
 		m_world_.world_toggles.m_tick_frame_time = true;
 		m_world_.world_toggles.paused = true;
 		break;
+	case sf::Keyboard::Key::F11: toggle_fullscreen(); break;
+	case sf::Keyboard::Key::F9:  toggle_titlebar();   break;
 	default: break;
 	}
 }
