@@ -1,5 +1,18 @@
 #include "../food_manager.h"
-#include "../../../simulation/context/sim_snapshot.h"
+#include <cstdint>
+#include <entities/body.h>
+#include <entities/food/food.h>
+#include <entities/food/food_settings.h>
+#include <managers/food_manager/food_manager_settings.h>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <simulation/context/sim_command.h>
+#include <simulation/context/state.h>
+#include <Utils/Graphics/pheromone_grid.h>
+#include <Utils/o_vec/o_vector.hpp>
+#include <world/world_border.h>
+#include <world/world_settings.h>
 
 
 FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies)
@@ -10,6 +23,16 @@ FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 
 }
 
+void FoodManager::initial_iterations()
+{
+	constexpr int initial_iterations = 2000;
+	for (int i = 0; i < initial_iterations; ++i)
+	{
+		update(i);
+	}
+}
+
+
 void FoodManager::update(int iterations)
 {
 	if (!food_container_full())
@@ -17,7 +40,7 @@ void FoodManager::update(int iterations)
 		spawn_random_food();
 		spawn_food_mitosis();
 	}
-	
+
 	update_food();
 
 	update_statistics();
@@ -88,11 +111,11 @@ void FoodManager::remove_food(const int food_id)
 	// Fetching the food that we want to remove and using its body_id to find the body we want to remove
 	Food* food = food_vector.at(food_id);
 	Body* body = bodies_->at(food->body_id_);
-	
+
 	// we now reset the body and the food
 	body->reset_cell_manager();
 	food->reset();
-	
+
 	// and remove them from their respective vectors
 	food_vector.remove(food_id);
 	bodies_->remove(body->id_);

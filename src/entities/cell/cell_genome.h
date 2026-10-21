@@ -19,7 +19,7 @@ struct Range
 // ---------------------------------------------------------------------------
 struct BaseConstants
 {
-	inline static constexpr float colour_mutation_range = 0.01f;
+	inline static constexpr float colour_mutation_range = 0.09f;
 	inline static constexpr float mutation_rate_range = 0.006f;
 
 	inline static constexpr Range init_mutation_range_spread = { 0.005f, 0.045f };

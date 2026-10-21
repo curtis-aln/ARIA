@@ -116,6 +116,7 @@ void Simulation::run_simulation()
 	update_one_frame(); // a lot of issues happen in the renderer when it runs before the very first update iter
 	m_sim_thread_ = std::thread([this]
 		{
+			m_world_.get_food_manager()->initial_iterations();
 			while (running)
 			{
 				if (m_window_swap_)

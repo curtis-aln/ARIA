@@ -67,6 +67,8 @@ public:
 public:
 	FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies);
 
+	void initial_iterations();
+
 	// Main Entries
 	void update(int iterations);
 	void update_position_data(RenderData& food_data, int iterations);
