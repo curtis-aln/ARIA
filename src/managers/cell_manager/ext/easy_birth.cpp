@@ -175,11 +175,11 @@ bool CellManager::can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell
 
 // Clones the organism in parent_ids (output of can_protozoa_reproduce) next to the original.
 // Returns false if a pool ran out mid-clone; the partial clone is killed and the death pass cleans it up.
-bool CellManager::protozoa_reproduce(FixedSpan<cell_idx>& parent_ids)
+void CellManager::protozoa_reproduce(FixedSpan<cell_idx>& parent_ids)
 {
 	const int cell_count = parent_ids.count;
 	if (cell_count <= 0 || cell_count > max_protozoa_cells)
-		return false;
+		return;
 
 	const sf::Vector2f offset = calculate_clone_offset(parent_ids);
 
@@ -231,12 +231,69 @@ bool CellManager::protozoa_reproduce(FixedSpan<cell_idx>& parent_ids)
 		}
 	}
 
-	// rollback: killing the cells is enough, their springs die in death_update
-	if (!success)
-		for (int i = 0; i < cells_created; ++i)
-			all_cells_.at(offspring_ids[i])->kill();
+	apply_structural_mutations(offspring_ids, cells_created);
 
-	return success;
+}
+
+void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count)
+{
+	for (int i = 0; i < cell_count; ++i)
+	{
+		Cell* cell = all_cells_.at(cell_ids[i]);
+
+		// cell creation chance
+		if (Random::rand01_float() < cell->add_cell_chance)
+		{
+			create_weak_offspring(cell->id_);
+		}
+
+		if (Random::rand01_float() < cell->add_spring_chance)
+		{
+			// have we reached the max springs
+			if (cell->spring_links_.size_ >= CellSettings::max_cell_connections)
+				continue;
+
+			// pick a random cell from the cell_ids
+			Cell* other_cell = all_cells_.at(cell_ids[Random::rand_range(0, cell_count - 1)]);
+
+			if (other_cell == nullptr)
+			{
+				std::cout << "easy_birth.cpp other_cell creation was flagged as a nullptr\n";
+			}
+
+			// check if we have already connected to the cell
+			if (other_cell->id_ == cell->id_ || cell->already_connected_to(other_cell->id_))
+				continue;
+
+			// if not, create a spring between the two cells
+			const int32_t spring_id = create_spring(cell->id_, other_cell->id_);
+			if (spring_id == -1)
+			{
+				std::cout << "easy_birth.cpp spring creation was flagged as a -1 \n";
+				continue;
+			}
+
+			Spring* spring = all_springs_.at(spring_id);
+
+			// give the spring the appropriate genetics
+			spring->genome.sexually_reproduce(cell->spring_genome, other_cell->spring_genome);
+		}
+
+		if (Random::rand01_float() < cell->remove_cell_chance)
+		{
+			cell->kill();
+		}
+
+		if (Random::rand01_float() < cell->remove_spring_chance)
+		{
+			auto& links = cell->spring_links_;
+			if (links.size_ == 0)
+				continue;
+			const uint32_t idx = Random::rand_range(uint32_t(0), links.size_ - 1);
+			all_springs_.at(links.connected_spring_ids_[idx])->break_spring();
+
+		}
+	}
 }
 
 

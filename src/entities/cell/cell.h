@@ -143,9 +143,9 @@ public:
 	[[nodiscard]] float get_energy() const { return energy; }
 
 	// ------------ Data setters ------------
-	void kill()
+	void kill(bool force = false)
 	{
-		if (!immortal_)
+		if (!immortal_ || force)
 			dead_ = true;
 	}
 	void force_reproduce() { reproduce_ = true; }

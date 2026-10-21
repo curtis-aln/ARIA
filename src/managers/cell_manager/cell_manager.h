@@ -11,6 +11,7 @@
 #include "../../simulation/context/sim_snapshot.h"
 #include "organism_tracker.h"
 
+#include <array>
 #include <cstdint>
 #include <deque>
 #include <entities/body.h>
@@ -250,7 +251,9 @@ private: // only functions this class can access
 	void clone_selected_protozoa();
 	bool can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell_idx>& out_cell_ids);
 	void create_protozoa_from_pool(const sf::Vector2f position, const unsigned max_cells, const unsigned max_springs);
-	bool protozoa_reproduce(FixedSpan<cell_idx>& old_ids);
+	void protozoa_reproduce(FixedSpan<cell_idx>& old_ids);
+
+	void apply_structural_mutations(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count);
 
 	sf::Vector2f calculate_organism_centre(FixedSpan<cell_idx>& cell_ids);
 	float        calculate_organism_radius(FixedSpan<cell_idx>& cell_ids, const sf::Vector2f& centre);

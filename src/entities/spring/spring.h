@@ -157,13 +157,13 @@ public:
 	{
 		if (Random::rand01_float() < death_chance_)
 		{
-			broken = true;
+			break_spring();
 			return;
 		}
 
 		if (!cell_a.is_alive() || !cell_b.is_alive())
 		{
-			broken = true;
+			break_spring();
 			return;
 		}
 	}

@@ -176,7 +176,6 @@ void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_
 void Cell::apply_immunity()
 {
 	integrity = max_integrity; // was hardcoded 100.f — desyncs if max_integrity is ever tuned
-	dead_ = false;
 }
 
 void Cell::apply_passive_decay()
@@ -214,12 +213,12 @@ bool Cell::check_death()
 	if (energy <= 0.f) // if the cell has no energy, it dies
 	{
 		energy = 0.f;
-		dead_ = true;
+		kill();
 	}
 	else if (integrity <= 0.f) // if the cell has no integrity, it dies
 	{
 		integrity = 0.f;
-		dead_ = true;
+		kill();
 	}
 
 	return dead_;

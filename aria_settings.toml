@@ -36,7 +36,7 @@ birth_grid_max_capacity               = 4
 
 # ── Cell Manager ─────────────────────────────────────────────────────────
 [cell_manager]
-max_cells                = 5000  # maximum number of cells in the simulation
+max_cells                = 20000  # maximum number of cells in the simulation
 initial_protozoa            = 450  # seeds to create the initial population of cells  
 auto_reset_on_extinction    = true
 infant_time = 500 # time in ticks that a cell is considered an infant and can form connections

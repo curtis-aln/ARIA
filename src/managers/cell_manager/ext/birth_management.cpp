@@ -84,14 +84,20 @@ void CellManager::check_prune_cells()
 
 }
 
+
 void CellManager::easy_reproduce(const BirthRequest& req)
 {
+	// if the parent cell has died, we cannot reproduce it
 	if (!all_cells_.is_obj_active(req.parent_cell_id))
 		return;
-	if (can_protozoa_reproduce(req.parent_cell_id, protozoa_cell_ids_))
-		protozoa_reproduce(protozoa_cell_ids_);
+
+	if (!can_protozoa_reproduce(req.parent_cell_id, protozoa_cell_ids_))
+		return;
+
+	protozoa_reproduce(protozoa_cell_ids_);
 	all_cells_.at(req.parent_cell_id)->turn_off_reproduction();
 }
+
 
 void CellManager::normal_reproduce(const BirthRequest& req)
 {
@@ -202,8 +208,8 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 	Spring* spring = all_springs_.at(spring_id);
 
 	// creating a spring that is firm but doesnt oscilate mutch
-	spring->genome.randomize();
-	spring->genome.amplitude = 0.2f;
+	spring->genome.sexually_reproduce(parent_cell->spring_genome, child_cell->spring_genome);
+
 }
 
 void CellManager::apply_matter_birth_requests()

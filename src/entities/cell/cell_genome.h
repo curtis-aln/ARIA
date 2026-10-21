@@ -249,7 +249,6 @@ struct CellInitialSpawnRanges
 
 struct HardConstants
 {
-	inline static constexpr float     add_cell_chance = 0.02f;
 	inline static constexpr uint8_t   outer_transparency = 150;
 	inline static constexpr uint8_t   inner_transparency = 125;
 
@@ -270,6 +269,12 @@ struct CellGenome : GenomeBase, HardConstants
 	float offspring_energy_to_give = 0.25f;
 	float connective_spring_spring_const = 0.1f;
 	float connective_spring_damping = 0.1f;
+
+	// mutation genes
+	float add_cell_chance = 0.02f;
+	float remove_cell_chance = 0.02f;
+	float add_spring_chance = 0.02f;
+	float remove_spring_chance = 0.02f;
 
 	float newborn_search_radius = CellGeneticConstraints::newborn_search.max;
 
@@ -324,6 +329,11 @@ struct CellGenome : GenomeBase, HardConstants
 
 		connective_spring_damping = maybe_mutate_gaussian(connective_spring_damping, SpringGeneticConstraints::damping, range, guassian_const);
 		connective_spring_spring_const = maybe_mutate_gaussian(connective_spring_spring_const, SpringGeneticConstraints::spring_const, range, guassian_const);
+
+		add_cell_chance = maybe_mutate_gaussian(add_cell_chance, { 0.f, 1.f }, range, guassian_const);
+		remove_cell_chance = maybe_mutate_gaussian(remove_cell_chance, { 0.f, 1.f }, range, guassian_const);
+		add_spring_chance = maybe_mutate_gaussian(add_spring_chance, { 0.f, 1.f }, range, guassian_const);
+		remove_spring_chance = maybe_mutate_gaussian(remove_spring_chance, { 0.f, 1.f }, range, guassian_const);
 
 		const float multip = newborn_search_radius_multiplier;
 		const float r_max = CellGeneticConstraints::radius.max;
