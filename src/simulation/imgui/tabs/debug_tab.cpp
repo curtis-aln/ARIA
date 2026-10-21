@@ -98,6 +98,9 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	ImGui::Spacing();
 	toggle(snap, ctx, "easy reproduction", &CellManagerToggles::easy_reproduction);
 
+	ImGui::Spacing();
+	toggle(snap, ctx, "prune cells", &CellManagerToggles::prune_cells);
+
 	ImGui::EndChild();
 	ImGui::SameLine();
 

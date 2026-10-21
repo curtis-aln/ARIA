@@ -14,7 +14,6 @@
 
 #include "../../managers/cell_manager/cell_manager_settings.h"
 
-#include "../..//simulation/settings/settings.h"
 #include "../../simulation/context/sim_snapshot.h"
 
 #include "../../Utils/Graphics/pheromone_grid.h"
@@ -92,7 +91,6 @@ class WorldRenderer : public WorldSettings
 
 	// This is the circular world border that is drawn on the screen
 	sf::CircleShape world_border_renderer_{};
-	sf::CircleShape border_mask_renderer_{}; // opaque ring hiding the square grids' corners
 
 	// Rendering the Cells, Food, and Cell matter
 	CircleBatchRenderer outer_circle_renderer_{};
@@ -151,7 +149,6 @@ public:
 private:
 	void render_world_border()
 	{
-		m_window_->draw(border_mask_renderer_);   // paints over anything the square grids drew past the circle
 		m_window_->draw(world_border_renderer_);  // the glowing border ring, now sitting on a solid backdrop
 	}
 
@@ -207,17 +204,6 @@ private:
 		world_border_renderer_.setPointCount(border_point_count);
 		world_border_renderer_.setOutlineColor(border_color);
 		world_border_renderer_.setOutlineThickness(world_border_thickness);
-
-		// The square spatial grids are 2*bounds_radius per side and inscribe the circle, so their
-		// corners poke out by up to (sqrt(2)-1)*bounds_radius. Cover that leftover area.
-		constexpr float sqrt2_minus_1 = 0.41421356f;
-		const float mask_thickness = circular_bounds.bounds_radius * sqrt2_minus_1 * 1.05f; // 5% safety margin
-
-		border_mask_renderer_.setRadius(circular_bounds.bounds_radius);
-		border_mask_renderer_.setPointCount(border_point_count);
-		border_mask_renderer_.setFillColor(sf::Color(0, 0, 0, 0));
-		border_mask_renderer_.setOutlineColor(SimulationSettings::bg_colors[0]);
-		border_mask_renderer_.setOutlineThickness(mask_thickness);
 	}
 
 	void render_visual_grid(const SimSnapshot& snapshot)

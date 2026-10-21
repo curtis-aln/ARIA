@@ -1,10 +1,12 @@
 #include "../cell_manager.h"
+#include <cmath>
 #include <cstdint>
 #include <entities/body.h>
 #include <entities/cell/cell.h>
 #include <entities/matter/CellMatter.h>
 #include <entities/spring/spring.h>
 #include <iostream>
+#include <managers/cell_manager/cell_manager_settings.h>
 #include <SFML/System/Vector2.hpp>
 #include <Utils/random.h>
 #include <Utils/spatial_grid/simple_spatial_grid.h>
@@ -54,48 +56,64 @@ void CellManager::apply_reproduction_requests()
 {
 	for (const BirthRequest& req : cell_birth_requests)
 	{
+		if (toggles_.prune_cells)
+			check_prune_cells();
+
 		if (toggles_.easy_reproduction)   // new ImGui toggle, add it to CellManagerToggles
-		{
-			if (!all_cells_.is_obj_active(req.parent_cell_id))
-				continue;
-
-			if (can_protozoa_reproduce(req.parent_cell_id, protozoa_cell_ids_))
-				protozoa_reproduce(protozoa_cell_ids_);
-
-			all_cells_.at(req.parent_cell_id)->turn_off_reproduction();
-
-			continue; // skip the natural path, including create_temporary_spring_connection
-		}
-
-
-		CellBodyPair pair = create_cell();
-		if (!pair.is_valid)
-			break;
-
-		// retrieve the parent cell and body
-		Cell* parent_cell = all_cells_.at(req.parent_cell_id);
-		Body* parent_body = bodies_->at(parent_cell->body_id_);
-
-		parent_cell->turn_off_reproduction();
-
-		// retrieve the offspring cell and body
-		Body* offspring_body = bodies_->at(pair.body_id);
-		Cell* offspring_cell = all_cells_.at(pair.cell_id);
-
-		// create the offspring by filling in its genetics and other properties based on the parent cell
-		parent_cell->create_offspring(parent_body, offspring_cell, offspring_body, true);
-
-		// connecting the parent and childS
-		create_temporary_spring_connection(parent_cell->id_, offspring_cell->id_);
-
-		// small random chance that this offspring has its own cell addition
-		if (Random::rand01_float() < offspring_cell->add_cell_chance)
-		{
-			create_weak_offspring(offspring_cell->id_);
-		}
+			easy_reproduce(req);
+		else
+			normal_reproduce(req);
 	}
 
 	cell_birth_requests.clear();
+}
+
+void CellManager::check_prune_cells()
+{
+	/* if we have reached the maximum number of cells, we need to prune some random cells in the simulation */
+	int diff = CellManagerSettings::max_cells - all_cells_.size();
+	if (diff > 0)
+		return;
+
+	for (int i = 0; i < abs(diff); i++)
+	{
+		// choosing a random index from the active obj's vector
+		int random_index = Random::rand_val_in_vector(all_cells_.occupied_list);
+		all_cells_.at(random_index)->kill();
+	}
+
+}
+
+void CellManager::easy_reproduce(const BirthRequest& req)
+{
+	if (!all_cells_.is_obj_active(req.parent_cell_id))
+		return;
+	if (can_protozoa_reproduce(req.parent_cell_id, protozoa_cell_ids_))
+		protozoa_reproduce(protozoa_cell_ids_);
+	all_cells_.at(req.parent_cell_id)->turn_off_reproduction();
+}
+
+void CellManager::normal_reproduce(const BirthRequest& req)
+{
+	CellBodyPair pair = create_cell();
+	if (!pair.is_valid)
+		return;
+	// retrieve the parent cell and body
+	Cell* parent_cell = all_cells_.at(req.parent_cell_id);
+	Body* parent_body = bodies_->at(parent_cell->body_id_);
+	parent_cell->turn_off_reproduction();
+	// retrieve the offspring cell and body
+	Body* offspring_body = bodies_->at(pair.body_id);
+	Cell* offspring_cell = all_cells_.at(pair.cell_id);
+	// create the offspring by filling in its genetics and other properties based on the parent cell
+	parent_cell->create_offspring(parent_body, offspring_cell, offspring_body, true);
+	// connecting the parent and childS
+	create_temporary_spring_connection(parent_cell->id_, offspring_cell->id_);
+	// small random chance that this offspring has its own cell addition
+	if (Random::rand01_float() < offspring_cell->add_cell_chance)
+	{
+		create_weak_offspring(offspring_cell->id_);
+	}
 }
 
 void CellManager::create_temporary_spring_connection(const cell_idx parent_id, const cell_idx offspring_id)

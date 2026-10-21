@@ -7,16 +7,20 @@
 #include "../Utils/custom_clock.h"
 #include "../Utils/UI/Camera.hpp"
 
-#include <imgui-SFML.h>
 #include <implot.h>
 
-#include "../managers/cell_manager/organism_tracker.h"
 #include "context/sim_command.h"
 #include "context/sim_snapshot.h"
 #include "context/state.h"
 #include "context/triple_buffer.h"
+#include <atomic>
+#include <cstdint>
+#include <iostream>
+#include <managers/cell_manager/cell_manager_settings.h>
 #include <mutex>
 #include <queue>
+
+#include <thread>
 
 
 class Simulation : SimulationSettings
@@ -63,6 +67,7 @@ class Simulation : SimulationSettings
 
 public:
 	Simulation();
+	void set_icon();
 	~Simulation()
 	{
 		std::cout << "[INFO]: Simulation destructor called, shutting down threads and ImGui context.\n";

@@ -79,6 +79,7 @@ struct CellManagerToggles
 
 	// other
 	bool easy_reproduction = true;  // cells can reproduce through hardcoded copy paste
+	bool prune_cells = true;  // cells can be removed from the simulation if there are too many
 };
 
 struct FoodToggles
@@ -126,6 +127,7 @@ struct WorldStatistics
 	float frames_since_last_gen_change = 0.f;
 
 	int iterations_ = 0;
+	float iterations_per_second = 0;
 
 	int highlighted_cells = 0;
 	int highlighted_food = 0;

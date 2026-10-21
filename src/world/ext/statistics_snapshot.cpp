@@ -1,4 +1,8 @@
 #include "../world.h"
+#include <algorithm>
+#include <cstdint>
+#include <simulation/context/state.h>
+#include <Utils/spatial_grid/simple_spatial_grid.h>
 
 void World::update_statistics()
 {
@@ -16,6 +20,8 @@ void World::update_statistics()
 		stats.frames_since_last_gen_change = 0;
 		stats.tracked_generation_ = cell_manager_.get_statistics().average_generation;
 	}
+
+	stats.iterations_per_second = iteration_clock_.get_average_frame_rate();
 }
 
 

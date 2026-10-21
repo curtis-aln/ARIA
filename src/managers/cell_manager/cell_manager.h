@@ -240,6 +240,12 @@ private: // only functions this class can access
 	void collect_reproduction_requests();
 	void apply_reproduction_requests();
 
+	void check_prune_cells();
+
+	void easy_reproduce(const BirthRequest& req);
+
+	void normal_reproduce(const BirthRequest& req);
+
 	// birth - whole protozoa
 	void clone_selected_protozoa();
 	bool can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell_idx>& out_cell_ids);

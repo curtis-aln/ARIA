@@ -1,5 +1,16 @@
-#include <algorithm>
 #include "../world.h"
+#include <algorithm>
+#include <entities/body.h>
+#include <entities/cell/cell.h>
+#include <entities/cell/cell_genome.h>
+#include <entities/food/food.h>
+#include <iostream>
+#include <ostream>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Mouse.hpp>
+#include <simulation/context/sim_snapshot.h>
+#include <utility>
 
 // This function is called by the simulation thread to update the world state
 // write_snapshot is written to so the renderer knows what to draw
@@ -49,7 +60,8 @@ void World::drag_selected_cell_logic()
 void World::tick_sim()
 {
 	/* This function runs one update cycle of the simulation, can be stacked */
-	
+	iteration_clock_.tick();
+
 	food_manager_.update(statistics_.iterations_);                              // updating the food in the world
 	cell_manager_.update(statistics_.iterations_);       // updating the cells, springs, and cell matter in the world
 	food_eat_resolver_.resolve(statistics_.iterations_); // updating the interation between cells and food
@@ -115,7 +127,7 @@ void World::update_entities()
 {
 	bound_bodies();
 
-	if (world_toggles.toggle_collisions)	
+	if (world_toggles.toggle_collisions)
 		collision_resolver_.run(statistics_.iterations_);
 }
 
@@ -203,8 +215,8 @@ sf::FloatRect World::calulcate_visible_range()
 	sf::Vector2f bottom_right = m_window_->mapPixelToCoords(sf::Vector2i{ window_size.x, window_size.y });
 
 	sf::FloatRect visible_bounds = {
-		{top_left.x, top_left.y},
-		{bottom_right.x - top_left.x, bottom_right.y - top_left.y} };
+		{ top_left.x, top_left.y },
+		{ bottom_right.x - top_left.x, bottom_right.y - top_left.y } };
 
 	// Adjust for cell maximim radius to ensure cells partially in view are included
 	const float max_rad = CellGeneticConstraints::radius.max;

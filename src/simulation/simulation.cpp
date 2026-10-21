@@ -7,6 +7,11 @@
 #include <iostream>
 #include <mutex>
 #include <ostream>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Image.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <thread>
@@ -20,6 +25,9 @@ Simulation::Simulation() : m_world_(&m_window_)
 
 	m_window_.setVerticalSyncEnabled(vsync);
 
+	set_icon();
+
+
 	const float rad = WorldSettings::bounds_radius;
 	camera_.set_initial_zoom(0.1f, sf::Vector2f{ rad, rad });
 
@@ -32,6 +40,34 @@ Simulation::Simulation() : m_world_(&m_window_)
 	rendering_clock_.set_target_fps(sim_state_.max_frame_rate_rendering);
 
 	std::cout << "Program Finished initialising. running. . .\n";
+}
+
+void Simulation::set_icon()
+{
+	sf::Image icon;
+	if (icon.loadFromFile("media/icon.png"))
+	{
+		sf::Texture tex;
+		tex.loadFromImage(icon);
+		tex.setSmooth(true);                      // bilinear filtering, avoids blocky pixels
+
+		const float zoom = 2.8f;
+		sf::Vector2u size = icon.getSize();
+
+		// SFML 3:
+		sf::RenderTexture rt(size);
+		sf::Sprite sprite(tex);
+		sprite.setOrigin({ size.x / 2.f, size.y / 2.f });
+		sprite.setPosition({ size.x / 2.f, size.y / 2.f });
+		sprite.setScale({ zoom, zoom });
+
+		rt.clear(sf::Color::Transparent);
+		rt.draw(sprite);
+		rt.display();
+
+		sf::Image zoomed = rt.getTexture().copyToImage();
+		m_window_.setIcon(zoomed.getSize(), zoomed.getPixelsPtr());   // SFML 2: (x, y, ptr)
+	}
 }
 
 void Simulation::run_simulation()

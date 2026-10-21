@@ -4,59 +4,59 @@
 
 inline sf::Texture generateCircleTexture(float radius)
 {
-    if (radius == 0)
-        return sf::Texture();
+	if (radius == 0)
+		return sf::Texture();
 
-    const auto r = static_cast<unsigned>(radius * 2.f);
-    sf::RenderTexture renderTexture({ r, r });
-    sf::CircleShape circle(radius);
-    circle.setFillColor(sf::Color::White);
-    circle.setOrigin({ radius, radius });
-    circle.setPosition({ radius, radius });
-    renderTexture.clear(sf::Color::Transparent);
-    renderTexture.draw(circle);
-    renderTexture.display();
+	const auto r = static_cast<unsigned>(radius * 2.f);
+	sf::RenderTexture renderTexture({ r, r });
+	sf::CircleShape circle(radius);
+	circle.setFillColor(sf::Color::White);
+	circle.setOrigin({ radius, radius });
+	circle.setPosition({ radius, radius });
+	renderTexture.clear(sf::Color::Transparent);
+	renderTexture.draw(circle);
+	renderTexture.display();
 
-    sf::Texture tex = renderTexture.getTexture(); // copy BEFORE RenderTexture destructs
-    return tex;
+	sf::Texture tex = renderTexture.getTexture(); // copy BEFORE RenderTexture destructs
+	return tex;
 }
 
 
 class CircleBatchRenderer
 {
-    sf::RenderWindow* window_ = nullptr;
+	sf::RenderWindow* window_ = nullptr;
 
-    // the texture is reused in the vertex array 
-    sf::Texture texture;
-    sf::VertexArray vertex_array{ sf::PrimitiveType::Triangles };
+	// the texture is reused in the vertex array 
+	sf::Texture texture;
+	sf::VertexArray vertex_array{ sf::PrimitiveType::Triangles };
 
-    size_t max_circles_ = 0;
-    size_t circle_count_ = 0;
-    float tex_size = 0.f;
+	size_t max_circles_ = 0;
+	size_t circle_count_ = 0;
+	float tex_size = 0.f;
 
 	// keeping pointers to the data vectors to avoid passing them every frame
-    std::vector<sf::Color> colors_{};
+	std::vector<sf::Color> colors_{};
 	std::vector<float> positions_x_{};
 	std::vector<float> positions_y_{};
 	std::vector<float> radii_{};
 
 public:
-    explicit CircleBatchRenderer(sf::RenderWindow* window = nullptr, float circle_texture_radius = 0.f, size_t max_entities = 0)
-    {
+	explicit CircleBatchRenderer(sf::RenderWindow* window = nullptr, float circle_texture_radius = 0.f, size_t max_entities = 0)
+	{
 		init(window, circle_texture_radius, max_entities);
-    }
+	}
 
-    void init(sf::RenderWindow* window, float circle_texture_radius, size_t max_entities)
-    {
-        window_ = window;
-        max_circles_ = max_entities;
-        texture = generateCircleTexture(circle_texture_radius);
-        texture.setSmooth(true);
-    }
+	void init(sf::RenderWindow* window, float circle_texture_radius, size_t max_entities)
+	{
+		window_ = window;
+		max_circles_ = max_entities;
+		texture = generateCircleTexture(circle_texture_radius);
+		texture.setSmooth(true);
+	}
 
-    void set_colors(const std::vector<sf::Color>& colors) { colors_ = colors; }
-    void set_positions(const std::vector<sf::Vector2f>& positions) 
-    {
+	void set_colors(const std::vector<sf::Color>& colors) { colors_ = colors; }
+	void set_positions(const std::vector<sf::Vector2f>& positions)
+	{
 		size_t size = positions.size();
 		positions_x_.resize(size);
 		positions_y_.resize(size);
@@ -65,42 +65,41 @@ public:
 			positions_x_[i] = positions[i].x;
 			positions_y_[i] = positions[i].y;
 		}
-    }
-    void set_radii(const std::vector<float>& radii) { radii_ = radii; }
-    void set_size(size_t size) { circle_count_ = size; }
+	}
+	void set_radii(const std::vector<float>& radii) { radii_ = radii; }
+	void set_size(size_t size) { circle_count_ = size; }
 
-    void update()
-    {
-        circle_count_ = std::min({ circle_count_, max_circles_ });
-        const size_t vertex_count = circle_count_ * 6;
+	void update()
+	{
+		const size_t vertex_count = circle_count_ * 6;
 
-        vertex_array.resize(vertex_count);
+		vertex_array.resize(vertex_count);
 
-        tex_size = static_cast<float>(texture.getSize().x);
-        const float u0 = 0.f, v0 = 0.f;
-        const float u1 = tex_size, v1 = tex_size;
+		tex_size = static_cast<float>(texture.getSize().x);
+		const float u0 = 0.f, v0 = 0.f;
+		const float u1 = tex_size, v1 = tex_size;
 
-        for (size_t i = 0; i < circle_count_; ++i)
-        {
-            const size_t base = i * 6;
-            const float pos_x = (positions_x_)[i];
-            const float pos_y = (positions_y_)[i];
-            const float r = (radii_)[i];
-            const sf::Color col = (colors_)[i];
+		for (size_t i = 0; i < circle_count_; ++i)
+		{
+			const size_t base = i * 6;
+			const float pos_x = (positions_x_)[i];
+			const float pos_y = (positions_y_)[i];
+			const float r = (radii_)[i];
+			const sf::Color col = (colors_)[i];
 
-            vertex_array[base + 0] = {.position = { pos_x - r, pos_y - r }, .color = col, .texCoords = {u0, v0} };
-            vertex_array[base + 1] = {.position = { pos_x + r, pos_y - r }, .color = col, .texCoords = {u1, v0} };
-            vertex_array[base + 2] = {.position = { pos_x + r, pos_y + r }, .color = col, .texCoords = {u1, v1} };
-            vertex_array[base + 3] = {.position = { pos_x - r, pos_y - r }, .color = col, .texCoords = {u0, v0} };
-            vertex_array[base + 4] = {.position = { pos_x + r, pos_y + r }, .color = col, .texCoords = {u1, v1} };
-            vertex_array[base + 5] = {.position = { pos_x - r, pos_y + r }, .color = col, .texCoords = {u0, v1} };
+			vertex_array[base + 0] = { .position = { pos_x - r, pos_y - r }, .color = col, .texCoords = { u0, v0 } };
+			vertex_array[base + 1] = { .position = { pos_x + r, pos_y - r }, .color = col, .texCoords = { u1, v0 } };
+			vertex_array[base + 2] = { .position = { pos_x + r, pos_y + r }, .color = col, .texCoords = { u1, v1 } };
+			vertex_array[base + 3] = { .position = { pos_x - r, pos_y - r }, .color = col, .texCoords = { u0, v0 } };
+			vertex_array[base + 4] = { .position = { pos_x + r, pos_y + r }, .color = col, .texCoords = { u1, v1 } };
+			vertex_array[base + 5] = { .position = { pos_x - r, pos_y + r }, .color = col, .texCoords = { u0, v1 } };
 
-            
-        }
-    }
 
-    void render()
-    {
-        window_->draw(vertex_array, &texture);
-    }
+		}
+	}
+
+	void render()
+	{
+		window_->draw(vertex_array, &texture);
+	}
 };

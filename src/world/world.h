@@ -30,6 +30,8 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <simulation/context/sim_command.h>
+#include <simulation/settings/settings.h>
+#include <Utils/custom_clock.h>
 #include <Utils/o_vec/o_vector.hpp>
 #include <vector>
 
@@ -38,6 +40,9 @@ class World : public WorldSettings
 	unsigned max_entities = CellManagerSettings::max_cells + FoodManagerSettings::max_food;
 
 	sf::RenderWindow* m_window_ = nullptr;
+
+	// For calculating iterations per second
+	CustomClock<SimulationSettings::frame_smoothing> iteration_clock_{};
 
 	WorldBorder        world_circular_bounds_{ { bounds_radius, bounds_radius }, bounds_radius };
 	sf::FloatRect world_rect_bounds_{ { 0.f, 0.f },{ bounds_radius * 2.f, bounds_radius * 2.f } };
@@ -49,8 +54,6 @@ class World : public WorldSettings
 	o_vector<Body> bodies_{ max_entities };
 
 	float tex_rad = 120;
-
-
 
 	FoodManager        food_manager_{ m_window_, &world_circular_bounds_, &bodies_ };
 	CellManager 	  cell_manager_{ m_window_ , &world_circular_bounds_, &bodies_ };
