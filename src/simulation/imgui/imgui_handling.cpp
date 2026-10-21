@@ -1,4 +1,5 @@
 #include "../simulation.h"
+#include "theme.h"
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <implot.h>
@@ -14,9 +15,12 @@ void Simulation::init_imGUI()
 	if (!ImGui::SFML::Init(m_window_))
 		std::cerr << "[ERROR]: Failed to initialize ImGui-SFML\n";
 
+	apply_aria_theme();
+
 	ImGui::GetIO().FontGlobalScale = ui_scale_percent / 100.f;
 
 	ImPlot::CreateContext();
+	apply_aria_implot_theme();
 	std::cout << "ImGUI initialised\n";
 }
 

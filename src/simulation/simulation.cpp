@@ -19,6 +19,7 @@
 #include <world/world_border.h>
 #include <world/world_settings.h>
 
+
 Simulation::Simulation() : m_world_(&m_window_)
 {
 	window_color = Random::rand_val_in_vector(bg_colors);
