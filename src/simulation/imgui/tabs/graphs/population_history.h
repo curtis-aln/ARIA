@@ -25,15 +25,17 @@ struct MiscSeries
     std::vector<float> avg_springs = {};
     std::vector<float> avg_energy = {};
 
-    void push(float mr, float mrng, float ao, float al, float ac, float asp, float ae)
+    void push(float mutation_rate, float mutation_range, float avg_offspring_count,
+        float avg_lifetime_frames, float avg_cell_count, float avg_spring_count,
+        float avg_energy_level)
     {
-        mut_rate.push_back(mr);
-        mut_range.push_back(mrng);
-        avg_offspring.push_back(ao);
-        avg_lifetime.push_back(al);
-        avg_cells.push_back(ac);
-        avg_springs.push_back(asp);
-        avg_energy.push_back(ae);
+        mut_rate.push_back(mutation_rate);
+        mut_range.push_back(mutation_range);
+        avg_offspring.push_back(avg_offspring_count);
+        avg_lifetime.push_back(avg_lifetime_frames);
+        avg_cells.push_back(avg_cell_count);
+        avg_springs.push_back(avg_spring_count);
+        avg_energy.push_back(avg_energy_level);
     }
 
     // Drop the first `n` elements from every series.
@@ -67,6 +69,8 @@ struct PopulationHistory
     // anywhere in here, on purpose, so callers can't accidentally mix scales.
     std::vector<float> time = {};
     std::vector<float> protozoa = {};
+    std::vector<float> cell_matter = {};
+    std::vector<float> springs = {};
     std::vector<float> food = {};
     std::vector<float> total = {};
     std::vector<float> avg_gen = {};
@@ -82,8 +86,10 @@ struct PopulationHistory
     // stats are pushed together in the same call so the two series can never
     // drift out of index-alignment with each other or with `time`.
     // Returns true if a sample was actually recorded this call.
-    bool push(int p, int f, float gen,
-        float mr, float mrng, float ao, float al, float ac, float asp, float ae)
+    bool push(int protozoa_count, int food_count, float avg_generation,
+        float mutation_rate, float mutation_range, float avg_offspring,
+        float avg_lifetime, float avg_cells, float avg_springs, float avg_energy,
+        float total_cell_matter, float total_springs)
     {
         ++m_frame_counter_;
         if (m_frame_counter_ % k_frame_stride != 0)
@@ -93,20 +99,23 @@ struct PopulationHistory
             _evict();
 
         const float t = static_cast<float>(m_frame_counter_);
-        const int   prev_p = protozoa.empty() ? p : static_cast<int>(protozoa.back());
+        const int   prev_count = protozoa.empty() ? protozoa_count : static_cast<int>(protozoa.back());
         const bool  on_cooldown = !events.empty() && (t - events.back().time) < k_event_cooldown_frames;
-        const int   delta = std::abs(p - prev_p);
+        const int   delta = std::abs(protozoa_count - prev_count);
 
         time.push_back(t);
-        protozoa.push_back(static_cast<float>(p));
-        food.push_back(static_cast<float>(f));
-        total.push_back(static_cast<float>(p + f));
-        avg_gen.push_back(gen);
-        misc.push(mr, mrng, ao, al, ac, asp, ae);
+        protozoa.push_back(static_cast<float>(protozoa_count));
+        food.push_back(static_cast<float>(food_count));
+        total.push_back(static_cast<float>(protozoa_count + food_count));
+        avg_gen.push_back(avg_generation);
+        cell_matter.push_back(total_cell_matter);
+        springs.push_back(total_springs);
+        misc.push(mutation_rate, mutation_range, avg_offspring, avg_lifetime,
+            avg_cells, avg_springs, avg_energy);
 
         if (!on_cooldown && delta > k_spike_delta)
         {
-            const bool  die_off = p < prev_p;
+            const bool  die_off = protozoa_count < prev_count;
             std::string lbl = die_off
                 ? "die-off (-" + std::to_string(delta) + ")"
                 : "boom (+" + std::to_string(delta) + ")";
@@ -167,15 +176,17 @@ struct PopulationHistory
     void export_csv(const std::string& path) const
     {
         std::ofstream f(path);
-        f << "frame,protozoa,food,total,avg_gen,"
+        f << "frame,protozoa,food,total,avg_gen,cell_matter,springs,"
             "mut_rate,mut_range,avg_offspring,avg_lifetime,"
             "avg_cells,avg_springs,avg_energy\n";
+        // ...
+        
 
         const size_t misc_n = misc.size();
         for (size_t i = 0; i < time.size(); ++i)
         {
             f << time[i] << ',' << protozoa[i] << ',' << food[i] << ','
-                << total[i] << ',' << avg_gen[i];
+                << total[i] << ',' << avg_gen[i] << ',' << cell_matter[i] << ',' << springs[i];
             if (i < misc_n)
                 f << ',' << misc.mut_rate[i] << ',' << misc.mut_range[i]
                 << ',' << misc.avg_offspring[i] << ',' << misc.avg_lifetime[i]
@@ -204,6 +215,8 @@ private:
         drop(food, k_evict_chunk);
         drop(total, k_evict_chunk);
         drop(avg_gen, k_evict_chunk);
+        drop(cell_matter, k_evict_chunk);
+        drop(springs, k_evict_chunk);
         misc.evict(k_evict_chunk);
 
         // Prune events that now predate the earliest timestamp.

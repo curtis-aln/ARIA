@@ -103,6 +103,8 @@ void CellManager::update_statistics()
 	const int count = static_cast<int>(all_cells_.size());
 	statistics_.peak_protozoa_ever = std::max(count, statistics_.peak_protozoa_ever);
 	statistics_.cell_count = count;
+	statistics_.spring_count = static_cast<int>(all_springs_.size());
+	statistics_.cell_matter_count = static_cast<int>(all_cell_matter_.size());
 
 	// resetting averages
 	statistics_.average_offspring_count = 0.f;

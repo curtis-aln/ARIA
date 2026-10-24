@@ -20,11 +20,34 @@ void World::update(SimSnapshot& write_snapshot)
 	if (get_entity_count() != bodies_.size())
 		std::cerr << "Warning: Entity count mismatch! bodies_.size() = " << bodies_.size() << ", get_entity_count() = " << get_entity_count() << std::endl;
 
+	// pre-update preparations
+	world_circular_bounds_.bounds_radius = WorldSettings::bounds_radius;
+
+
 	// Update function
 	if (should_tick_sim())
 	{
 		for (int i = 0; i < tick_sim_multiplier; ++i)
+		{
 			tick_sim();
+
+			auto& cm_stats = write_snapshot.cell_manager_stats; // cell manager statistics
+			auto& fm_stats = write_snapshot.food_manager_stats; // food manager statistics
+
+			m_history_.push(
+				cm_stats.cell_count,
+				fm_stats.food_count,
+				cm_stats.average_generation,
+				cm_stats.average_mutation_rate,
+				cm_stats.average_mutation_range,
+				cm_stats.average_offspring_count,
+				cm_stats.average_lifetime,
+				cm_stats.average_cells_per_protozoa,
+				cm_stats.average_spring_count,
+				cm_stats.average_energy,
+				cm_stats.cell_matter_count,
+				cm_stats.spring_count);
+		}
 	}
 
 	// selected cell logic

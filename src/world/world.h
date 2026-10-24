@@ -41,6 +41,8 @@ class World : public WorldSettings
 
 	sf::RenderWindow* m_window_ = nullptr;
 
+	PopulationHistory m_history_;
+
 	// For calculating iterations per second
 	CustomClock<SimulationSettings::frame_smoothing> iteration_clock_{};
 
@@ -118,6 +120,8 @@ public:
 	const FoodManager* get_food_manager() const { return &food_manager_; }
 	const CellManager* get_cell_manager() const { return &cell_manager_; }
 	CellManager* get_cell_manager() { return &cell_manager_; }
+
+	PopulationHistory& get_population_history() { return m_history_; }
 
 	int get_entity_count() const { return cell_manager_.get_cell_count() + food_manager_.get_size() + cell_manager_.get_matter_count(); }
 	int get_cell_count() const { return cell_manager_.get_cell_count(); }

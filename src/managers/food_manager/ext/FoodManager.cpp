@@ -171,7 +171,7 @@ void FoodManager::handle_food_manager_event(SimCommand& cmd)
 		PheromoneGridSettings::max_pheromone = cmd.float_val;
 		break;
 
-	case CommandType::SetFoodNutrients:
+	case CommandType::SetMaxNutrients:
 		FoodSettings::final_nutrients = cmd.float_val;
 		break;
 

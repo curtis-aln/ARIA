@@ -97,5 +97,12 @@ void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	if (ImGui::SliderInt("##render_freq", &render_freq, 1, 120, "Render Frequency %d"))
 		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetPheromoneRenderFrequency, .int_val = render_freq });
 
+
+	// set the max nutrients
+	if (ImGui::SliderFloat("##max_nutrients", &FoodSettings::final_nutrients, 10.f, 300.f, "Max Nutrients %.2f"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetMaxNutrients, .float_val = FoodSettings::final_nutrients });
+
+
+
 	ImGui::EndChild();
 }

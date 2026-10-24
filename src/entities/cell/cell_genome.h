@@ -271,10 +271,10 @@ struct CellGenome : GenomeBase, HardConstants
 	float connective_spring_damping = 0.1f;
 
 	// mutation genes
-	float add_cell_chance = 0.02f;
-	float remove_cell_chance = 0.02f;
-	float add_spring_chance = 0.02f;
-	float remove_spring_chance = 0.02f;
+	float add_cell_chance = 0.05f;
+	float remove_cell_chance = 0.05f;
+	float add_spring_chance = 0.05f;
+	float remove_spring_chance = 0.05f;
 
 	float newborn_search_radius = CellGeneticConstraints::newborn_search.max;
 

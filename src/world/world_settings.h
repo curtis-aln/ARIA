@@ -4,6 +4,7 @@
 struct WorldSettings
 {
 	inline static float bounds_radius;
+	inline static float max_bounds_radius;
 
 	inline static uint32_t collision_grid_power;
 	inline static uint8_t collision_max_capacity;

@@ -9,6 +9,9 @@ struct CellManagerSettings
 	inline static int infant_time; // how long a cell is an infant for
 	inline static float speed_energy_tax; // The Tax for not traveling fast enough
 
+	// reproduction
+	inline static float easy_natural_birth_ratio = 0.9f; // 0 = full natural birth, 1 = full easy birth
+
 	// DAMAGE
 	inline static float impulse_damage_thresh = 50.0f;
 	inline static float impulse_damage_multiplier = 0.0002f;

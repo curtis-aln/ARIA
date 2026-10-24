@@ -89,9 +89,6 @@ class WorldRenderer : public WorldSettings
 	size_t cells_along_axis_ = compute_grid_cell_count(WorldSettings::bounds_radius, WorldSettings::target_visual_cell_size);
 	SFML_Grid visual_grid_;
 
-	// This is the circular world border that is drawn on the screen
-	sf::CircleShape world_border_renderer_{};
-
 	// Rendering the Cells, Food, and Cell matter
 	CircleBatchRenderer outer_circle_renderer_{};
 	CircleBatchRenderer inner_circle_renderer_{};
@@ -113,6 +110,9 @@ class WorldRenderer : public WorldSettings
 
 
 public:
+	// This is the circular world border that is drawn on the screen
+	sf::CircleShape world_border_renderer_{};
+
 	// Constructor
 	WorldRenderer(
 		sf::RenderWindow* window,

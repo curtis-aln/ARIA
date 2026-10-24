@@ -62,6 +62,23 @@ void OrganismTab::Brain()
             return ImVec4{ base.x, base.y, base.z, 0.15f + 0.85f * a };
         };
 
+    // ── Not-implemented disclaimer ───────────────────────────────────────────
+    {
+        const float h = ImGui::GetTextLineHeightWithSpacing() * 3.f
+            + ImGui::GetStyle().WindowPadding.y * 2.f;
+
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, { 0.35f, 0.22f, 0.02f, 0.95f });
+        ImGui::PushStyleColor(ImGuiCol_Border, { 1.00f, 0.75f, 0.20f, 1.00f });
+        ImGui::BeginChild("Brain_disclaimer", { -1.f, h }, true, ImGuiWindowFlags_NoScrollbar);
+
+        ImGui::TextColored({ 1.f, 0.85f, 0.3f, 1.f }, "NOT IMPLEMENTED YET");
+        ImGui::TextWrapped("This tab is a UI prototype. The network below is randomly generated "
+            "and is NOT connected to any organism's brain.");
+
+        ImGui::EndChild();
+        ImGui::PopStyleColor(2);
+    }
+
     // ═════════════════════════════════════════════════════════════════════
     //  Controls / legend / stats panel
     // ═════════════════════════════════════════════════════════════════════

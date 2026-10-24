@@ -105,6 +105,6 @@ vibrate_freq = 0.0065
 
 death_age                     = 2500.0
 
-nutrients_to_radius_scale = 0.66
+nutrients_to_radius_scale = 1.0
 vibration_strength             = 0.12
 

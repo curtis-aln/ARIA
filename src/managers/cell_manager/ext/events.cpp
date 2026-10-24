@@ -244,6 +244,10 @@ void CellManager::handle_cell_manager_event(SimCommand& cmd)
 		//}
 		break;
 
+	case  CommandType::SetEasyNaturalBirthRatio:
+		CellManagerSettings::easy_natural_birth_ratio = cmd.float_val;
+		break;
+
 	}
 }
 

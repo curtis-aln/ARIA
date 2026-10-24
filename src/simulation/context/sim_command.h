@@ -68,6 +68,8 @@ enum class CommandType
 	KillProtozoa,           // kill the selected protozoa (remove it from the simulation)
 	CloneProtozoa,          // spawn a clone of the selected protozoa
 
+	SetEasyNaturalBirthRatio, // set the easy natural birth ratio of the cell manager
+
 	// Springs
 	SetSpringConst,         // set the spring constant of a specific spring
 	SetDampingConst,        // set the damping constant of a specific spring
@@ -104,7 +106,7 @@ enum class CommandType
 	SetPheromoneUpdateFrequency,
 	SetPheromoneRenderFrequency,
 
-	SetFoodNutrients,
+	SetMaxNutrients,
 	SetFoodNutrientsDevelopmentTime,
 	SetFoodFriction,
 	SetFoodVibrationStrength,

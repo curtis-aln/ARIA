@@ -147,6 +147,8 @@ struct CellManagerStatistics
 
 	int   total_deaths = 0;  // increments whenever a cell dies
 	int   cell_count = 0;
+	int   cell_matter_count = 0;
+	int   spring_count = 0;
 
 	int   peak_protozoa_ever = 0;
 	uint32_t   highest_generation_ever = 0;

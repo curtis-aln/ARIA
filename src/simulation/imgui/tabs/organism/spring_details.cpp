@@ -41,12 +41,26 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
         ? 1.f / max_spring_const : 1.f;
     const float ext_scale = ext_range > 0.f ? 1.f / ext_range : 1.f;
 
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, { 0.4f, 0.8f, 1.f, 1.f });
-    ImGui::ProgressBar(std::clamp(total_force * force_scale, 0.f, 1.f), { -1.f, 8.f }, "");
-    ImGui::SameLine(); ImGui::Text("Force  %.2f", total_force);
+    auto bar_with_label = [](float frac, const char* text)
+        {
+            const float spacing = ImGui::GetStyle().ItemInnerSpacing.x;
+            // fixed width so the bar doesn't jitter as the digits change
+            const float label_w = ImGui::CalcTextSize("Force  -000.00").x;
+            ImGui::ProgressBar(std::clamp(frac, 0.f, 1.f), { -(label_w + spacing), 8.f }, "");
+            ImGui::SameLine(0.f, spacing);
+            ImGui::TextUnformatted(text);
+        };
 
-    ImGui::ProgressBar(std::clamp((s.current_length - ext_min) * ext_scale, 0.f, 1.f), { -1.f, 8.f }, "");
-    ImGui::SameLine(); ImGui::Text("Ext    %.2f", s.current_length - s.rest_length);
+    char buf[32];
+
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, { 0.4f, 0.8f, 1.f, 1.f });
+
+    snprintf(buf, sizeof buf, "Force  %.2f", total_force);
+    bar_with_label(total_force * force_scale, buf);
+
+    snprintf(buf, sizeof buf, "Ext    %.2f", s.current_length - s.rest_length);
+    bar_with_label((s.current_length - ext_min) * ext_scale, buf);
+
     ImGui::PopStyleColor();
 
     ImGui::Spacing();

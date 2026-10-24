@@ -40,7 +40,11 @@ private:
     bool m_show_protozoa_ = true;
     bool m_show_food_ = true;
     bool m_show_total_ = true;
-    bool m_show_bands_ = true;
+    bool m_show_cell_matter_ = true;
+    bool m_show_springs_ = true;
+    bool m_show_fill_ = true;
+    bool m_show_bands_ = false;
+    bool m_show_events_ = false;   // vertical event lines, off by default
 
     // ── Band cache — recomputed only when the history grows or shrinks ────
     struct BandCache

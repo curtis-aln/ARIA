@@ -61,7 +61,6 @@ class Simulation : SimulationSettings
 	Camera camera_{ &m_window_, 1.f };
 
 	World           m_world_{};
-	PopulationHistory m_history_;
 	ControlPanel    m_control_panel_;
 
 	SimulationStatistics sim_state_{};
@@ -102,7 +101,6 @@ private:
 	void init_imGUI();
 	void update_one_frame();
 	void camera_follow_selected_protozoa();
-	void update_line_graphs(const SimSnapshot& snapshot);
 	void handle_imGUI(const SimSnapshot& snapshot, float dt);
 	void extinction_popup();
 	void render();

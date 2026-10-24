@@ -62,8 +62,10 @@ void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
     const int  p = snap.cell_manager_stats.cell_count;
     const int  f = snap.food_manager_stats.food_count;
     const bool risk = p <= 10;
-    StatRow::draw("Protozoa", "%d", p);
+    StatRow::draw("cekks", "%d", p);
     StatRow::draw("Food", "%d", f);
+	StatRow::draw("Matter", "%d", snap.cell_manager_stats.cell_matter_count);
+	StatRow::draw("Springs", "%d", snap.cell_manager_stats.spring_count);
     StatRow::draw("Total", "%d", p + f);
     StatRow::draw_warn("Ext. risk", risk, "%s", risk ? "YES" : "no");
     StatRow::draw("Peak ever", "%d", snap.cell_manager_stats.peak_protozoa_ever);
@@ -108,7 +110,7 @@ void GraphsTab::draw_shared_toolbar(const SimSnapshot& snap)
     const float live_x = static_cast<float>(history.current_frame());
 
     ImGui::SetNextItemWidth(400.f);
-    ImGui::SliderFloat("Window (frames)##g", &m_scroll_window_,
+    ImGui::SliderFloat("Window (iterations)##g", &m_scroll_window_,
         k_scroll_window_min, k_scroll_window_max, "%.0f");
     ImGui::SameLine(0, 16);
 
@@ -134,104 +136,190 @@ void GraphsTab::draw_shared_toolbar(const SimSnapshot& snap)
         history.export_csv("population_export.csv");
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Population tab
 // ─────────────────────────────────────────────────────────────────────────────
+
+namespace
+{
+    constexpr ImVec4 kProto = { 0.30f, 0.62f, 1.00f, 1.f };
+    constexpr ImVec4 kFood = { 0.30f, 0.90f, 0.50f, 1.f };
+    constexpr ImVec4 kTotal = { 0.72f, 0.74f, 0.80f, 1.f };
+    constexpr ImVec4 kMatter = { 1.00f, 0.65f, 0.25f, 1.f };
+    constexpr ImVec4 kSprings = { 0.85f, 0.45f, 1.00f, 1.f };
+    constexpr ImVec4 kNeutral = { 0.60f, 0.65f, 0.75f, 1.f };
+
+    void chip(const char* label, bool* v, ImVec4 col)
+    {
+        const bool on = *v;
+        const ImVec4 bg = on ? ImVec4{ col.x, col.y, col.z, 0.20f } : ImVec4{ 1.f, 1.f, 1.f, 0.04f };
+        const ImVec4 bgh = on ? ImVec4{ col.x, col.y, col.z, 0.34f } : ImVec4{ 1.f, 1.f, 1.f, 0.10f };
+        const ImVec4 txt = on ? col : ImVec4{ 0.50f, 0.53f, 0.60f, 1.f };
+
+        ImGui::PushStyleColor(ImGuiCol_Button, bg);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bgh);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, bgh);
+        ImGui::PushStyleColor(ImGuiCol_Text, txt);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 10.f, 3.f });
+        if (ImGui::Button(label)) *v = !*v;
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(4);
+    }
+}
+
 void GraphsTab::draw_population_tab(const SimSnapshot& snap)
 {
     const PopulationHistory& history = snap.history;
-    ImGui::Checkbox("Protozoa", &m_show_protozoa_); ImGui::SameLine(0, 12);
-    ImGui::Checkbox("Food", &m_show_food_);     ImGui::SameLine(0, 12);
-    ImGui::Checkbox("Total", &m_show_total_);    ImGui::SameLine(0, 12);
-    ImGui::Checkbox("Bands", &m_show_bands_);
 
+    // ── Toggle chips ──────────────────────────────────────────────────────
+    chip("Protozoa", &m_show_protozoa_, kProto);        ImGui::SameLine();
+    chip("Food", &m_show_food_, kFood);                 ImGui::SameLine();
+    chip("Total", &m_show_total_, kTotal);              ImGui::SameLine();
+    chip("Cell matter", &m_show_cell_matter_, kMatter); ImGui::SameLine();
+    chip("Springs", &m_show_springs_, kSprings);        ImGui::SameLine(0, 24);
+    chip("Fill", &m_show_fill_, kNeutral);              ImGui::SameLine();
+    chip("Bands", &m_show_bands_, kNeutral);            ImGui::SameLine();
+    chip("Events", &m_show_events_, kNeutral);
+
+    // ── Window ────────────────────────────────────────────────────────────
     const float live_x = static_cast<float>(history.current_frame());
-    const float x_max = m_hover_paused_ ? m_paused_x_max_ : live_x;
-    const float x_min = x_max - m_scroll_window_;
+    float x_max = m_hover_paused_ ? m_paused_x_max_ : live_x;
+    float x_min = x_max - m_scroll_window_;
+    if (x_min < 0.f) { x_min = 0.f; x_max = m_scroll_window_; } // no negative iterations on the axis
+    const float x_data_end = std::min(x_max, live_x);
 
-    // Only recompute bands when sample count actually changes.
     if (m_show_bands_)
         m_band_cache_.refresh(history, m_show_protozoa_, m_show_food_);
 
-    constexpr ImPlotFlags     pf = ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText;
-    constexpr ImPlotAxisFlags yf = ImPlotAxisFlags_AutoFit;
+    // ── Style ─────────────────────────────────────────────────────────────
+    ImPlot::PushStyleColor(ImPlotCol_FrameBg, { 0.f, 0.f, 0.f, 0.f });
+    ImPlot::PushStyleColor(ImPlotCol_PlotBg, { 0.f, 0.f, 0.f, 0.f });
+    ImPlot::PushStyleColor(ImPlotCol_PlotBorder, { 0.f, 0.f, 0.f, 0.f });
+    ImPlot::PushStyleColor(ImPlotCol_AxisGrid, { 1.f, 1.f, 1.f, 0.07f });
+    ImPlot::PushStyleColor(ImPlotCol_AxisText, { 0.55f, 0.58f, 0.65f, 1.f });
+    ImPlot::PushStyleVar(ImPlotStyleVar_PlotBorderSize, 0.f);
+    ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2.f);
 
-    if (!ImPlot::BeginPlot("##pop", { -1.f, -1.f }, pf)) return;
+    constexpr ImPlotFlags pf = ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
+        ImPlotFlags_NoMouseText | ImPlotFlags_NoLegend;
 
-    ImPlot::SetupAxes("Frame", "Count", ImPlotAxisFlags_None, yf);
-    ImPlot::SetupAxisLimits(ImAxis_X1, x_min, x_max, ImGuiCond_Always);
-
-    // Only the visible slice ever gets handed to ImPlot — vertex count is
-    // now bounded by the scroll window, not by total sim runtime.
-    size_t begin = 0, count = 0;
-    history.window_bounds(x_min, x_max, begin, count);
-    const int n = static_cast<int>(count);
-
-    if (n > 0)
+    if (ImPlot::BeginPlot("##pop", { -1.f, -1.f }, pf))
     {
-        const float* t = history.time.data() + begin;
+        const bool any_y2 = m_show_cell_matter_ || m_show_springs_;
 
-        if (m_show_bands_ && m_band_cache_.valid_for_n == history.size())
+        ImPlot::SetupAxes(nullptr, nullptr,
+            ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks,
+            ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoTickMarks);
+        if (any_y2) // matter/springs have a different scale, so they get their own axis
+            ImPlot::SetupAxis(ImAxis_Y2, nullptr, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_Opposite |
+                ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks);
+        ImPlot::SetupAxisLimits(ImAxis_X1, x_min, x_max, ImGuiCond_Always);
+
+        size_t begin = 0, count = 0;
+        history.window_bounds(x_min, x_max, begin, count);
+        const int n = static_cast<int>(count);
+
+        if (n > 0)
         {
-            if (m_show_protozoa_ && !m_band_cache_.plo.empty())
+            const float* t = history.time.data() + begin;
+
+            if (m_show_bands_ && m_band_cache_.valid_for_n == history.size())
             {
-                ImPlot::SetNextFillStyle({ 0.3f, 0.6f, 1.f, 1.f }, 0.15f);
-                ImPlot::PlotShaded("##pb", t, m_band_cache_.plo.data() + begin,
-                    m_band_cache_.phi.data() + begin, n);
+                if (m_show_protozoa_ && !m_band_cache_.plo.empty())
+                {
+                    ImPlot::SetNextFillStyle(kProto, 0.15f);
+                    ImPlot::PlotShaded("##pb", t, m_band_cache_.plo.data() + begin,
+                        m_band_cache_.phi.data() + begin, n);
+                }
+                if (m_show_food_ && !m_band_cache_.flo.empty())
+                {
+                    ImPlot::SetNextFillStyle(kFood, 0.12f);
+                    ImPlot::PlotShaded("##fb", t, m_band_cache_.flo.data() + begin,
+                        m_band_cache_.fhi.data() + begin, n);
+                }
             }
-            if (m_show_food_ && !m_band_cache_.flo.empty())
+
+            auto plot_series = [&](const char* name, const std::vector<float>& ys,
+                ImVec4 col, ImAxis yax, bool fill)
+                {
+                    ImPlot::SetAxes(ImAxis_X1, yax);
+                    const float* y = ys.data() + begin;
+                    if (fill && m_show_fill_ && !m_show_bands_)
+                    {
+                        char id[48]; snprintf(id, sizeof id, "##fill_%s", name);
+                        ImPlot::SetNextFillStyle(col, 0.10f);
+                        ImPlot::PlotShaded(id, t, y, n, 0.0);
+                    }
+                    ImPlot::SetNextLineStyle(col, 2.f);
+                    ImPlot::PlotLine(name, t, y, n);
+                };
+
+            if (m_show_total_)       plot_series("Total", history.total, kTotal, ImAxis_Y1, false);
+            if (m_show_food_)        plot_series("Food", history.food, kFood, ImAxis_Y1, true);
+            if (m_show_protozoa_)    plot_series("Protozoa", history.protozoa, kProto, ImAxis_Y1, true);
+            if (m_show_cell_matter_) plot_series("Cell matter", history.cell_matter, kMatter, ImAxis_Y2, false);
+            if (m_show_springs_)     plot_series("Springs", history.springs, kSprings, ImAxis_Y2, false);
+
+            ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
+
+            // Extinction threshold
             {
-                ImPlot::SetNextFillStyle({ 0.3f, 1.f, 0.4f, 1.f }, 0.12f);
-                ImPlot::PlotShaded("##fb", t, m_band_cache_.flo.data() + begin,
-                    m_band_cache_.fhi.data() + begin, n);
+                ImPlot::SetNextLineStyle({ 1.f, 0.25f, 0.25f, 0.5f }, 1.f);
+                const float tx[2] = { t[0], t[n - 1] };
+                const float ty[2] = { k_extinction_threshold, k_extinction_threshold };
+                ImPlot::PlotLine("##ext", tx, ty, 2);
+            }
+
+            float y_top = k_extinction_threshold;
+            for (int i = 0; i < n; ++i)
+                y_top = std::max(y_top, history.total[begin + i]);
+
+            if (m_show_events_)
+                draw_event_markers(snap, x_min, x_max, y_top);
+            if (m_recording_ && m_record_start_ >= x_min)
+                draw_record_region(x_data_end, y_top);
+
+            // ── Hover readout: faint cursor + values at nearest sample ──────
+            if (ImPlot::IsPlotHovered())
+            {
+                const float mx = static_cast<float>(ImPlot::GetPlotMousePos().x);
+                const float* tb = history.time.data() + begin;
+                size_t k = std::lower_bound(tb, tb + n, mx) - tb;
+                if (k >= count) k = count - 1;
+                else if (k > 0 && (mx - tb[k - 1]) < (tb[k] - mx)) --k;
+                const size_t i = begin + k;
+
+                double cx = history.time[i];
+                ImPlot::SetNextLineStyle({ 1.f, 1.f, 1.f, 0.25f }, 1.f);
+                ImPlot::PlotInfLines("##cursor", &cx, 1);
+
+                ImGui::BeginTooltip();
+                ImGui::TextDisabled("Frame %.0f", history.time[i]);
+                auto row = [](const char* l, ImVec4 c, float v) { ImGui::TextColored(c, "%-12s %.0f", l, v); };
+                if (m_show_protozoa_)    row("Protozoa", kProto, history.protozoa[i]);
+                if (m_show_food_)        row("Food", kFood, history.food[i]);
+                if (m_show_total_)       row("Total", kTotal, history.total[i]);
+                if (m_show_cell_matter_) row("Cell matter", kMatter, history.cell_matter[i]);
+                if (m_show_springs_)     row("Springs", kSprings, history.springs[i]);
+                ImGui::EndTooltip();
             }
         }
 
-        if (m_show_protozoa_)
+        if (ImPlot::IsPlotHovered() && !m_hover_paused_)
         {
-            ImPlot::SetNextLineStyle({ 0.3f, 0.6f, 1.f, 1.f });
-            ImPlot::PlotLine("Protozoa", t, history.protozoa.data() + begin, n);
+            m_hover_paused_ = true;
+            m_paused_x_max_ = live_x;
         }
-        if (m_show_food_)
-        {
-            ImPlot::SetNextLineStyle({ 0.3f, 1.f, 0.4f, 1.f });
-            ImPlot::PlotLine("Food", t, history.food.data() + begin, n);
-        }
-        if (m_show_total_)
-        {
-            ImPlot::SetNextLineStyle({ 0.65f, 0.65f, 0.65f, 1.f });
-            ImPlot::PlotLine("Total", t, history.total.data() + begin, n);
-        }
+        else if (!ImPlot::IsPlotHovered())
+            m_hover_paused_ = false;
 
-        // Extinction threshold line
-        {
-            ImPlot::SetNextLineStyle({ 1.f, 0.25f, 0.25f, 0.8f }, 1.f);
-            const float tx[2] = { t[0], t[n - 1] };
-            const float ty[2] = { k_extinction_threshold, k_extinction_threshold };
-            ImPlot::PlotLine("##ext", tx, ty, 2);
-        }
-
-        // Visible-window max, for event marker height, so they don't blow up
-        // the Y axis when hover-paused on historical low-count periods.
-        float y_top = k_extinction_threshold; // never shorter than the extinction line
-        const float* total_slice = history.total.data() + begin;
-        for (int i = 0; i < n; ++i)
-            y_top = std::max(y_top, total_slice[i]);
-
-        draw_event_markers(snap, x_min, x_max, y_top);
-        if (m_recording_ && m_record_start_ >= x_min)
-            draw_record_region(x_max, y_top);
+        ImPlot::EndPlot();
     }
 
-    if (ImPlot::IsPlotHovered() && !m_hover_paused_)
-    {
-        m_hover_paused_ = true;
-        m_paused_x_max_ = live_x;
-    }
-    else if (!ImPlot::IsPlotHovered())
-        m_hover_paused_ = false;
-
-    ImPlot::EndPlot();
+    ImPlot::PopStyleVar(2);
+    ImPlot::PopStyleColor(5);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

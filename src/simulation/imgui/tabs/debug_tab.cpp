@@ -97,9 +97,24 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	ImGui::Spacing();
 	toggle(snap, ctx, "easy reproduction", &CellManagerToggles::easy_reproduction);
+	if (ctx.cell_toggles.easy_reproduction)
+	{
+		ImGui::Indent();
+		float thresh = CellManagerSettings::easy_natural_birth_ratio;
+		if (ImGui::SliderFloat("##easy_natural_birth_ratio", &thresh, 0.f, 1.f, "threshold %.2f"))
+			ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetEasyNaturalBirthRatio, .float_val = thresh });
+		ImGui::Unindent();
+	}
 
 	ImGui::Spacing();
 	toggle(snap, ctx, "prune cells", &CellManagerToggles::prune_cells);
+
+	ImGui::Separator();
+
+	// slider for changing the world size
+	if (ImGui::SliderFloat("##world_radius", &WorldSettings::bounds_radius, 1000, max_bounds_radius, "world radius %.0f"))
+		ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldRadius, .float_val = WorldSettings::bounds_radius });
+
 
 	ImGui::EndChild();
 	ImGui::SameLine();

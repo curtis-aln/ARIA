@@ -59,7 +59,7 @@ void CellManager::apply_reproduction_requests()
 		if (toggles_.prune_cells)
 			check_prune_cells();
 
-		if (toggles_.easy_reproduction)   // new ImGui toggle, add it to CellManagerToggles
+		if (toggles_.easy_reproduction && Random::rand01_float() < CellManagerSettings::easy_natural_birth_ratio)   // new ImGui toggle, add it to CellManagerToggles
 			easy_reproduce(req);
 		else
 			normal_reproduce(req);

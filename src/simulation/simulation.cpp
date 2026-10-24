@@ -176,7 +176,6 @@ void Simulation::update_one_frame()
 
 	m_world_.update(snap);
 	fill_snapshot(snap);
-	update_line_graphs(snap);
 
 	m_sim_buffer_.publish(); // Publish the filled snapshot to make it available for rendering.
 
@@ -253,21 +252,6 @@ void Simulation::camera_follow_selected_protozoa()
 	camera_.update_window_view();
 }
 
-void Simulation::update_line_graphs(const SimSnapshot& snapshot)
-{
-	m_history_.push(
-		snapshot.cell_manager_stats.cell_count,
-		snapshot.food_manager_stats.food_count,
-		snapshot.cell_manager_stats.average_generation,
-		snapshot.cell_manager_stats.average_mutation_rate,
-		snapshot.cell_manager_stats.average_mutation_range,
-		snapshot.cell_manager_stats.average_offspring_count,
-		snapshot.cell_manager_stats.average_lifetime,
-		snapshot.cell_manager_stats.average_cells_per_protozoa,
-		snapshot.cell_manager_stats.average_spring_count,
-		snapshot.cell_manager_stats.average_energy);
-}
-
 void Simulation::render()
 {
 	// Always grab the freshest completed simulation frame
@@ -318,7 +302,7 @@ void Simulation::fill_snapshot(SimSnapshot& snap)
 	sim_state_.mouse_pos_y = mouse_pos.y;
 
 	snap.sim_stats = sim_state_;
-	snap.history = m_history_;
+	snap.history = m_world_.get_population_history();
 }
 
 void Simulation::toggle_fullscreen()

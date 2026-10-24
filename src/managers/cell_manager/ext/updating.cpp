@@ -48,8 +48,7 @@ void CellManager::update(int iterations)
 		return;
 
 	// this has to happen before we move about the cells
-	if (!toggles_.easy_reproduction) // if easy reproduction is on, we dont want to add new cells to the grid because they will be connected immediately
-		add_new_cells_to_grid();
+	add_new_cells_to_grid();
 
 	// if we have a selected cell and it has died, we need to deselect it to avoid null errors
 	if (selected_cell_id_ == -1 || !all_cells_.at(selected_cell_id_)->is_alive())

@@ -33,13 +33,17 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	ImGui::TextDisabled("Playback");
 	ImGui::Separator();
 
-	ImGui::Text("Time:  %s", PlotUtils::format_time(snap.sim_stats.total_time_elapsed).c_str());
-	ImGui::SameLine(150.0f); // fixed x-offset lines both columns up
-	ImGui::Text("Rendering FPS %.1f", snap.sim_stats.rendering_frame_rate);
-	ImGui::Text("Frame: %u", snap.world_stats.iterations_);
-	ImGui::SameLine(150.0f);
-	ImGui::Text("Updating FPS %.1f", snap.sim_stats.updating_frame_rate);
-	ImGui::Text("Iterations fps: %.1f", snap.world_stats.iterations_per_second);
+	if (ImGui::BeginTable("##play_stats", 2, ImGuiTableFlags_SizingFixedFit))
+	{
+		ImGui::TableNextColumn(); ImGui::Text("Time:  %s", PlotUtils::format_time(snap.sim_stats.total_time_elapsed).c_str());
+		ImGui::TableNextColumn(); ImGui::Text("Render FPS %.1f", snap.sim_stats.rendering_frame_rate);
+
+		ImGui::TableNextColumn(); ImGui::Text("Frame: %u", snap.world_stats.iterations_);
+		ImGui::TableNextColumn(); ImGui::Text("Update FPS %.1f", snap.sim_stats.updating_frame_rate);
+
+		ImGui::TableNextColumn(); ImGui::Text("Iter/s: %.1f", snap.world_stats.iterations_per_second);
+		ImGui::EndTable();
+	}
 
 	const float bw = (ImGui::GetContentRegionAvail().x - sp) * 0.5f;
 	if (ImGui::Button(snap.world_toggles.paused ? "Resume [Spc]" : "Pause  [Spc]", { bw, 0.f }))
@@ -292,9 +296,14 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		m_blackhole_ = !m_blackhole_;
 	if (m_blackhole_) ImGui::PopStyleColor();
 	if (m_blackhole_) ImGui::TextColored({ 0.9f, 0.5f, 1.f, 1.f }, "Click in world to place");
-	ImGui::SetNextItemWidth(-1.f); ImGui::SliderFloat("Strength##bh", &m_bh_strength_, 10.f, 5000.f, "%.0f");
-	ImGui::SetNextItemWidth(-1.f); ImGui::SliderFloat("Radius##bh", &m_bh_radius_, 100.f, 5000.f, "%.0f");
+	ImGui::SetNextItemWidth(-1.f);
+	ImGui::SliderFloat("##bh_strength", &m_bh_strength_, 10.f, 5000.f, "Strength %.0f");
+	ImGui::SetNextItemWidth(-1.f);
+	ImGui::SliderFloat("##bh_radius", &m_bh_radius_, 100.f, 5000.f, "Radius %.0f");
+
+	ImGui::PushTextWrapPos(0.0f); // 0 = wrap at the right edge of the current window/child
 	ImGui::TextDisabled("TODO: World::apply_gravity_well(pos, strength, radius)");
+	ImGui::PopTextWrapPos();
 
 	ImGui::EndChild();
 	// ── Save / Load + Keybinds ────────────────────────────────────────────────

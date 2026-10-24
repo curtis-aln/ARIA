@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 struct CellMatterSettings
 {
@@ -8,8 +9,8 @@ struct CellMatterSettings
 	inline static constexpr float    friction = 0.8f;
 	inline static uint16_t max_time_to_live = 13'000; // frames
 
-	inline static constexpr uint8_t max_radius = 70;
-	inline static constexpr uint8_t min_radius = 40;
+	inline static constexpr uint8_t max_radius = 180;
+	inline static constexpr uint8_t min_radius = 120;
 
 	inline static constexpr uint8_t max_gray = 70;
 	inline static constexpr uint8_t min_gray = 40;

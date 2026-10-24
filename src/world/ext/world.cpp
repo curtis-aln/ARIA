@@ -23,6 +23,8 @@ World::World(sf::RenderWindow* window) : m_window_(window)
 {
 	food_manager_.create_food_pool(food_manager_.initial_food);
 	bound_bodies();
+
+	max_bounds_radius = bounds_radius;
 }
 
 
@@ -222,6 +224,14 @@ void World::handle_world_event(SimCommand& cmd)
 
 	case CommandType::ResetSimulation:
 		reset_world();
+		break;
+
+	case CommandType::SetWorldRadius:
+		bounds_radius = cmd.float_val;
+		//world_circular_bounds_.set_radius(bounds_radius);
+		//world_rect_bounds_ = { { 0.f, 0.f },{ bounds_radius * 2.f, bounds_radius * 2.f } };
+		world_renderer_.world_border_renderer_.setRadius(bounds_radius);
+		world_renderer_.world_border_renderer_.setPosition({max_bounds_radius - bounds_radius, max_bounds_radius - bounds_radius});
 		break;
 
 	case CommandType::SetInfluenceRadius:
