@@ -25,6 +25,7 @@ struct MiscSeries
     std::vector<float> avg_springs = {};
     std::vector<float> avg_energy = {};
 
+
     void push(float mutation_rate, float mutation_range, float avg_offspring_count,
         float avg_lifetime_frames, float avg_cell_count, float avg_spring_count,
         float avg_energy_level)
@@ -76,6 +77,10 @@ struct PopulationHistory
     std::vector<float> avg_gen = {};
     MiscSeries         misc = {};
 
+    std::vector<float> min_gen = {};
+    std::vector<float> max_gen = {};
+    std::vector<float> gen_distribution = {}; // every organism's generation at the latest sample
+
     std::vector<PopulationEvent> events = {};
 
     // ── Mutation ─────────────────────────────────────────────────────────────
@@ -86,7 +91,7 @@ struct PopulationHistory
     // stats are pushed together in the same call so the two series can never
     // drift out of index-alignment with each other or with `time`.
     // Returns true if a sample was actually recorded this call.
-    bool push(int protozoa_count, int food_count, float avg_generation,
+    bool push(int protozoa_count, int food_count, const std::vector<float>& generations,
         float mutation_rate, float mutation_range, float avg_offspring,
         float avg_lifetime, float avg_cells, float avg_springs, float avg_energy,
         float total_cell_matter, float total_springs)
@@ -107,7 +112,21 @@ struct PopulationHistory
         protozoa.push_back(static_cast<float>(protozoa_count));
         food.push_back(static_cast<float>(food_count));
         total.push_back(static_cast<float>(protozoa_count + food_count));
-        avg_gen.push_back(avg_generation);
+
+        float gen_avg = 0.f, gen_min = 0.f, gen_max = 0.f;
+        if (!generations.empty())
+        {
+            const auto [mn, mx] = std::minmax_element(generations.begin(), generations.end());
+            gen_min = *mn;
+            gen_max = *mx;
+            gen_avg = static_cast<float>(std::accumulate(generations.begin(), generations.end(), 0.0)
+                / static_cast<double>(generations.size()));
+        }
+        avg_gen.push_back(gen_avg);
+        min_gen.push_back(gen_min);
+        max_gen.push_back(gen_max);
+        gen_distribution = generations; // only runs on sampled frames, past the stride early-out
+
         cell_matter.push_back(total_cell_matter);
         springs.push_back(total_springs);
         misc.push(mutation_rate, mutation_range, avg_offspring, avg_lifetime,
@@ -217,6 +236,8 @@ private:
         drop(avg_gen, k_evict_chunk);
         drop(cell_matter, k_evict_chunk);
         drop(springs, k_evict_chunk);
+        drop(min_gen, k_evict_chunk);
+        drop(max_gen, k_evict_chunk);
         misc.evict(k_evict_chunk);
 
         // Prune events that now predate the earliest timestamp.

@@ -46,6 +46,10 @@ private:
     bool m_show_bands_ = false;
     bool m_show_events_ = false;   // vertical event lines, off by default
 
+    bool m_show_gen_avg_ = true;
+    bool m_show_gen_range_ = true;
+    bool m_show_gen_dist_ = true;
+
     // ── Band cache — recomputed only when the history grows or shrinks ────
     struct BandCache
     {

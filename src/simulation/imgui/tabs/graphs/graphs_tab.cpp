@@ -62,7 +62,7 @@ void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
     const int  p = snap.cell_manager_stats.cell_count;
     const int  f = snap.food_manager_stats.food_count;
     const bool risk = p <= 10;
-    StatRow::draw("cekks", "%d", p);
+    StatRow::draw("Cells", "%d", p);
     StatRow::draw("Food", "%d", f);
 	StatRow::draw("Matter", "%d", snap.cell_manager_stats.cell_matter_count);
 	StatRow::draw("Springs", "%d", snap.cell_manager_stats.spring_count);
@@ -166,6 +166,67 @@ namespace
         if (ImGui::Button(label)) *v = !*v;
         ImGui::PopStyleVar(2);
         ImGui::PopStyleColor(4);
+    }
+
+    constexpr ImVec4 kGen = { 0.40f, 0.85f, 0.95f, 1.f };
+    constexpr ImVec4 kMutRate = { 1.00f, 0.50f, 0.20f, 1.f };
+    constexpr ImVec4 kMutRange = { 1.00f, 0.80f, 0.20f, 1.f };
+    constexpr ImVec4 kOffspring = { 0.40f, 1.00f, 0.60f, 1.f };
+    constexpr ImVec4 kLifetime = { 0.60f, 0.40f, 1.00f, 1.f };
+    constexpr ImVec4 kAvgCells = { 0.30f, 0.80f, 1.00f, 1.f };
+    constexpr ImVec4 kAvgSpring = { 0.90f, 0.30f, 0.90f, 1.f };
+    constexpr ImVec4 kAvgEnergy = { 1.00f, 0.90f, 0.30f, 1.f };
+
+    constexpr ImPlotFlags     kPlotFlags = ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
+        ImPlotFlags_NoMouseText | ImPlotFlags_NoLegend;
+    constexpr ImPlotAxisFlags kXAxis = ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks;
+    constexpr ImPlotAxisFlags kYAxis = ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoTickMarks;
+
+    void push_plot_style()
+    {
+        ImPlot::PushStyleColor(ImPlotCol_FrameBg, { 0.f, 0.f, 0.f, 0.f });
+        ImPlot::PushStyleColor(ImPlotCol_PlotBg, { 0.f, 0.f, 0.f, 0.f });
+        ImPlot::PushStyleColor(ImPlotCol_PlotBorder, { 0.f, 0.f, 0.f, 0.f });
+        ImPlot::PushStyleColor(ImPlotCol_AxisGrid, { 1.f, 1.f, 1.f, 0.07f });
+        ImPlot::PushStyleColor(ImPlotCol_AxisText, { 0.55f, 0.58f, 0.65f, 1.f });
+        ImPlot::PushStyleVar(ImPlotStyleVar_PlotBorderSize, 0.f);
+        ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 2.f);
+        ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.f, 0.1f)); // 10% headroom on auto-fit Y
+    }
+    void pop_plot_style() { ImPlot::PopStyleVar(3); ImPlot::PopStyleColor(5); }
+
+    struct TimeWindow { float x_min, x_max, live_x; };
+
+    TimeWindow plot_window(const PopulationHistory& h, float span, bool hover_paused, float paused_x_max)
+    {
+        const float live = static_cast<float>(h.current_frame());
+        float hi = hover_paused ? paused_x_max : live;
+        float lo = hi - span;
+        if (lo < 0.f) { lo = 0.f; hi = span; }
+        return { lo, hi, live };
+    }
+
+    // Call inside BeginPlot. Freezes the window while the mouse is over the plot.
+    void update_hover_pause(bool& paused, float& paused_x_max, float live_x)
+    {
+        if (ImPlot::IsPlotHovered()) { if (!paused) { paused = true; paused_x_max = live_x; } }
+        else paused = false;
+    }
+
+    // Absolute index of the sample nearest to mx. Requires count > 0.
+    size_t nearest_sample(const std::vector<float>& time, size_t begin, size_t count, float mx)
+    {
+        const float* tb = time.data() + begin;
+        size_t k = static_cast<size_t>(std::lower_bound(tb, tb + count, mx) - tb);
+        if (k >= count) k = count - 1;
+        else if (k > 0 && (mx - tb[k - 1]) < (tb[k] - mx)) --k;
+        return begin + k;
+    }
+
+    void draw_cursor_line(double x)
+    {
+        ImPlot::SetNextLineStyle({ 1.f, 1.f, 1.f, 0.25f }, 1.f);
+        ImPlot::PlotInfLines("##cursor", &x, 1);
     }
 }
 
@@ -358,193 +419,181 @@ void GraphsTab::draw_record_region(const float x_max, const float y_top)
     ImPlot::PlotShaded("##rec", rx, rlo, rhi, 2);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Generations tab
-// ─────────────────────────────────────────────────────────────────────────────
 void GraphsTab::draw_generations_tab(const SimSnapshot& snap)
 {
-    const auto& gen_data = snap.world_stats.gen_data;
+    const PopulationHistory& h = snap.history;
 
-    constexpr ImPlotFlags hf = ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText;
-    const float           plot_h = ImGui::GetContentRegionAvail().y
-        - ImGui::GetFrameHeightWithSpacing() * 2.f;
+    chip("Average", &m_show_gen_avg_, kGen);       ImGui::SameLine();
+    chip("Min / max", &m_show_gen_range_, kGen);   ImGui::SameLine();
+    chip("Distribution", &m_show_gen_dist_, kNeutral);
 
-    if (!gen_data.empty() && ImPlot::BeginPlot("##gen_hist", { -1.f, plot_h }, hf))
+    if (h.size() == 0) { ImGui::TextDisabled("No generation data yet."); return; }
+
+    ImGui::SameLine(0, 24);
+    ImGui::TextDisabled("Avg");   ImGui::SameLine(); ImGui::Text("%.2f", h.avg_gen.back());  ImGui::SameLine(0, 14);
+    ImGui::TextDisabled("Min");   ImGui::SameLine(); ImGui::Text("%.0f", h.min_gen.back());  ImGui::SameLine(0, 14);
+    ImGui::TextDisabled("Max");   ImGui::SameLine(); ImGui::Text("%.0f", h.max_gen.back());  ImGui::SameLine(0, 14);
+    ImGui::TextDisabled("Alive"); ImGui::SameLine(); ImGui::Text("%d", static_cast<int>(h.gen_distribution.size()));
+
+    const TimeWindow win = plot_window(h, m_scroll_window_, m_hover_paused_, m_paused_x_max_);
+    size_t begin = 0, count = 0;
+    h.window_bounds(win.x_min, win.x_max, begin, count);
+    const int n = static_cast<int>(count);
+
+    const bool show_dist = m_show_gen_dist_ && !h.gen_distribution.empty();
+    const float time_w = show_dist
+        ? (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.62f
+        : -1.f;
+
+    push_plot_style();
+
+    // ── Generation over time ──────────────────────────────────────────────
+    if (ImPlot::BeginPlot("##gen_time", { time_w, -1.f }, kPlotFlags))
     {
-        ImPlot::SetupAxes("Generation", "Count",
-            ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
-        ImPlot::SetNextFillStyle({ 0.4f, 0.7f, 1.f, 1.f }, 0.75f);
-        ImPlot::PlotHistogram("Generation dist.", gen_data.data(),
-            static_cast<int>(gen_data.size()),
-            ImPlotBin_Sturges, 1.0, ImPlotRange{});
+        ImPlot::SetupAxes(nullptr, nullptr, kXAxis, kYAxis);
+        ImPlot::SetupAxisLimits(ImAxis_X1, win.x_min, win.x_max, ImGuiCond_Always);
+
+        if (n > 0)
+        {
+            const float* t = h.time.data() + begin;
+
+            if (m_show_gen_range_)
+            {
+                ImPlot::SetNextFillStyle(kGen, 0.14f);
+                ImPlot::PlotShaded("##gen_rng", t, h.min_gen.data() + begin, h.max_gen.data() + begin, n);
+            }
+            if (m_show_gen_avg_)
+            {
+                ImPlot::SetNextLineStyle(kGen, 2.f);
+                ImPlot::PlotLine("Avg generation", t, h.avg_gen.data() + begin, n);
+            }
+
+            if (ImPlot::IsPlotHovered())
+            {
+                const size_t i = nearest_sample(h.time, begin, count,
+                    static_cast<float>(ImPlot::GetPlotMousePos().x));
+                draw_cursor_line(h.time[i]);
+
+                ImGui::BeginTooltip();
+                ImGui::TextDisabled("Frame %.0f", h.time[i]);
+                ImGui::TextColored(kGen, "%-12s %.2f", "Average", h.avg_gen[i]);
+                ImGui::TextColored(kGen, "%-12s %.0f", "Min", h.min_gen[i]);
+                ImGui::TextColored(kGen, "%-12s %.0f", "Max", h.max_gen[i]);
+                ImGui::EndTooltip();
+            }
+        }
+
+        update_hover_pause(m_hover_paused_, m_paused_x_max_, win.live_x);
         ImPlot::EndPlot();
     }
-    else if (gen_data.empty())
-        ImGui::TextDisabled("No organisms alive.");
 
-    if (!gen_data.empty())
+    // ── Distribution at the latest sample ─────────────────────────────────
+    if (show_dist)
     {
-        const float sum = std::accumulate(gen_data.begin(), gen_data.end(), 0.f);
-        const float mean = sum / static_cast<float>(gen_data.size());
-        const float mx = *std::max_element(gen_data.begin(), gen_data.end());
-        ImGui::Separator();
-        ImGui::BeginChild("##gstats", { -1.f, ImGui::GetFrameHeightWithSpacing() },
-            false,
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        ImGui::Text("Mean: %.2f", mean);
-        ImGui::SameLine(0, 20); ImGui::Text("Max: %.0f", mx);
-        ImGui::SameLine(0, 20); ImGui::Text("N: %d", static_cast<int>(gen_data.size()));
-        ImGui::EndChild();
+        ImGui::SameLine();
+        if (ImPlot::BeginPlot("##gen_dist", { -1.f, -1.f }, kPlotFlags))
+        {
+            const auto& d = h.gen_distribution;
+            const auto [lo_it, hi_it] = std::minmax_element(d.begin(), d.end());
+            const double lo = *lo_it, hi = *hi_it;
+            // one bin per integer generation, capped so huge spreads stay readable
+            const int bins = std::clamp(static_cast<int>(hi - lo) + 1, 1, 64);
+
+            ImPlot::SetupAxes("Generation", nullptr, kXAxis | ImPlotAxisFlags_AutoFit, kYAxis);
+            ImPlot::SetNextFillStyle(kGen, 0.55f);
+            ImPlot::PlotHistogram("Distribution", d.data(), static_cast<int>(d.size()),
+                bins, 1.0, ImPlotRange(lo - 0.5, hi + 0.5));
+            ImPlot::EndPlot();
+        }
     }
+
+    pop_plot_style();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Misc tab
-// ─────────────────────────────────────────────────────────────────────────────
 void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
 {
-    const PopulationHistory& history = snap.history;
-    // Series toggle row
-    ImGui::Checkbox("Mut Rate", &m_show_mut_rate_);    ImGui::SameLine(0, 10);
-    ImGui::Checkbox("Mut Range", &m_show_mut_range_);   ImGui::SameLine(0, 10);
-    ImGui::Checkbox("Offspring", &m_show_offspring_);
-    ImGui::Checkbox("Lifetime", &m_show_lifetime_);    ImGui::SameLine(0, 10);
-    ImGui::Checkbox("Avg Cells", &m_show_avg_cells_);   ImGui::SameLine(0, 10);
-    ImGui::Checkbox("Avg Springs", &m_show_avg_springs_); ImGui::SameLine(0, 10);
-    ImGui::Checkbox("Avg Energy", &m_show_avg_energy_);
+    const PopulationHistory& h = snap.history;
+    const MiscSeries& ms = h.misc;
 
-    ImGui::SameLine(0, 20);
-    if (ImGui::Button("Fit Y##misc"))
-        m_refit_misc_ = true;
-    ImGui::SameLine();
-    ImGui::TextDisabled("(or double-click plot)");
+    chip("Mut rate", &m_show_mut_rate_, kMutRate);        ImGui::SameLine();
+    chip("Mut range", &m_show_mut_range_, kMutRange);     ImGui::SameLine();
+    chip("Offspring", &m_show_offspring_, kOffspring);    ImGui::SameLine();
+    chip("Lifetime", &m_show_lifetime_, kLifetime);       ImGui::SameLine();
+    chip("Avg cells", &m_show_avg_cells_, kAvgCells);     ImGui::SameLine();
+    chip("Avg springs", &m_show_avg_springs_, kAvgSpring); ImGui::SameLine();
+    chip("Avg energy", &m_show_avg_energy_, kAvgEnergy);
 
-    // Guard: need matching time and misc series (these now stay aligned
-    // automatically since PopulationHistory::push() writes both together).
-    const MiscSeries& ms = history.misc;
-    if (history.size() == 0 || ms.size() == 0)
+    if (h.size() == 0 || ms.size() == 0)
     {
         ImGui::TextDisabled("No misc data — enable Track Stats and wait.");
         return;
     }
 
-    const float live_x = static_cast<float>(history.current_frame());
-    const float x_max = m_hover_paused_ ? m_paused_x_max_ : live_x;
-    const float x_min = x_max - m_scroll_window_;
-
-    // Only the visible slice ever gets handed to ImPlot, same as the
-    // population tab — bounds vertex count regardless of sim runtime.
+    const TimeWindow win = plot_window(h, m_scroll_window_, m_hover_paused_, m_paused_x_max_);
     size_t begin = 0, count = 0;
-    history.window_bounds(x_min, x_max, begin, count);
+    h.window_bounds(win.x_min, win.x_max, begin, count);
     const int n = static_cast<int>(count);
-    if (n == 0)
-    {
-        ImGui::TextDisabled("Nothing in the visible window yet.");
-        return;
-    }
-    const float* t = history.time.data() + begin;
+    if (n == 0) { ImGui::TextDisabled("Nothing in the visible window yet."); return; }
+    const float* t = h.time.data() + begin;
 
-    // Determine which axes are actually in use this frame.
     const bool any_y1 = m_show_mut_rate_ || m_show_mut_range_;
-    const bool any_y2 = m_show_offspring_ || m_show_lifetime_ ||
-        m_show_avg_cells_ || m_show_avg_springs_ || m_show_avg_energy_;
+    const bool any_y2 = m_show_offspring_ || m_show_lifetime_ || m_show_avg_cells_ ||
+        m_show_avg_springs_ || m_show_avg_energy_;
 
-    // Min/max over just the windowed slice — no per-series full-array scan.
-    auto compute_axis_range = [&](const std::vector<const std::vector<float>*>& series,
-        float& lo, float& hi)
-        {
-            lo = FLT_MAX;
-            hi = -FLT_MAX;
-
-            for (const auto* s : series)
-            {
-                if (!s) continue; // safety
-                for (int i = 0; i < n; ++i)
-                {
-                    lo = std::min(lo, (*s)[begin + i]);
-                    hi = std::max(hi, (*s)[begin + i]);
-                }
-            }
-
-            if (lo == FLT_MAX)
-            {
-                lo = 0.f;
-                hi = 1.f;
-            }
-            else
-            {
-                // Pad so the line doesn't kiss the axis edges.
-                const float pad = std::max((hi - lo) * 0.12f, 0.01f);
-                lo -= pad;
-                hi += pad;
-            }
-        };
-
-    float y1_lo, y1_hi, y2_lo, y2_hi;
-
-    if (any_y1)
+    push_plot_style();
+    if (ImPlot::BeginPlot("##misc", { -1.f, -1.f }, kPlotFlags))
     {
-        std::vector<const std::vector<float>*> active_y1;
-        if (m_show_mut_rate_)  active_y1.push_back(&ms.mut_rate);
-        if (m_show_mut_range_) active_y1.push_back(&ms.mut_range);
+        // Y1 = rates [0,1]. Y2 = counts/values, on their own scale.
+        ImPlotAxisFlags y1f = kYAxis;
+        if (!any_y1) y1f |= ImPlotAxisFlags_NoDecorations;
 
-        compute_axis_range(active_y1, y1_lo, y1_hi);
-    }
-    if (any_y2)
-    {
-        std::vector<const std::vector<float>*> active_y2;
-        if (m_show_offspring_)   active_y2.push_back(&ms.avg_offspring);
-        if (m_show_lifetime_)    active_y2.push_back(&ms.avg_lifetime);
-        if (m_show_avg_cells_)   active_y2.push_back(&ms.avg_cells);
-        if (m_show_avg_springs_) active_y2.push_back(&ms.avg_springs);
-        if (m_show_avg_energy_)  active_y2.push_back(&ms.avg_energy);
-        compute_axis_range(active_y2, y2_lo, y2_hi);
-    }
+        ImPlot::SetupAxis(ImAxis_X1, nullptr, kXAxis);
+        ImPlot::SetupAxis(ImAxis_Y1, nullptr, y1f);
+        if (any_y2)
+            ImPlot::SetupAxis(ImAxis_Y2, nullptr, kYAxis | ImPlotAxisFlags_Opposite |
+                (any_y1 ? ImPlotAxisFlags_NoGridLines : 0)); // one set of grid lines
+        ImPlot::SetupAxisLimits(ImAxis_X1, win.x_min, win.x_max, ImGuiCond_Always);
 
-    constexpr ImPlotFlags pf = ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText;
-    if (!ImPlot::BeginPlot("##misc", { -1.f, -1.f }, pf)) return;
+        auto plot = [&](ImAxis yax, const char* name, const std::vector<float>& ys, ImVec4 col)
+            {
+                ImPlot::SetAxes(ImAxis_X1, yax);
+                ImPlot::SetNextLineStyle(col, 2.f);
+                ImPlot::PlotLine(name, t, ys.data() + begin, n);
+            };
 
-    // Set up only the axes that have active series, using per-axis ranges.
-    const ImGuiCond fit_cond = m_refit_misc_ ? ImGuiCond_Always : ImGuiCond_Once;
+        if (m_show_mut_rate_)    plot(ImAxis_Y1, "Mut rate", ms.mut_rate, kMutRate);
+        if (m_show_mut_range_)   plot(ImAxis_Y1, "Mut range", ms.mut_range, kMutRange);
+        if (m_show_offspring_)   plot(ImAxis_Y2, "Offspring", ms.avg_offspring, kOffspring);
+        if (m_show_lifetime_)    plot(ImAxis_Y2, "Lifetime", ms.avg_lifetime, kLifetime);
+        if (m_show_avg_cells_)   plot(ImAxis_Y2, "Avg cells", ms.avg_cells, kAvgCells);
+        if (m_show_avg_springs_) plot(ImAxis_Y2, "Avg springs", ms.avg_springs, kAvgSpring);
+        if (m_show_avg_energy_)  plot(ImAxis_Y2, "Avg energy", ms.avg_energy, kAvgEnergy);
 
-    ImPlot::SetupAxes("Frames",
-        any_y1 ? "Rate [0, 1]" : nullptr,
-        ImPlotAxisFlags_None,
-        any_y1 ? ImPlotAxisFlags_None : ImPlotAxisFlags_NoDecorations);
+        ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
 
-    ImPlot::SetupAxisLimits(ImAxis_X1, x_min, x_max, ImGuiCond_Always);
-    if (any_y1) ImPlot::SetupAxisLimits(ImAxis_Y1, y1_lo, y1_hi, fit_cond);
-
-    if (any_y2)
-    {
-        ImPlot::SetupAxis(ImAxis_Y2, "Count / Value",
-            ImPlotAxisFlags_Opposite);
-        ImPlot::SetupAxisLimits(ImAxis_Y2, y2_lo, y2_hi, fit_cond);
-    }
-
-    m_refit_misc_ = false;
-
-    // Helpers to plot on the correct axis.
-    auto plot_y1 = [&](const char* name, const float* data, const ImVec4 col)
+        if (ImPlot::IsPlotHovered())
         {
-            ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
-            ImPlot::SetNextLineStyle(col);
-            ImPlot::PlotLine(name, t, data, n);
-        };
-    auto plot_y2 = [&](const char* name, const float* data, const ImVec4 col)
-        {
-            ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
-            ImPlot::SetNextLineStyle(col);
-            ImPlot::PlotLine(name, t, data, n);
-        };
+            const size_t i = nearest_sample(h.time, begin, count,
+                static_cast<float>(ImPlot::GetPlotMousePos().x));
+            draw_cursor_line(h.time[i]);
 
-    if (m_show_mut_rate_)    plot_y1("Mut Rate", ms.mut_rate.data() + begin, { 1.f,  0.5f, 0.2f, 1.f });
-    if (m_show_mut_range_)   plot_y1("Mut Range", ms.mut_range.data() + begin, { 1.f,  0.8f, 0.2f, 1.f });
-    if (m_show_offspring_)   plot_y2("Offspring", ms.avg_offspring.data() + begin, { 0.4f, 1.f,  0.6f, 1.f });
-    if (m_show_lifetime_)    plot_y2("Lifetime", ms.avg_lifetime.data() + begin, { 0.6f, 0.4f, 1.f,  1.f });
-    if (m_show_avg_cells_)   plot_y2("Avg Cells", ms.avg_cells.data() + begin, { 0.3f, 0.8f, 1.f,  1.f });
-    if (m_show_avg_springs_) plot_y2("Avg Springs", ms.avg_springs.data() + begin, { 0.9f, 0.3f, 0.9f, 1.f });
-    if (m_show_avg_energy_)  plot_y2("Avg Energy", ms.avg_energy.data() + begin, { 1.f,  0.9f, 0.3f, 1.f });
+            auto row = [](const char* l, ImVec4 c, float v, int dp)
+                { ImGui::TextColored(c, "%-12s %.*f", l, dp, v); };
 
-    ImPlot::EndPlot();
+            ImGui::BeginTooltip();
+            ImGui::TextDisabled("Frame %.0f", h.time[i]);
+            if (m_show_mut_rate_)    row("Mut rate", kMutRate, ms.mut_rate[i], 4);
+            if (m_show_mut_range_)   row("Mut range", kMutRange, ms.mut_range[i], 4);
+            if (m_show_offspring_)   row("Offspring", kOffspring, ms.avg_offspring[i], 2);
+            if (m_show_lifetime_)    row("Lifetime", kLifetime, ms.avg_lifetime[i], 1);
+            if (m_show_avg_cells_)   row("Avg cells", kAvgCells, ms.avg_cells[i], 2);
+            if (m_show_avg_springs_) row("Avg springs", kAvgSpring, ms.avg_springs[i], 2);
+            if (m_show_avg_energy_)  row("Avg energy", kAvgEnergy, ms.avg_energy[i], 1);
+            ImGui::EndTooltip();
+        }
+
+        update_hover_pause(m_hover_paused_, m_paused_x_max_, win.live_x);
+        ImPlot::EndPlot();
+    }
+    pop_plot_style();
 }

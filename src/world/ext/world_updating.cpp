@@ -27,6 +27,7 @@ void World::update(SimSnapshot& write_snapshot)
 	// Update function
 	if (should_tick_sim())
 	{
+		auto& dist = cell_manager_.get_generation_distribution();
 		for (int i = 0; i < tick_sim_multiplier; ++i)
 		{
 			tick_sim();
@@ -37,7 +38,7 @@ void World::update(SimSnapshot& write_snapshot)
 			m_history_.push(
 				cm_stats.cell_count,
 				fm_stats.food_count,
-				cm_stats.average_generation,
+				dist,
 				cm_stats.average_mutation_rate,
 				cm_stats.average_mutation_range,
 				cm_stats.average_offspring_count,
