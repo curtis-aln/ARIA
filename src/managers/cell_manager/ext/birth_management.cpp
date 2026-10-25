@@ -1,7 +1,7 @@
 #include "../cell_manager.h"
 #include <cmath>
 #include <cstdint>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/matter/CellMatter.h>
 #include <entities/spring/spring.h>

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/matter/CellMatter.h>
 #include <entities/spring/spring.h>

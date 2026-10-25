@@ -1,6 +1,6 @@
 #pragma once
 #include "../i_tab.h"
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/spring/spring.h>
 #include <imgui.h>

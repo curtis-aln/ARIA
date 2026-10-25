@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <random>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>

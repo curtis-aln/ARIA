@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/cell/cell_settings.h>
 #include <entities/cell/spring_links.h>

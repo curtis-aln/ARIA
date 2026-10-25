@@ -2,7 +2,7 @@
 #include "organism_tab.h"
 #include <algorithm>
 #include <cstdio>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/spring/spring.h>
 #include <imgui.h>

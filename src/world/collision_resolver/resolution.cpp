@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <Utils/o_vec/o_vector.hpp>

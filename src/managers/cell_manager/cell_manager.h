@@ -14,7 +14,7 @@
 #include <array>
 #include <cstdint>
 #include <deque>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/matter/CellMatter.h>
 #include <functional>
 #include <SFML/Graphics/Color.hpp>

@@ -1,6 +1,6 @@
 #include "../food_manager.h"
 #include <cstdint>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/food/food.h>
 #include <entities/food/food_settings.h>
 #include <managers/food_manager/food_manager_settings.h>

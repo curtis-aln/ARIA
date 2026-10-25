@@ -19,7 +19,7 @@ Foodmanager will handle if the food gets removed
 #include "../../Utils/thread_pool.h" // Multithreadding
 #include <algorithm>
 #include <cstdint>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/cell/cell_settings.h>
 #include <entities/food/food.h>

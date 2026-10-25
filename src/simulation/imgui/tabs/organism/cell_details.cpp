@@ -1,7 +1,7 @@
 #include "organism_tab.h"
 #include <algorithm>
 #include <cstdio>
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/cell/cell_genome.h>
 #include <entities/cell/cell_settings.h>
@@ -159,7 +159,6 @@ void OrganismTab::draw_cell_detail_body_tab(ImGuiContext& ctx, const Cell& c,
 	ImGui::Text("Speed    %.3f", body.velocity_.length());
 	ImGui::Spacing();
 	ImGui::Text("Mass     %.3f", body.mass_);
-	ImGui::Text("Density  %.3f", body.density);
 	ImGui::Text("Radius   %.1f", body.radius_);
 	ImGui::Spacing();
 	ImGui::Text("Impulse   %.3f", body.impulse_);

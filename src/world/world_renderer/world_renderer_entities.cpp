@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cmath>
 
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <managers/cell_manager/cell_manager_settings.h>
 #include <managers/cell_manager/organism_tracker.h>

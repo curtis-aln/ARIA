@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "../../entities/body.h"
+#include "../../entities/body/body.h"
 #include "../../entities/food/food.h"
 
 #include "../../simulation/context/state.h"

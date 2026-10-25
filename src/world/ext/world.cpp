@@ -1,7 +1,7 @@
 #include "../world.h"
 
 #include "../../entities/cell/cell_genome.h"
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/food/food.h>
 #include <entities/spring/spring.h>

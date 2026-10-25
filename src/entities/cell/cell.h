@@ -7,7 +7,7 @@
 
 #include "cell_genome.h"
 #include "cell_settings.h"
-#include "entities/body.h"
+#include "entities/body/body.h"
 #include <array>
 #include <cstdint>
 #include <string.h>

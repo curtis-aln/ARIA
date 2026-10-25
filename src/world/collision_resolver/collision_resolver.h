@@ -7,7 +7,7 @@ Modify the Settings struct to change the grid size, cell capacity, and collision
 */
 
 #include "../../Utils/o_vec/o_vector.hpp" // Containing the particles
-#include "../../entities/body.h" // The particle class Themselves
+#include "../../entities/body/body.h" // The particle class Themselves
 #include "../../Utils/spatial_grid/simple_spatial_grid.h" // Collision Detection
 #include "../../Utils/thread_pool.h" // Multithreadding
 

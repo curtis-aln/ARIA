@@ -20,7 +20,7 @@
 #include "food_eat_resolver/food_eat_resolver.h"
 #include "world_border.h"
 #include "world_renderer/world_renderer.h"
-#include <entities/body.h>
+#include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/food/food.h>
 #include <entities/spring/spring.h>
