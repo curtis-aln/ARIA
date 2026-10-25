@@ -4,6 +4,8 @@
 
 using BodyId = uint32_t;
 
+static inline const float size_exponent = std::log(135.f / 55.f) / std::log(150.f / 50.f); // ≈ 0.817
+static inline const float size_scale = 55.f / std::pow(50.f, size_exponent);
 
 struct Body
 {
@@ -16,7 +18,7 @@ struct Body
 	std::array<BodyId, 8> nearby_ids_;
 	uint8_t nearby_ids_size_ = 0;
 
-	inline static constexpr float density = 1.f; // the density of the cell, used to calculate radius from mass
+	inline static constexpr float density = 0.5f; // the density of the cell, used to calculate radius from mass
 
 	sf::Vector2f position_;
 	sf::Vector2f velocity_;
@@ -29,6 +31,16 @@ struct Body
 		: id_(id)
 	{
 		
+	}
+
+	void set_radius()
+	{
+		radius_ = size_scale * std::pow(mass_, size_exponent);
+	}
+
+	void set_mass()   // inverse, keep the two in sync
+	{
+		mass_ = std::pow(radius_ / size_scale, 1.f / size_exponent);
 	}
 
 	void accelerate(const sf::Vector2f& acceleration)

@@ -24,7 +24,10 @@ struct BaseConstants
 
 	inline static constexpr Range init_mutation_range_spread = { 0.005f, 0.045f };
 
-	inline static constexpr Range gaussian_const_limits = { 0.05f, 0.5f };   // hard evolutionary bounds
+	inline static constexpr Range gaussian_const_limits = { 0.01f, 0.5f };
+	inline static constexpr Range mutation_range_limits = { 0.002f, 0.1f };
+	inline static constexpr float meta_learning_rate = 0.1f;
+
 	inline static constexpr Range init_gaussian_const_spread = { 0.01f, 0.065f };  // spawn range
 };
 
@@ -63,7 +66,7 @@ protected:
 	// Most nudges land close to 0; large jumps are rare but not impossible.
 	float maybe_mutate_gaussian(float val, Range limits, float range, float gaussian_const) const
 	{
-		const float sigma = range * gaussian_const;
+		const float sigma = (limits.max - limits.min) * range * gaussian_const;
 		if (sigma <= 0.f)
 			return val;
 
@@ -72,12 +75,8 @@ protected:
 
 	void mutate_meta()
 	{
-		auto nudge = [](float v, float range) {
-			return v + Random::rand_range(-range, range); };
-
-		guassian_const = nudge(guassian_const, mutation_rate_range);
-		mutation_range = nudge(mutation_range, mutation_rate_range);
-
+		guassian_const = gaussian_const_limits.clamp(guassian_const * std::exp(meta_learning_rate * sample_gaussian()));
+		mutation_range = mutation_range_limits.clamp(mutation_range * std::exp(meta_learning_rate * sample_gaussian()));
 		mutate_colour(outer_r, outer_g, outer_b);
 		mutate_colour(inner_r, inner_g, inner_b);
 	}
@@ -228,18 +227,18 @@ struct SpringGenome : GenomeBase
 // ---------------------------------------------------------------------------
 struct CellGeneticConstraints
 {
-	inline static constexpr Range radius = { 55.f,         135.f };
+	inline static constexpr Range mass = { 55.f,         135.f };
 	inline static constexpr Range amplitude = { -2.f,         2.f };
 	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
 	inline static constexpr Range offset = { -3.14159f,    3.14159f };
 	inline static constexpr Range vertical_shift = { -1.f,        1.f };
 
-	inline static constexpr Range newborn_search = { 0.f, radius.max * 4.f };
+	inline static constexpr Range newborn_search = { 0.f, mass.max * 4.f };
 };
 
 struct CellInitialSpawnRanges
 {
-	inline static constexpr Range radius = { 55.f,          135.f };
+	inline static constexpr Range mass = { 55.f,          135.f };
 
 	inline static constexpr Range amplitude = { 0.01f,          0.08f };
 	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
@@ -252,14 +251,12 @@ struct HardConstants
 	inline static constexpr uint8_t   outer_transparency = 150;
 	inline static constexpr uint8_t   inner_transparency = 125;
 
-	inline static constexpr float radius_mutation_multiplier = 5.f;
-	inline static constexpr float newborn_search_radius_multiplier = 5.f;
 	inline static constexpr float friction_multiplier = 0.95f;
 };
 
 struct CellGenome : GenomeBase, HardConstants
 {
-	float radius, amplitude, frequency, offset, vertical_shift;
+	float mass, amplitude, frequency, offset, vertical_shift;
 
 	// reproductive genes
 	float birth_energy_thresh = 0.90f;
@@ -277,6 +274,8 @@ struct CellGenome : GenomeBase, HardConstants
 	float remove_spring_chance = 0.05f;
 
 	float newborn_search_radius = CellGeneticConstraints::newborn_search.max;
+
+	float quorum_fraction = 0.5f; // fraction of nearby cells that must be present to trigger reproduction
 
 	CellGenome() { randomize(); };
 
@@ -296,7 +295,7 @@ struct CellGenome : GenomeBase, HardConstants
 		rand_in_range(offset, Limit::offset);
 		rand_in_range(vertical_shift, Limit::vertical_shift);
 
-		rand_in_range(radius, Limit::radius);
+		rand_in_range(mass, Limit::mass);
 
 		rand_in_range(birth_energy_thresh, { 0.8f, .85f });
 		rand_in_range(birth_integrity_thresh, { 0.f, 0.1f });
@@ -307,6 +306,12 @@ struct CellGenome : GenomeBase, HardConstants
 		rand_in_range(connective_spring_damping, S_Const::damping);
 
 		rand_in_range(newborn_search_radius, { C_Const::newborn_search.max * 0.9f, C_Const::newborn_search.max });
+
+		add_cell_chance = 0.05f;
+		remove_cell_chance = 0.05f;
+		add_spring_chance = 0.05f;
+		remove_spring_chance = 0.05f;
+		quorum_fraction = 0.5f;
 	}
 
 	void mutate(float range = 0.f)
@@ -315,7 +320,8 @@ struct CellGenome : GenomeBase, HardConstants
 
 		const auto& C = CellGeneticConstraints{};
 
-		radius = maybe_mutate_gaussian(radius, C.radius, range * radius_mutation_multiplier, guassian_const);
+
+		mass = maybe_mutate_gaussian(mass, C.mass, range, guassian_const);
 		amplitude = maybe_mutate_gaussian(amplitude, C.amplitude, range * friction_multiplier, guassian_const);
 		frequency = maybe_mutate_gaussian(frequency, C.frequency, range * friction_multiplier, guassian_const);
 		offset = maybe_mutate_gaussian(offset, C.offset, range * friction_multiplier, guassian_const);
@@ -335,9 +341,10 @@ struct CellGenome : GenomeBase, HardConstants
 		add_spring_chance = maybe_mutate_gaussian(add_spring_chance, { 0.f, 1.f }, range, guassian_const);
 		remove_spring_chance = maybe_mutate_gaussian(remove_spring_chance, { 0.f, 1.f }, range, guassian_const);
 
-		const float multip = newborn_search_radius_multiplier;
-		const float r_max = CellGeneticConstraints::radius.max;
-		newborn_search_radius = maybe_mutate_gaussian(newborn_search_radius, CellGeneticConstraints::newborn_search, range * multip, guassian_const);
+		const float r_max = CellGeneticConstraints::mass.max;
+		newborn_search_radius = maybe_mutate_gaussian(newborn_search_radius, CellGeneticConstraints::newborn_search, range, guassian_const);
+
+		quorum_fraction = maybe_mutate_gaussian(quorum_fraction, { 0.f, 1.f }, range, guassian_const);
 
 		mutate_meta();
 	}
@@ -348,7 +355,7 @@ struct CellGenome : GenomeBase, HardConstants
 		frequency = parent.frequency;
 		offset = parent.offset;
 		vertical_shift = parent.vertical_shift;
-		radius = parent.radius;
+		mass = parent.mass;
 
 		outer_r = parent.outer_r; outer_g = parent.outer_g; outer_b = parent.outer_b;
 		inner_r = parent.inner_r; inner_g = parent.inner_g; inner_b = parent.inner_b;
@@ -365,6 +372,13 @@ struct CellGenome : GenomeBase, HardConstants
 
 		guassian_const = parent.guassian_const;
 		mutation_range = parent.mutation_range;
+
+		quorum_fraction = parent.quorum_fraction;
+
+		add_cell_chance = parent.add_cell_chance;
+		remove_cell_chance = parent.remove_cell_chance;
+		add_spring_chance = parent.add_spring_chance;
+		remove_spring_chance = parent.remove_spring_chance;
 	}
 
 };
@@ -376,7 +390,7 @@ struct CellGenome : GenomeBase, HardConstants
 		#Spawn "::" #Field " is outside " #Constraint "::" #Field)
 
 // Cell
-GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, radius);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, mass);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, amplitude);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, frequency);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, offset);
@@ -390,5 +404,9 @@ GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, vertical_
 GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, spring_const);
 GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, damping);
 GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, nutrient_transfer_rate);
+
+// BASE
+static_assert(BaseConstants::gaussian_const_limits.contains(BaseConstants::init_gaussian_const_spread));
+static_assert(BaseConstants::mutation_range_limits.contains(BaseConstants::init_mutation_range_spread));
 
 #undef GENOME_RANGE_CHECK

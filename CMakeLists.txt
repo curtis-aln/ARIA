@@ -78,7 +78,7 @@ add_executable(ProjectARIA
     src/pch/pch.cpp
 
     # ── Entities
-    src/entities/body.h
+    "src/entities/body/body.h"
     src/entities/matter/CellMatter.h
     src/entities/cell/cell.cpp
     src/entities/cell/cell_settings.h
@@ -152,7 +152,7 @@ add_executable(ProjectARIA
     # ── ImPlot (header-only library — sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/entities/cell/spring_links.h" "src/managers/cell_manager/ext/easy_birth.cpp" "src/world/food_eat_resolver/food_resolution_settings.h" "src/world/food_eat_resolver/bite_resolution.h" "src/simulation/imgui/theme.h" "src/world/world_renderer/world_renderer.cpp" "src/world/world_renderer/world_renderer_entities.cpp")
+ "src/entities/cell/spring_links.h" "src/managers/cell_manager/ext/easy_birth.cpp" "src/world/food_eat_resolver/food_resolution_settings.h" "src/world/food_eat_resolver/bite_resolution.h" "src/simulation/imgui/theme.h" "src/world/world_renderer/world_renderer.cpp" "src/world/world_renderer/world_renderer_entities.cpp" "src/entities/body/body.cpp")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

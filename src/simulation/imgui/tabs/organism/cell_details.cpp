@@ -160,14 +160,14 @@ void OrganismTab::draw_cell_detail_body_tab(ImGuiContext& ctx, const Cell& c,
 	ImGui::Spacing();
 	ImGui::Text("Mass     %.3f", body.mass_);
 	ImGui::Text("Density  %.3f", body.density);
-	ImGui::Text("Radius   %.1f", c.radius);
+	ImGui::Text("Radius   %.1f", body.radius_);
 	ImGui::Spacing();
 	ImGui::Text("Impulse   %.3f", body.impulse_);
 	ImGui::Text("Nearby count %d", body.nearby_ids_size_);
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd(ctx, "##rad_c", c.radius,
-		CellGeneticConstraints::radius.min, CellGeneticConstraints::radius.max,
-		"R = %.1f", CommandSection::CellManagerEvent, CommandType::SetRadius);
+	slider_float_cmd(ctx, "##mass", body.mass_,
+		CellGeneticConstraints::mass.min, CellGeneticConstraints::mass.max,
+		"Mass = %.1f", CommandSection::CellManagerEvent, CommandType::SetRadius);
 }

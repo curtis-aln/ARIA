@@ -244,7 +244,8 @@ sf::FloatRect World::calulcate_visible_range()
 		{ bottom_right.x - top_left.x, bottom_right.y - top_left.y } };
 
 	// Adjust for cell maximim radius to ensure cells partially in view are included
-	const float max_rad = CellGeneticConstraints::radius.max;
+	const float max_mass = CellGeneticConstraints::mass.max;
+	const float max_rad = sqrt(max_mass / (3.14159 * Body::density));
 	visible_bounds.position.x -= max_rad;
 	visible_bounds.position.y -= max_rad;
 	visible_bounds.size.x += max_rad * 2.f;

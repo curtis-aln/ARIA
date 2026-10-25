@@ -99,11 +99,10 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	child->generation = generation + 1;
 
 	// a fraction of the energy of the parent is given to the child
-	constexpr float energy_split = 0.25f; // fraction the parent retains; offspring gets the rest
-	const float total_energy = energy;    // snapshot parent's energy before splitting
-
-	energy = total_energy * energy_split;
-	child->energy = total_energy * (1.f - energy_split);
+	const float give = std::clamp(offspring_energy_to_give, 0.1f, 0.9f);
+	const float total_energy = energy;
+	energy = total_energy * (1.f - give);
+	child->energy = total_energy * give;
 
 	// Finally the genetics, we copy the cell and spring genetics and only mutate them if permissable
 	child->copy_genetics(*this);
@@ -115,9 +114,9 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 		child->spring_genome.mutate();
 	}
 
-	// The radius is an evolutionary paramater that needs to be told to the body
-	child_body->radius_ = child->radius;
-
+	// The mass is an evolutionary paramater that needs to be told to the body
+	child_body->mass_ = child->mass;
+	child_body->set_radius();
 }
 
 void Cell::turn_off_reproduction()
@@ -131,8 +130,8 @@ void Cell::turn_off_reproduction()
 {
 	// Range in terms of radii
 	return Random::rand_pos_in_rect(sf::FloatRect{
-		{ body->position_.x - radius * range, body->position_.y - radius * range },
-		{ radius * range * 2 , radius * range * 2 }
+		{ body->position_.x - body->radius_ * range, body->position_.y - body->radius_ * range },
+		{ body->radius_ * range * 2 , body->radius_ * range * 2 }
 		});
 }
 

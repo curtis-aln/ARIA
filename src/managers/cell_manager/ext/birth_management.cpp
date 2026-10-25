@@ -195,9 +195,12 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 	child_body->position_ += Random::rand_vector(10.f, 50.f);
 
 	// setting the child cell properties
-	child_cell->randomize();
-	child_cell->amplitude = 0.2f;
-	child_cell->vertical_shift = 0.5f;
+	child_cell->copy_genetics(*parent_cell);   // assumes this also copies spring_genome
+	child_cell->mutate();
+	child_body->mass_ = child_body->mass_;
+	child_body->set_radius();
+	child_cell->amplitude = 0.01f;
+	child_cell->vertical_shift = 0.9f;
 
 	int32_t spring_id = create_spring(parent_id, pair.cell_id);
 	if (spring_id < 0) // potential error here

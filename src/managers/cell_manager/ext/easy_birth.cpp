@@ -127,7 +127,7 @@ namespace
 // On true, organism_cell_ids holds every cell in the organism. On false its contents are unspecified.
 bool CellManager::can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell_idx>& organism_cell_ids)
 {
-	// Single exit point for every failure: put a breakpoint here to catch them all
+
 	auto blocked = [&](const char* reason, const cell_idx cell_id) {
 		if constexpr (log_reproduction_blocks)
 			std::cout << "[repro blocked] start=" << start_id << " cell=" << cell_id
@@ -138,28 +138,27 @@ bool CellManager::can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell
 	organism_cell_ids.clear();
 	organism_cell_ids.add(start_id);
 
-	// organism_cell_ids is both the queue and the visited list:
-	// cells before next_to_visit are done, cells after it are waiting.
+	float quorum_sum = 0.f;
+	int ready = 0;
 	int next_to_visit = 0;
 	while (next_to_visit < organism_cell_ids.count)
 	{
 		const cell_idx current_cell_id = organism_cell_ids[next_to_visit++];
 		const Cell& current_cell = *all_cells_.at(current_cell_id);
 
-		if (!current_cell.should_reproduce())
-			return blocked("cell not ready", current_cell_id);
+		if (current_cell.should_reproduce())
+			++ready;                                   // was: return blocked("cell not ready")
+
+		quorum_sum += current_cell.quorum_fraction;
 
 		const SpringLinks& links = current_cell.spring_links_;
 		for (uint32_t link = 0; link < links.size_; ++link)
 		{
 			const uint32_t spring_id = links.connected_spring_ids_[link];
 			const Spring& spring = *all_springs_.at(spring_id);
-
-			// the link graph must be consistent: this spring has to point back at this cell
 			assert(spring.cell_A_id == current_cell_id || spring.cell_B_id == current_cell_id);
 
 			const cell_idx neighbour_id = other_end_of(spring, current_cell_id);
-
 			if (contains(organism_cell_ids, neighbour_id))
 				continue;
 
@@ -170,6 +169,12 @@ bool CellManager::can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell
 		}
 	}
 
+	// the whole organism has to be walked before this can be judged
+	const int   n = organism_cell_ids.count;
+	const float quorum = quorum_sum / n;
+	const int   needed = std::max(1, static_cast<int>(std::ceil(quorum * n)));
+	if (ready < needed)
+		return blocked("quorum not met", start_id);
 	return true;
 }
 

@@ -173,7 +173,7 @@ void CellManager::add_cells_to_render_data(RenderData& rend_data, const sf::Floa
 		rend_data.inner_colors.push_back(cell->get_inner_color());
 		rend_data.positions.push_back(body->position_);
 		rend_data.velocities.push_back(body->velocity_);
-		rend_data.radii.push_back(cell->radius);
+		rend_data.radii.push_back(body->radius_);
 	}
 }
 
@@ -321,7 +321,7 @@ Cell* CellManager::find_cell_at_point(const sf::Vector2f mouse_position, bool ma
 	{
 		Body* body = bodies_->at(cell->body_id_);
 		float dist_sq = (mouse_position - body->position_).lengthSquared();
-		if (dist_sq < cell->radius * cell->radius)
+		if (dist_sq < body->radius_ * body->radius_)
 		{
 			// We tell the cell manager which cell is selected, 
 			// so it can be used in other parts of the program (like rendering debug info for the selected cell).
@@ -415,8 +415,8 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 		cell->randomize();
 	}
 
-	body->radius_ = cell->radius;
-	body->mass_ = body->radius_;
+	body->mass_ = cell->mass;
+	body->set_radius();
 
 	register_birth_stat();
 
