@@ -231,7 +231,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	ImGui::SetNextItemWidth(-1.f);
 	m_spring_breaking_force_ = snap.cell_manager_stats.spring_breaking_force;
-	if (ImGui::SliderFloat("##breaking force", &m_spring_breaking_force_, 0.f, 30.f, "breaking force %.2f"))
+	if (ImGui::SliderFloat("##breaking force", &m_spring_breaking_force_, 0.f, 100.f, "breaking force %.2f"))
 	{
 		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringBreakingForce, .float_val = m_spring_breaking_force_ };
 		ctx.push(cmd);
@@ -239,7 +239,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	ImGui::SetNextItemWidth(-1.f);
 	m_spring_breaking_length_ = snap.cell_manager_stats.spring_breaking_length;
-	if (ImGui::SliderFloat("##breaking Length", &m_spring_breaking_length_, 0.f, 400.f, "breaking Length %.2f"))
+	if (ImGui::SliderFloat("##breaking Length ratio", &m_spring_breaking_length_, 0.f, 2.f, "breaking Length %.2f"))
 	{
 		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringBreakingLength, .float_val = m_spring_breaking_length_ };
 		ctx.push(cmd);
@@ -247,7 +247,7 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	ImGui::SetNextItemWidth(-1.f);
 	m_spring_damage_threshold_ = snap.cell_manager_stats.spring_damage_threshold;
-	if (ImGui::SliderFloat("##Damage Threshold", &m_spring_damage_threshold_, 0.f, 1.f, "Damage Threshold %.2f"))
+	if (ImGui::SliderFloat("##Damage Threshold", &m_spring_damage_threshold_, 0.f, 60.f, "Damage Threshold %.2f"))
 	{
 		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringDamageThreshold, .float_val = m_spring_damage_threshold_ };
 		ctx.push(cmd);

@@ -84,7 +84,7 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	// Sets the Lifetime of cell matter
 	int lifetime = CellMatterSettings::max_time_to_live;
-	if (ImGui::SliderInt("##cell_matter_lifetime", &lifetime, 0, 30000, "cell matter lifetime %d"))
+	if (ImGui::SliderInt("##cell_matter_lifetime", &lifetime, 0, 120000, "cell matter lifetime %d"))
 		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetCellMatterLifetime, .int_val = lifetime });
 
 	// Setting the amount of Sub-iterations the program does
@@ -94,6 +94,11 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	// rendering the background grid
 	toggle(snap, ctx, "background grid", &WorldToggles::draw_background_grid);
+
+	// rendering cell food and cell matter toggles
+	toggle(snap, ctx, "render cells", &WorldToggles::render_cells);
+	toggle(snap, ctx, "render food", &WorldToggles::render_food);
+	toggle(snap, ctx, "render cell matter", &WorldToggles::render_cells_matter);
 
 	ImGui::Spacing();
 	toggle(snap, ctx, "easy reproduction", &CellManagerToggles::easy_reproduction);
@@ -114,6 +119,9 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	// slider for changing the world size
 	if (ImGui::SliderFloat("##world_radius", &WorldSettings::bounds_radius, 1000, max_bounds_radius, "world radius %.0f"))
 		ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldRadius, .float_val = WorldSettings::bounds_radius });
+
+	// toggle for central gravity
+	toggle(snap, ctx, "central gravity", &WorldToggles::central_gravity);
 
 
 	ImGui::EndChild();

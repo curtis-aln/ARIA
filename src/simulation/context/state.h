@@ -38,6 +38,10 @@ struct WorldToggles
 	// debugging
 	bool m_tick_frame_time = false;  // whether to advance the simulation by one tick (for debugging)
 
+	bool render_cells = true;  // whether to render cells
+	bool render_food = true;   // whether to render food
+	bool render_cells_matter = true; // whether to render cell matter
+
 	// statistics
 	bool track_statistics = true;   // gather per-frame statistics
 	bool track_spatial_grids = false;  // gather spatial grid statistics each frame
@@ -45,6 +49,7 @@ struct WorldToggles
 	// physics
 	bool run_physics_only = true;
 	bool toggle_collisions = true;   // enable/disable cell collision handling
+	bool central_gravity = true; // whether to apply a central gravity force to all entities
 
 	// Mouse tool — written by UI, read by handle_left_click()
 	bool  mouse_add_cells = true;

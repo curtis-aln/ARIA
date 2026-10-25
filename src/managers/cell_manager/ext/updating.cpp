@@ -145,11 +145,21 @@ void CellManager::collect_connection_requests()
 }
 
 
-void CellManager::update_position_container(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns)
+void CellManager::update_position_container(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns, const bool show_cells, const bool show_matter)
 {
-	size_t current_vector_size = rend_data.positions.size();
-	unsigned cell_count = get_cell_count();
+	rend_data.spring_connections.clear();
+	if (show_cells)
+	{
+		add_cells_to_render_data(rend_data, visible_bounds, show_only_newborns);
+		add_springs_to_render_data(rend_data, visible_bounds, show_only_newborns);
+	}
 
+	if (!show_only_newborns && show_matter)
+		add_matter_to_render_data(rend_data, visible_bounds);
+}
+
+void CellManager::add_cells_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns)
+{
 	for (const Cell* cell : all_cells_)
 	{
 		Body* body = bodies_->at(cell->body_id_);
@@ -165,12 +175,11 @@ void CellManager::update_position_container(RenderData& rend_data, const sf::Flo
 		rend_data.velocities.push_back(body->velocity_);
 		rend_data.radii.push_back(cell->radius);
 	}
+}
 
-	const int n = get_cell_count();
-
-	// now we handle springs, we can just store the indexes as then the renderer can read them from the positions container above
+void CellManager::add_springs_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns)
+{
 	const int spring_count = static_cast<int>(all_springs_.size());
-	rend_data.spring_connections.clear();
 
 	for (Spring* spring : all_springs_)
 	{
@@ -206,10 +215,10 @@ void CellManager::update_position_container(RenderData& rend_data, const sf::Flo
 			min_dist * 3.f,
 			spring->stress });
 	}
+}
 
-	if (show_only_newborns)
-		return;
-
+void CellManager::add_matter_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds)
+{
 	for (const CellMatter* matter : all_cell_matter_)
 	{
 		Body* body = bodies_->at(matter->body_id_);

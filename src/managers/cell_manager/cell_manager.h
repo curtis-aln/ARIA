@@ -154,7 +154,8 @@ public:
 	void handle_cell_manager_event(SimCommand& cmd);
 	void mutate_selected_protozoa();
 	void update(int iterations);
-	void update_position_container(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns);
+	void update_position_container(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns, const bool show_cells, const bool show_matter);
+	
 	void update_protozoa_tracker();
 	void fill_snapshot(SimSnapshot& snapshot, sf::FloatRect& visible_bounds) const;
 
@@ -221,6 +222,10 @@ private: // only functions this class can access
 	void update_cell(Cell* cell);
 	void impulse_tax_cell(Cell* cell, const float impulse) const;
 	void collect_connection_requests();
+
+	void add_cells_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns);
+	void add_springs_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns);
+	void add_matter_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds);
 
 	void ensure_update_jobs_built();
 

@@ -25,10 +25,10 @@ private:
     int m_mouse_intensity_ = 1;
     float m_mouse_radius_    = 100.f;
 
-    float m_spring_breaking_force_ = 0.f;
-    float m_spring_breaking_length_ = 0.f;
-    float m_spring_damage_threshold_ = 0.f;
-    float m_spring_work_const_ = 0.f;
+    float m_spring_breaking_force_ = SpringSettings::spring_break_force;
+    float m_spring_breaking_length_ = SpringSettings::spring_break_length_factor;
+    float m_spring_damage_threshold_ = SpringSettings::spring_damage_threshold;
+    float m_spring_work_const_ = SpringSettings::spring_work_const;
 
     int   m_camera_lock_ = 0;
     float m_zoom_slider_ = 1.f;

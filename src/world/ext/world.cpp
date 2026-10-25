@@ -142,9 +142,9 @@ void World::fill_snapshot(SimSnapshot& snapshot)
 	sf::FloatRect visible_bounds = calulcate_visible_range();
 	snapshot.render.clear_render_data();
 
-	if (!cell_manager_.toggles_.show_only_newborns)
+	if (!cell_manager_.toggles_.show_only_newborns && world_toggles.render_food)
 		food_manager_.update_position_data(snapshot.render, statistics_.iterations_);
-	cell_manager_.update_position_container(snapshot.render, visible_bounds, cell_manager_.toggles_.show_only_newborns);
+	cell_manager_.update_position_container(snapshot.render, visible_bounds, cell_manager_.toggles_.show_only_newborns, world_toggles.render_cells, world_toggles.render_cells_matter);
 
 	/* Data that goes to both the renderer and the ImGUI panels */
 	snapshot.cell_manager_stats = cell_manager_.get_statistics();
