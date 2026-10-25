@@ -22,11 +22,11 @@ struct WorldSettings
 	inline static constexpr float cell_drag_strength = 0.1f; // how strong the mouse drag is on a cell
 
 	// Grid settings
-	inline static constexpr float grid_line_thickness = 11.5f;
+	inline static constexpr float grid_line_thickness = 22.5f;
 	inline static const sf::Color grid_color = { 75, 75, 75, 100 };
 
 	inline static constexpr float start_fading_zoom = 0.1f;
-	inline static constexpr float fade_zoom_dist = 0.02f; // grid will be fully invisible at start_fading_zoom + fade_zoom_dist
+	inline static constexpr float fade_zoom_dist = 0.05f; // grid will be fully invisible at start_fading_zoom + fade_zoom_dist
 	
 	inline static constexpr float target_visual_cell_size = 1200.f;
 };

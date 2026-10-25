@@ -114,7 +114,7 @@ void Simulation::handle_events()
 		dispatch_event(*event, cam_pos);
 	}
 
-	camera_.update(rendering_clock_.get_delta_time());
+	camera_.update();
 }
 
 void Simulation::handle_simulation_event(SimCommand& cmd)

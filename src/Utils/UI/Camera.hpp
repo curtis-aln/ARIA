@@ -14,6 +14,10 @@ public:
     float m_pan_lerp_ = 10.0f;  // lower = more lag when starting/changing direction
 
 private:
+    using cam_clock = std::chrono::steady_clock;
+    cam_clock::time_point m_last_update_ = cam_clock::now();
+
+
     sf::RenderWindow* m_window_ = nullptr;
 
     // zoom
@@ -45,24 +49,31 @@ public:
     }
 
     // call at the start of each frame, before event handling
-    void update(const float dt)
+    void update() 
     {
+        const auto now = cam_clock::now();
+        const float dt = std::min(std::chrono::duration<float>(now - m_last_update_).count(), 0.1f); // clamp hitches
+        m_last_update_ = now;
+
         const sf::Vector2f mouse_pos = sf::Vector2f(sf::Mouse::getPosition(*m_window_));
         const sf::Vector2f raw_delta = mouse_pos - m_mouse_prev_;
         m_mouse_prev_ = mouse_pos;
 
-        if (m_is_panning_)
+        if (dt > 0.f)
         {
-            // smoothly accelerate toward the mouse movement rather than snapping to it
-            m_pan_velocity_ += (raw_delta - m_pan_velocity_) * m_pan_lerp_ * dt;
-        }
-        else
-        {
-            // decelerate with friction when released
-            m_pan_velocity_ -= m_pan_velocity_ * m_pan_friction_ * dt;
-        }
+            if (m_is_panning_)
+            {
+                const sf::Vector2f target_vel = raw_delta / dt;               // px/s
+                const float a = 1.f - std::exp(-m_pan_lerp_ * dt);            // frame-rate independent lerp
+                m_pan_velocity_ += (target_vel - m_pan_velocity_) * a;
+            }
+            else
+            {
+                m_pan_velocity_ *= std::exp(-m_pan_friction_ * dt);           // frame-rate independent decay
+            }
 
-        m_view_.move(-m_pan_velocity_ / m_current_zoom_);
+            m_view_.move(-m_pan_velocity_ * dt / m_current_zoom_);            // px/s * s
+        }
 
         smooth_zoom(dt);
         update_window_view();

@@ -54,7 +54,7 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		if (ImGui::SliderFloat("##impulse_damage_thresh", &thresh, 0.f, 100.f, "threshold %.2f"))
 			ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetImpulseDamageThreshold, .float_val = thresh });
 		float damage = CellManagerSettings::impulse_damage_multiplier;
-		if (ImGui::SliderFloat("##impulse_damage_multiplier", &damage, 0.f, 0.002f, "multiplier %.5f"))
+		if (ImGui::SliderFloat("##impulse_damage_multiplier", &damage, 0.f, 0.02f, "multiplier %.4f"))
 			ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetImpulseDamageMultiplier, .float_val = damage });
 		float max = CellManagerSettings::max_single_hit_integrity_fraction;
 		if (ImGui::SliderFloat("##max_single_hit_integrity_fraction", &max, 0.f, 1.f, "max single hit integrity fraction %.2f"))

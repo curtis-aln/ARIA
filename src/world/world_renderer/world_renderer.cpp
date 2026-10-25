@@ -128,10 +128,7 @@ void WorldRenderer::render_visual_grid(const SimSnapshot& snapshot)
 	float zoom = snapshot.sim_stats.camera_zoom;
 	float alpha_value = 1.f;
 	if (zoom < start_fading_zoom)
-	{
-		alpha_value = (zoom - start_fading_zoom) / fade_zoom_dist;
-		alpha_value = std::clamp(alpha_value, 0.f, 1.f);
-	}
+		alpha_value = std::clamp(1.f - (start_fading_zoom - zoom) / fade_zoom_dist, 0.f, 1.f);
 	visual_grid_.draw(alpha_value);
 }
 
