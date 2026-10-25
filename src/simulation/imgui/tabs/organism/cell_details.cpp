@@ -48,9 +48,9 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body&
 
 	// ── Sin wave ───────────────────────────────────────────────────────────
 	static std::vector<float> fric_buf;
-	draw_wave_panel(ctx, current_friction, "CL_wave",
+	draw_wave_panel(ctx, "CL_wave",
 		"Friction  amplitude * sin(frequency * t + phase) + shift",
-		frames_alive, c.body_id_, "friction", fric_buf,
+		static_cast<double>(c.internal_clock_), c.body_id_, "Friction", current_friction, friction_wave_col,
 		{ c.amplitude,      CellGeneticConstraints::amplitude.min,      CellGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetAmplitude },
 		{ c.frequency,      CellGeneticConstraints::frequency.min,      CellGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetFrequency },
 		{ c.offset,         CellGeneticConstraints::offset.min,         CellGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetOffset },

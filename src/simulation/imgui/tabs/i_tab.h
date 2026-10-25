@@ -21,11 +21,12 @@ static void labeled_bar(const char* prefix, const float fraction,
     colored_bar(fraction, color, overlay, { -1.f, k_summary_bar_height });
 }
 
-// Safe period in frames for a given frequency.
+// One cycle of sin(f*t + phase) is 2*pi/f frames
 static int safe_time_period(const float frequency, int k_max_wave_buf)
 {
+    constexpr float two_pi = 6.28318530718f;
     if (std::abs(frequency) < 1e-6f) return 120;
-    return std::clamp(static_cast<int>(1.f / std::abs(frequency)), 1, k_max_wave_buf);
+    return std::clamp(static_cast<int>(std::lround(two_pi / std::abs(frequency))), 1, k_max_wave_buf);
 }
 
 // Analytical min/max of A*sin(...)+D clamped to [lo, hi].

@@ -33,7 +33,7 @@ public:
 	uint32_t cell_A_id{};
 	uint32_t cell_B_id{};
 
-	uint16_t internal_clock_{};
+	uint32_t internal_clock_{};
 	float death_chance_ = 0.f; // zero means no chance of breaking, 1 means guaranteed breakage on the first frame
 
 	float work_done = 0.f;

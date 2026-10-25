@@ -19,6 +19,10 @@ static constexpr float k_mini_bar_height = 8.f;
 // ProtozoaSettings. Used for progress-bar scaling only — not enforced here.
 static constexpr float k_summary_bar_height = 18.f;
 
+inline static constexpr ImVec4 friction_wave_col = { 1.00f, 0.65f, 0.25f, 1.f };
+inline static constexpr ImVec4 extension_wave_col = { 0.85f, 0.45f, 1.00f, 1.f };
+inline static constexpr float  no_actual_value = std::numeric_limits<float>::quiet_NaN();
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Internal helpers
@@ -65,7 +69,12 @@ private:
 	static void draw_no_selection();
 	void draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
 	void draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
-	void draw_wave_panel(ImGuiContext& ctx, const float current_friction, const char* child_id, const char* description, int frames_alive, int idx, const char* value_label, std::vector<float>& scratch_buf, const WaveParam& amplitude, const WaveParam& frequency, const WaveParam& offset, const WaveParam& vertical_shift);
+	
+	void draw_wave_panel(ImGuiContext& ctx, const char* child_id, const char* description,
+		double now, int idx, const char* value_label, float actual_value, ImVec4 col,
+		const WaveParam& amplitude, const WaveParam& frequency,
+		const WaveParam& offset, const WaveParam& vertical_shift);
+
 	void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body& body);
 	void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);
 	void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);

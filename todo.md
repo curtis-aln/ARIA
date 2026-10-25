@@ -21,7 +21,6 @@
 - Reset Simulation Button with controls for world size, initial protozoa count, food spawn rate, and mutation rate/range
 
 ##### world TODO
-- add the ability to change the worldsize in real time, regardless of if the spatial hash grid can change with it yet, as well as an auto world size expansion
 - Add radiation zones which mutates an organism based on their proximity to the center of the zone, the closer they are the higher the mutation rate and range, but also the higher the energy cost for existing in that zone
 - Add black holes which can pull in protozoa and food, but not kill them, just make them orbit until they get pulled out by another protozoa or food item
   can be modified by the user. if the gravitational pull is negative it becomes a white hole which pushes things away instead of pulling them in
@@ -32,8 +31,6 @@
 ##### Simulation TODO
 - Add ambient music with mild bubble sound effects
 - std::cout debug prints in production code - Add a constexpr bool DEBUG_LOGGING = false flag in settings and gate all std::cout behind it, or use a proper logger.
-- orginize settings files
-- Ability to have the simulation window open on the same display that visual studio is on
 
 ##### Rendering TODO
 - Add a focus blur effect using shaders so cells on the edges of the screen are blurred, and cells in the center are clear

@@ -145,11 +145,11 @@ void Cell::turn_off_reproduction()
 	return clamped;
 }
 
-void  Cell::update_statistics()
+void Cell::update_statistics()
 {
 	internal_clock_++;
-	time_since_last_ate_++;
-	repro_timer_++;
+	if (time_since_last_ate_ != UINT16_MAX) time_since_last_ate_++;
+	if (repro_timer_ != UINT16_MAX)         repro_timer_++;
 }
 
 

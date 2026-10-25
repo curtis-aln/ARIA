@@ -85,7 +85,7 @@ public:
 	float sinwave_current_friction_ = 0.f;
 
 	// Statistics information
-	uint16_t internal_clock_ = 0;
+	uint32_t internal_clock_ = 0;
 	uint8_t  offspring_count = 0;
 
 	float cumulative_collision_damage_ = 0.f;

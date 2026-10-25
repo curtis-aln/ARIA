@@ -12,6 +12,9 @@
 #include <simulation/context/state.h>
 #include <simulation/imgui/tabs/i_tab.h>
 #include <vector>
+#include <limits>
+#include <numbers>
+
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -279,46 +282,137 @@ void OrganismTab::draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& 
 	ImGui::EndChild();
 }
 
-void OrganismTab::draw_wave_panel(ImGuiContext& ctx, const float current_friction, const char* child_id,
-	const char* description, int frames_alive, int idx, const char* value_label,
-	std::vector<float>& scratch_buf,
+void OrganismTab::draw_wave_panel(ImGuiContext& ctx, const char* child_id, const char* description,
+	const double now, const int idx, const char* value_label, const float actual_value, const ImVec4 col,
 	const WaveParam& amplitude, const WaveParam& frequency,
 	const WaveParam& offset, const WaveParam& vertical_shift)
 {
-	const int period = safe_time_period(frequency.value, k_max_wave_buf);
-	const int display_size = std::min(m_wave_cycles_ * period, k_max_wave_buf);
-	const int head = frames_alive % display_size;
+	const double A = amplitude.value, B = frequency.value, D = vertical_shift.value;
+	// Same float math and same fast_sin as Cell::calculate_friction / Spring::calculate_rest_length.
+	const auto raw_at = [fA = amplitude.value, fB = frequency.value,
+		fC = offset.value, fD = vertical_shift.value](double t)
+		{
+			return static_cast<double>(fD + fA * fast_sin(fB * static_cast<float>(t) + fC));
+		};
+	const auto wave_at = [&](double t) { return std::clamp(raw_at(t), 0.0, 1.0); };
+
+	// Exact (unrounded) period, so N display cycles is exactly N cycles.
+	constexpr double k_max_span = 100000.0;
+	const double period = std::abs(B) > 1e-9 ? 2.0 * std::numbers::pi / std::abs(B) : k_max_span;
+	const double span = std::min(period * m_wave_cycles_, k_max_span);
+
+	// Window follows "now"; never shows frames before birth.
+	const double x_min = std::max(0.0, now - span * 0.5);
+	const double x_max = x_min + span;
+
+	constexpr int N = 512;
+	static double xs[N], ys[N], raw[N];
+	for (int i = 0; i < N; ++i)
+	{
+		xs[i] = x_min + span * i / (N - 1);
+		raw[i] = raw_at(xs[i]);
+		ys[i] = std::clamp(raw[i], 0.0, 1.0);
+	}
+
+	const double raw_lo = D - std::abs(A), raw_hi = D + std::abs(A);
+	const bool   clipped = raw_hi > 1.0 || raw_lo < 0.0;
+	const double y_lo = std::min(0.0, raw_lo) - 0.06;
+	const double y_hi = std::max(1.0, raw_hi) + 0.06;
 
 	ImGui::BeginChild(child_id, { 500, -1.f }, true);
 	ImGui::TextDisabled("%s", description);
 
-	scratch_buf.resize(display_size);
-	PlotUtils::fill_sinwave(scratch_buf.data(), display_size,
-		amplitude.value, frequency.value, offset.value, vertical_shift.value, 0.f, 1.f);
-	PlotUtils::sinwave_graph("##wave", scratch_buf.data(), display_size, head, 0.f, 1.f, { -1.f, 52.f });
-	ImGui::Text("t=%-4d  %s = %.4f", head, value_label, scratch_buf[head]);
+	ImPlot::PushStyleColor(ImPlotCol_FrameBg, { 0.f, 0.f, 0.f, 0.f });
+	ImPlot::PushStyleColor(ImPlotCol_PlotBg, { 0.f, 0.f, 0.f, 0.f });
+	ImPlot::PushStyleColor(ImPlotCol_PlotBorder, { 0.f, 0.f, 0.f, 0.f });
+	ImPlot::PushStyleColor(ImPlotCol_AxisGrid, { 1.f, 1.f, 1.f, 0.07f });
+	ImPlot::PushStyleColor(ImPlotCol_AxisText, { 0.55f, 0.58f, 0.65f, 1.f });
+	ImPlot::PushStyleVar(ImPlotStyleVar_PlotBorderSize, 0.f);
 
-	// Current friction
-	const float fric = current_friction;
-	const ImVec4 fc = { 1.f - fric, fric, 0.2f, 1.f };
-	ImGui::Spacing();
-	ImGui::TextDisabled("Friction");
+	constexpr ImPlotFlags pf = ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect |
+		ImPlotFlags_NoMouseText | ImPlotFlags_NoLegend | ImPlotFlags_NoInputs;
+
+	if (ImPlot::BeginPlot("##wave", { -1.f, 80.f }, pf))
+	{
+		static const double y_ticks[] = { 0.0, 0.5, 1.0 };
+		ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoTickMarks, ImPlotAxisFlags_NoTickMarks);
+		ImPlot::SetupAxisLimits(ImAxis_X1, x_min, x_max, ImGuiCond_Always);
+		ImPlot::SetupAxisLimits(ImAxis_Y1, y_lo, y_hi, ImGuiCond_Always);
+		ImPlot::SetupAxisTicks(ImAxis_Y1, y_ticks, 3);
+
+		// Valid [0,1] band
+		const double bx[2] = { x_min, x_max }, by[2] = { 1.0, 1.0 };
+		ImPlot::SetNextFillStyle({ 1.f, 1.f, 1.f, 1.f }, 0.04f);
+		ImPlot::PlotShaded("##valid", bx, by, 2, 0.0);
+
+		// Unclamped wave, faint, only when the clamp is actually cutting it
+		if (clipped)
+		{
+			ImPlot::SetNextLineStyle({ col.x, col.y, col.z, 0.30f }, 1.f);
+			ImPlot::PlotLine("##raw", xs, raw, N);
+		}
+
+		ImPlot::SetNextFillStyle(col, 0.12f);
+		ImPlot::PlotShaded("##fill", xs, ys, N, 0.0);
+		ImPlot::SetNextLineStyle(col, 2.f);
+		ImPlot::PlotLine("##curve", xs, ys, N);
+
+		// "Now": line + model ring + actual dot (when the real value is known)
+		const double nx = now, model_y = wave_at(now);
+		const double actual_y = actual_value;
+		const bool known = !std::isnan(actual_value);
+
+		ImPlot::SetNextLineStyle({ 1.f, 1.f, 1.f, 0.30f }, 1.f);
+		ImPlot::PlotInfLines("##now", &nx, 1);
+
+		if (known)
+		{
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 8.f, { 0.f, 0.f, 0.f, 0.f }, 1.5f, { 1.f, 1.f, 1.f, 0.9f });
+			ImPlot::PlotScatter("##model", &nx, &model_y, 1);
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 4.f, col, IMPLOT_AUTO, col);
+			ImPlot::PlotScatter("##actual", &nx, &actual_y, 1);
+		}
+		else
+		{
+			ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle, 5.f, { 1.f, 1.f, 1.f, 1.f }, IMPLOT_AUTO, { 1.f, 1.f, 1.f, 1.f });
+			ImPlot::PlotScatter("##model", &nx, &model_y, 1);
+		}
+		ImPlot::EndPlot();
+	}
+	ImPlot::PopStyleVar(1);
+	ImPlot::PopStyleColor(5);
+
+	// ── Readout ───────────────────────────────────────────────────────────
+	const double model_v = wave_at(now);
+	ImGui::TextDisabled("frame %.0f  period %.1f fr", now, period);
+	ImGui::SameLine(0.f, 14.f);
+	ImGui::TextColored(col, "%s", value_label);
 	ImGui::SameLine();
-	ImGui::PushStyleColor(ImGuiCol_Text, fc);
-	ImGui::Text("%.4f", fric);
-	ImGui::PopStyleColor();
-	colored_progress(fric, fc, "", { -1.f, 5.f });
+	if (!std::isnan(actual_value))
+	{
+		// tolerance covers the real value being read one tick before/after our clock
+		const bool mismatch = std::abs(actual_value - model_v) > 1e-3;
+		ImGui::Text("%.4f", actual_value);
+		ImGui::SameLine(0.f, 10.f);
+		if (mismatch) ImGui::TextColored({ 1.f, 0.35f, 0.35f, 1.f }, "model %.4f MISMATCH", model_v);
+		else          ImGui::TextDisabled("model %.4f", model_v);
+		colored_progress(actual_value, col, "", { -1.f, 4.f });
+	}
+	else
+		ImGui::Text("%.4f (model)", model_v);
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(-1.f);
 	ImGui::SliderInt("##cycles", &m_wave_cycles_, 1, 8, "Display cycles = %d");
 
+	// ── Genome sliders, 2x2 ───────────────────────────────────────────────
 	const WaveParam params[] = { amplitude, frequency, offset, vertical_shift };
+	const float half = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
 	for (int i = 0; i < 4; ++i)
 	{
-		ImGui::PushID(i); // needed since all four sliders now share the "##wp" label
-		ImGui::Spacing();
-		ImGui::SetNextItemWidth(-1.f);
+		if (i % 2) ImGui::SameLine();
+		ImGui::PushID(i);
+		ImGui::SetNextItemWidth(half);
 		float val = params[i].value;
 		if (ImGui::SliderFloat("##wp", &val, params[i].min, params[i].max, params[i].fmt))
 		{
