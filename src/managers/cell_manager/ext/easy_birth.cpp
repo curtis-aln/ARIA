@@ -254,10 +254,6 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 
 		if (Random::rand01_float() < cell->add_spring_chance)
 		{
-			// have we reached the max springs
-			if (cell->spring_links_.size_ >= CellSettings::max_cell_connections)
-				continue;
-
 			// pick a random cell from the cell_ids
 			Cell* other_cell = all_cells_.at(cell_ids[Random::rand_range(0, cell_count - 1)]);
 
@@ -365,7 +361,7 @@ int32_t CellManager::clone_cell(const cell_idx parent_cell_id, const sf::Vector2
 	offspring_body->velocity_ = { 0.f, 0.f };
 
 	// stop the newborn auto-connect logic from adding extra springs; we build them ourselves
-	offspring_cell->new_connections_made = Cell::max_cell_connections;
+	// offspring_cell->new_connections_made = Cell::max_cell_connections; Todo // BUG
 
 	parent_cell->turn_off_reproduction();
 

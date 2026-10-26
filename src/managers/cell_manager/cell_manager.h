@@ -243,6 +243,7 @@ private: // only functions this class can access
 
 	// birth - cells
 	CellBodyPair create_cell(sf::Vector2f position = { 0, 0 }, bool random_genetics = false);
+	bool are_connected(cell_idx a, cell_idx b);
 	void collect_reproduction_requests();
 	void apply_reproduction_requests();
 

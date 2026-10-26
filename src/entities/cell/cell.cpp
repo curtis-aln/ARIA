@@ -95,8 +95,6 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	repro_timer_ = 0;
 	offspring_count++;
 
-	// Updating the child cell's statistics
-	child->generation = generation + 1;
 
 	// a fraction of the energy of the parent is given to the child
 	const float give = std::clamp(offspring_energy_to_give, 0.1f, 0.9f);
@@ -154,6 +152,8 @@ void Cell::update_statistics()
 
 void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_death)
 {
+	sinwave_current_friction_ = calculate_friction();
+
 	if (immune)
 		apply_immunity();
 	if (friction_energy_loss)
@@ -180,7 +180,6 @@ void Cell::apply_immunity()
 void Cell::apply_passive_decay()
 {
 	/* when a cell grips onto the world it costs energy */
-	sinwave_current_friction_ = calculate_friction();
 	delta_energy -= (1.f - sinwave_current_friction_) * friction_energy_loss_const;
 }
 

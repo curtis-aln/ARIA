@@ -12,7 +12,7 @@ float CellManager::calculate_average_generation() const
 
 	for (Cell* cell : all_cells_)
 	{
-		sum += cell->generation;
+		sum += cell->get_generation();
 		count++;
 	}
 
@@ -60,7 +60,7 @@ const std::vector<float>& CellManager::get_generation_distribution()
 	distribution_.clear();
 
 	for (const Cell* cell : all_cells_)
-		distribution_.push_back(static_cast<float>(cell->generation));
+		distribution_.push_back(static_cast<float>(cell->get_generation()));
 
 	return distribution_;
 }
@@ -120,9 +120,9 @@ void CellManager::update_statistics()
 		statistics_.average_mutation_range += cell->mutation_range;
 		statistics_.average_offspring_count += cell->offspring_count;
 		statistics_.average_energy += cell->get_energy();
-		statistics_.average_generation += cell->generation;
+		statistics_.average_generation += cell->get_generation();
 
-		statistics_.highest_generation_ever = std::max(cell->generation, statistics_.highest_generation_ever);
+		statistics_.highest_generation_ever = std::max(cell->get_generation(), statistics_.highest_generation_ever);
 		statistics_.most_offspring_ever = std::max(static_cast<int>(cell->offspring_count), statistics_.most_offspring_ever);
 	}
 

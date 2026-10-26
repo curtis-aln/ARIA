@@ -64,7 +64,7 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 	if (c.immortal_)
 		ImGui::TextColored({ 0.3f, 0.8f, 0.3f, 1.f }, "Immortal");
 
-	ImGui::Text("id %d  Gen %d", c.body_id_, c.generation);
+	ImGui::Text("id %d  Gen %d", c.body_id_, c.get_generation());
 	ImGui::Text("age %zu fr", c.internal_clock_);
 	ImGui::Text("Period   %d fr", period);
 	ImGui::Text("Fric     min %.3f  max %.3f", wave_min, wave_max);

@@ -34,7 +34,7 @@ struct BaseConstants
 struct GenomeBase : protected BaseConstants
 {
 	float guassian_const, mutation_range;
-	uint32_t generation = 0;
+	
 
 	uint8_t outer_r, outer_g, outer_b, inner_r, inner_g, inner_b;
 
@@ -52,15 +52,13 @@ struct GenomeBase : protected BaseConstants
 		inner_r = Random::rand_byte(); inner_g = Random::rand_byte(); inner_b = Random::rand_byte();
 	}
 
-protected:
-	float maybe_mutate(float val, Range limits, float rate, float range) const
-	{
-		if (Random::rand01_float() >= rate)
-			return val;
-		return limits.clamp(val + Random::rand_range(-range, range));
-	}
+	uint32_t get_generation() const { return generation; }
 
-	// ES-style Gaussian mutation. Unlike maybe_mutate, this never "skips" —
+protected:
+	uint32_t generation = 0;
+
+
+	// ES-style Gaussian mutation. 
 	// it always perturbs val, drawing the offset from a normal distribution
 	// with std-dev = range * gaussian_const, instead of a uniform draw gated by rate.
 	// Most nudges land close to 0; large jumps are rare but not impossible.
@@ -79,12 +77,15 @@ protected:
 		mutation_range = mutation_range_limits.clamp(mutation_range * std::exp(meta_learning_rate * sample_gaussian()));
 		mutate_colour(outer_r, outer_g, outer_b);
 		mutate_colour(inner_r, inner_g, inner_b);
+
+		generation++;
 	}
 
 	void rand_in_range(float& val, const Range& range)
 	{
 		val = Random::rand_range(range.min, range.max);
 	}
+	
 
 
 private:
@@ -198,6 +199,8 @@ struct SpringGenome : GenomeBase
 
 		outer_r = parent.outer_r; outer_g = parent.outer_g; outer_b = parent.outer_b;
 		inner_r = parent.inner_r; inner_g = parent.inner_g; inner_b = parent.inner_b;
+
+		generation = parent.generation;
 	}
 
 	void sexually_reproduce(const SpringGenome& a, const SpringGenome& b)
@@ -207,7 +210,10 @@ struct SpringGenome : GenomeBase
 
 		amplitude = mid(a.amplitude, b.amplitude);
 		frequency = mid(a.frequency, b.frequency);
-		offset = mid(a.offset, b.offset);
+
+		offset = std::atan2(std::sin(a.offset) + std::sin(b.offset),
+			std::cos(a.offset) + std::cos(b.offset));
+
 		vertical_shift = mid(a.vertical_shift, b.vertical_shift);
 		spring_const = mid(a.spring_const, b.spring_const);
 		damping = mid(a.damping, b.damping);
@@ -234,6 +240,18 @@ struct CellGeneticConstraints
 	inline static constexpr Range vertical_shift = { -1.f,        1.f };
 
 	inline static constexpr Range newborn_search = { 0.f, mass.max * 4.f };
+
+	inline static constexpr Range birth_energy_thresh = { 0.f, 1.f };
+	inline static constexpr Range birth_integrity_thresh = { 0.f, 1.f };
+	inline static constexpr Range birth_nutrients_thresh = { 0.f, 1.f };
+	inline static constexpr Range offspring_energy_to_give = { 0.f, 1.f };
+
+	inline static constexpr Range add_cell_chance = { 0.f, 1.f };
+	inline static constexpr Range remove_cell_chance = { 0.f, 1.f };
+	inline static constexpr Range add_spring_chance = { 0.f, 1.f };
+	inline static constexpr Range remove_spring_chance = { 0.f, 1.f };
+
+	inline static constexpr Range quorum_fraction = { 0.2f, 1.f };
 };
 
 struct CellInitialSpawnRanges
@@ -244,14 +262,27 @@ struct CellInitialSpawnRanges
 	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
 	inline static constexpr Range offset = CellGeneticConstraints::offset;
 	inline static constexpr Range vertical_shift = { 0.965f,           0.99f };
+
+	inline static constexpr Range birth_energy_thresh = { 0.8f, 0.85f };
+	inline static constexpr Range birth_integrity_thresh = { 0.f,  0.1f };
+	inline static constexpr Range birth_nutrients_thresh = { 0.f,  0.1f };
+	inline static constexpr Range offspring_energy_to_give = { 0.f,  1.f };
+
+	inline static constexpr Range newborn_search = { CellGeneticConstraints::newborn_search.max * 0.9f,
+													 CellGeneticConstraints::newborn_search.max };
+
+	inline static constexpr Range add_cell_chance = { 0.05f, 0.05f };
+	inline static constexpr Range remove_cell_chance = { 0.05f, 0.05f };
+	inline static constexpr Range add_spring_chance = { 0.05f, 0.05f };
+	inline static constexpr Range remove_spring_chance = { 0.05f, 0.05f };
+
+	inline static constexpr Range quorum_fraction = { 0.5f, 0.5f };
 };
 
 struct HardConstants
 {
 	inline static constexpr uint8_t   outer_transparency = 150;
 	inline static constexpr uint8_t   inner_transparency = 125;
-
-	inline static constexpr float friction_multiplier = 0.95f;
 };
 
 struct CellGenome : GenomeBase, HardConstants
@@ -305,6 +336,17 @@ struct CellGenome : GenomeBase, HardConstants
 		rand_in_range(connective_spring_spring_const, S_Const::spring_const);
 		rand_in_range(connective_spring_damping, S_Const::damping);
 
+		rand_in_range(birth_energy_thresh, Limit::birth_energy_thresh);
+		rand_in_range(birth_integrity_thresh, Limit::birth_integrity_thresh);
+		rand_in_range(birth_nutrients_thresh, Limit::birth_nutrients_thresh);
+		rand_in_range(offspring_energy_to_give, Limit::offspring_energy_to_give);
+		rand_in_range(newborn_search_radius, Limit::newborn_search);
+		rand_in_range(add_cell_chance, Limit::add_cell_chance);
+		rand_in_range(remove_cell_chance, Limit::remove_cell_chance);
+		rand_in_range(add_spring_chance, Limit::add_spring_chance);
+		rand_in_range(remove_spring_chance, Limit::remove_spring_chance);
+		rand_in_range(quorum_fraction, Limit::quorum_fraction);
+
 		rand_in_range(newborn_search_radius, { C_Const::newborn_search.max * 0.9f, C_Const::newborn_search.max });
 
 		add_cell_chance = 0.05f;
@@ -320,12 +362,11 @@ struct CellGenome : GenomeBase, HardConstants
 
 		const auto& C = CellGeneticConstraints{};
 
-
 		mass = maybe_mutate_gaussian(mass, C.mass, range, guassian_const);
-		amplitude = maybe_mutate_gaussian(amplitude, C.amplitude, range * friction_multiplier, guassian_const);
-		frequency = maybe_mutate_gaussian(frequency, C.frequency, range * friction_multiplier, guassian_const);
-		offset = maybe_mutate_gaussian(offset, C.offset, range * friction_multiplier, guassian_const);
-		vertical_shift = maybe_mutate_gaussian(vertical_shift, C.vertical_shift, range * friction_multiplier, guassian_const);
+		amplitude = maybe_mutate_gaussian(amplitude, C.amplitude, range, guassian_const);
+		frequency = maybe_mutate_gaussian(frequency, C.frequency, range, guassian_const);
+		offset = maybe_mutate_gaussian(offset, C.offset, range, guassian_const);
+		vertical_shift = maybe_mutate_gaussian(vertical_shift, C.vertical_shift, range, guassian_const);
 
 		birth_energy_thresh = maybe_mutate_gaussian(birth_energy_thresh, { 0.f, 1.f }, range, guassian_const);
 		birth_integrity_thresh = maybe_mutate_gaussian(birth_integrity_thresh, { 0.f, 1.f }, range, guassian_const);
@@ -379,6 +420,8 @@ struct CellGenome : GenomeBase, HardConstants
 		remove_cell_chance = parent.remove_cell_chance;
 		add_spring_chance = parent.add_spring_chance;
 		remove_spring_chance = parent.remove_spring_chance;
+
+		generation = parent.generation;
 	}
 
 };
@@ -404,6 +447,17 @@ GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, vertical_
 GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, spring_const);
 GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, damping);
 GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, nutrient_transfer_rate);
+
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, birth_energy_thresh);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, birth_integrity_thresh);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, birth_nutrients_thresh);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, offspring_energy_to_give);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, newborn_search);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, add_cell_chance);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, remove_cell_chance);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, add_spring_chance);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, remove_spring_chance);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, quorum_fraction);
 
 // BASE
 static_assert(BaseConstants::gaussian_const_limits.contains(BaseConstants::init_gaussian_const_spread));

@@ -294,7 +294,7 @@ private:
             total_nutrients += cell.nutrients_;
             frames_alive += cell.internal_clock_;
             total_food_eaten += cell.total_food_eaten_;
-			average_generation += cell.generation;
+			average_generation += cell.get_generation();
             offspring_count += cell.offspring_count;
 			time_since_last_reproduced += cell.repro_timer_;
 

@@ -103,7 +103,7 @@ public:
 	float delta_integrity = 0.f;
 
 	// cell.h, public section
-	std::array<uint32_t, max_cell_connections> connected_partner_ids_{};
+	std::array<uint32_t, SpringLinks::max_connections> connected_partner_ids_{};
 
 	[[nodiscard]] bool can_eat() const { return time_since_last_ate_ >= digestive_time && nutrients_ < max_nutrients; }
 
@@ -117,7 +117,7 @@ public:
 
 	void register_connection(uint32_t other_id)
 	{
-		if (new_connections_made < max_cell_connections)
+		if (new_connections_made < SpringLinks::max_connections)
 			connected_partner_ids_[new_connections_made++] = other_id;
 	}
 

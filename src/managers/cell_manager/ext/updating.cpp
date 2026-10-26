@@ -32,7 +32,7 @@ void CellManager::add_new_cells_to_grid()
 	for (Cell* cell : all_cells_)
 	{
 		bool is_newborn = cell->internal_clock_ < infant_time;
-		bool is_first_gen = cell->generation == 0; // we dont want the initial cells during the sim start to all tangle
+		bool is_first_gen = cell->get_generation() == 0; // we dont want the initial cells during the sim start to all tangle
 		if (!is_newborn || is_first_gen)
 			continue;
 
@@ -136,8 +136,8 @@ void CellManager::collect_connection_requests()
 	{
 		bool is_newborn = cell->internal_clock_ < infant_time;
 		bool is_check_frame = cell->internal_clock_ % infant_check_interval == 0;
-		bool is_first_gen = cell->generation == 0;
-		bool can_have_more_connections = cell->new_connections_made < cell->max_cell_connections;
+		bool is_first_gen = cell->get_generation() == 0;
+		bool can_have_more_connections = cell->new_connections_made < SpringLinks::max_connections;
 
 		if (is_newborn && is_check_frame && !is_first_gen && can_have_more_connections)
 			try_connect_newborn_cell(cell);
@@ -275,6 +275,8 @@ void CellManager::update_springs(bool immune)
 {
 	for (Spring* spring : all_springs_)
 	{
+		if (spring->is_spring_broken()) continue;
+
 		Cell* cell_a = all_cells_.at(spring->cell_A_id);
 		Cell* cell_b = all_cells_.at(spring->cell_B_id);
 
@@ -423,8 +425,22 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 	return { cell->id_, body->id_, true };
 }
 
+bool CellManager::are_connected(cell_idx a, cell_idx b)
+{
+	const SpringLinks& links = all_cells_.at(a)->spring_links_;
+	for (uint32_t i = 0; i < links.size_; ++i)
+	{
+		const Spring& s = *all_springs_.at(links.connected_spring_ids_[i]);
+		if ((s.cell_A_id == a && s.cell_B_id == b) || (s.cell_A_id == b && s.cell_B_id == a))
+			return true;
+	}
+	return false;
+}
+
 int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id)
 {
+	if (are_connected(cell_a_id, cell_b_id)) return -1;
+
 	// fetching the two cells
 	Cell* cell_a = all_cells_.at(cell_a_id);
 	Cell* cell_b = all_cells_.at(cell_b_id);
