@@ -196,7 +196,7 @@ void Cell::apply_immunity()
 void Cell::apply_passive_decay()
 {
 	/* when a cell grips onto the world it costs energy */
-	delta_energy -= (1.f - sinwave_current_value_) * friction_energy_loss_const;
+	delta_energy -= sinwave_current_value_ * friction_energy_loss_const;
 }
 
 void Cell::apply_old_age_decay()

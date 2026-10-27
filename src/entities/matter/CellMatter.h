@@ -6,8 +6,8 @@ struct CellMatter : CellMatterSettings
 {
 	bool dead = false;
 
-	uint16_t id_ = 0;
-	uint16_t body_id_ = 0;
+	uint32_t id_ = 0;
+	uint32_t body_id_ = 0;
 
 	uint8_t  inner_gray_ = 0;
 	uint8_t  outer_gray_ = 0;

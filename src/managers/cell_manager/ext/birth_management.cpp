@@ -200,7 +200,7 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 	child_body->mass_ = child_body->mass_;
 	child_body->set_radius();
 	child_cell->amplitude = 0.01f;
-	child_cell->vertical_shift = 0.9f;
+	child_cell->vertical_shift = 0.05f;
 
 	int32_t spring_id = create_spring(parent_id, pair.cell_id);
 	if (spring_id < 0) // potential error here
@@ -220,11 +220,17 @@ void CellManager::apply_matter_birth_requests()
 	for (const MatterBirthRequest& req : matter_birth_requests)
 	{
 		Body* body = bodies_->emplace(true, true);
+		if (body == nullptr)
+			continue;
+		body->reset_cell_manager();
 		body->position_ = req.position;
 
 		CellMatter* cell_matter = all_cell_matter_.emplace(true, true); // TODO create a creation Function;
 		if (cell_matter == nullptr)
-			std::cout << "Failed to create cell matter for birth request\n";
+		{
+			std::cerr << "[ERROR]: Failed to create cell matter during initialization. Max cell matter reached.\n";
+			continue;
+		}
 
 		cell_matter->reset_cell_matter();
 		cell_matter->cell_to_matter(body, req.inner_color, req.outer_color);
