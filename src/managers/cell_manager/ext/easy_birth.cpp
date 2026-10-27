@@ -258,30 +258,7 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 
 		if (Random::rand01_float() < cell->add_spring_chance)
 		{
-			// pick a random cell from the cell_ids
-			Cell* other_cell = all_cells_.at(cell_ids[Random::rand_range(0, cell_count - 1)]);
-
-			if (other_cell == nullptr)
-			{
-				std::cout << "easy_birth.cpp other_cell creation was flagged as a nullptr\n";
-			}
-
-			// check if we have already connected to the cell
-			if (other_cell->id_ == cell->id_ || cell->already_connected_to(other_cell->id_))
-				continue;
-
-			// if not, create a spring between the two cells
-			const int32_t spring_id = create_spring(cell->id_, other_cell->id_);
-			if (spring_id == -1)
-			{
-				std::cout << "easy_birth.cpp spring creation was flagged as a -1 \n";
-				continue;
-			}
-
-			Spring* spring = all_springs_.at(spring_id);
-
-			// give the spring the appropriate genetics
-			spring->genome.sexually_reproduce(cell->spring_genome, other_cell->spring_genome);
+			add_spring_mutation(cell_ids, cell_count, cell);
 		}
 
 		if (Random::rand01_float() < cell->remove_cell_chance)
@@ -299,6 +276,34 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 
 		}
 	}
+}
+
+void CellManager::add_spring_mutation(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count, const Cell* cell)
+{
+	// pick a random cell from the cell_ids
+	Cell* other_cell = all_cells_.at(cell_ids[Random::rand_range(0, cell_count - 1)]);
+
+	if (other_cell == nullptr)
+	{
+		std::cout << "easy_birth.cpp other_cell creation was flagged as a nullptr\n";
+	}
+
+	// check if we have already connected to the cell
+	if (other_cell->id_ == cell->id_ || cell->already_connected_to(other_cell->id_))
+		return;
+
+	// if not, create a spring between the two cells
+	const int32_t spring_id = create_spring(cell->id_, other_cell->id_);
+	if (spring_id == -1)
+	{
+		std::cout << "easy_birth.cpp spring creation was flagged as a -1 \n";
+		return;
+	}
+
+	Spring* spring = all_springs_.at(spring_id);
+
+	// give the spring the appropriate genetics
+	spring->genome.sexually_reproduce(cell->spring_genome, other_cell->spring_genome);
 }
 
 
@@ -383,7 +388,8 @@ bool CellManager::clone_spring(const uint32_t parent_spring_id, const cell_idx o
 	Spring* parent_spring = all_springs_.at(parent_spring_id);
 	Spring* offspring_spring = all_springs_.at(offspring_spring_id);
 
-	parent_spring->create_offspring(*offspring_spring);
-	offspring_spring->genome.mutate();
+	SpringGenome& genome_a = all_cells_.at(offspring_cell_a)->spring_genome;
+	SpringGenome& genome_b = all_cells_.at(offspring_cell_b)->spring_genome;
+	offspring_spring->genome.sexually_reproduce(genome_a, genome_b);
 	return true;
 }

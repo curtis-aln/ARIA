@@ -261,6 +261,8 @@ private: // only functions this class can access
 
 	void apply_structural_mutations(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count);
 
+	void add_spring_mutation(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count, const Cell* cell);
+
 	sf::Vector2f calculate_organism_centre(FixedSpan<cell_idx>& cell_ids);
 	float        calculate_organism_radius(FixedSpan<cell_idx>& cell_ids, const sf::Vector2f& centre);
 	sf::Vector2f calculate_clone_offset(FixedSpan<cell_idx>& parent_ids);
