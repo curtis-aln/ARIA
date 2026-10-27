@@ -111,7 +111,8 @@ void CellManager::update_cell(Cell* cell)
 	Body* body = bodies_->at(cell->body_id_);
 	cell->update_statistics();
 	cell->update_organics(spawn_immune, toggles_.friction_energy_loss, toggles_.old_age_death);
-	body->velocity_ *= cell->sinwave_current_friction_;
+	
+	body->apply_drag(cell->drag_coeff());
 
 	speed_tax_cell(cell);
 	impulse_tax_cell(cell, body->impulse_);

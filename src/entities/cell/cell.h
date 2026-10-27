@@ -15,7 +15,7 @@
 #include "spring_links.h"
 
 // Each organism consists of cells which work together via springs
-// Each cell has their own radius and friction coefficient, as well as cosmetic factors such as color
+// Each cell has their own radius and drag  coefficient, as well as cosmetic factors such as color
 
 
 // a faster implementation of the round function
@@ -82,7 +82,8 @@ public:
 	float nutrients_ = 0.f;
 	uint8_t total_food_eaten_ = 0;
 
-	float sinwave_current_friction_ = 0.f;
+	float sinwave_current_value_ = 0.f; // The sinwave value this cell is currently at, used for calculating drag
+	float cell_calculated_drag_ = 0.f; // the drag coefficient produced by this cell
 
 	// Statistics information
 	uint32_t internal_clock_ = 0;
@@ -137,7 +138,7 @@ public:
 	[[nodiscard]] sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, inner_transparency }; }
 
 	[[nodiscard]] sf::Vector2f get_pos_nearby(const Body* body, const float range) const;
-	[[nodiscard]] float calculate_friction() const;
+	[[nodiscard]] float calculate_sin_output() const;
 
 	[[nodiscard]] float get_integrity() const { return integrity; }
 	[[nodiscard]] float get_energy() const { return energy; }
@@ -156,7 +157,8 @@ public:
 
 	// ------------ Cell functionality ------------
 	void update_statistics();
-	void update_organics(bool immune, bool friction_energy_loss, bool old_age_death);
+	float drag_coeff() const;
+	void update_organics(bool immune, bool drag_energy_loss, bool old_age_death);
 
 	[[nodiscard]] bool eat(const float nutrients);
 	void create_offspring(Body* this_body, Cell* child, Body* child_body, const bool mutate);

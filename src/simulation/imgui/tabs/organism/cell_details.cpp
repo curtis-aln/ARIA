@@ -19,7 +19,7 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body&
 		speed = body.velocity_.length();
 
 	const int frames_alive = c.internal_clock_;
-	const float current_friction = c.calculate_friction();
+	const float current_friction = c.calculate_sin_output();
 
 	const int period = safe_time_period(c.frequency, k_max_wave_buf);
 	float wave_min, wave_max;

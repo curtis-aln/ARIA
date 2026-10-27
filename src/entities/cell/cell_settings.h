@@ -26,4 +26,8 @@ struct CellSettings
 	inline static float death_integrity_rate = 0.004f;
 	inline static float death_decay_growth = 0.001f; // extra multiplier per tick past the threshold
 
+
+	inline static float drag_min = 0.00f; // glide: ~0.5% speed lost per tick
+	inline static float drag_max = 0.15f;  // grip: ~5% speed lost per tick
+
 };

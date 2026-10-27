@@ -133,12 +133,12 @@ void Cell::turn_off_reproduction()
 		});
 }
 
-[[nodiscard]] float Cell::calculate_friction() const
+[[nodiscard]] float Cell::calculate_sin_output() const
 {
 	const float sin_value = fast_sin(frequency * internal_clock_ + offset); // [-1, 1]
 	const float ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
-	const float clamped = std::clamp(ratio, 0.f, 1.f);
-	// clamping friction to [0, 1]
+	const float clamped = std::clamp(ratio, 0.f, 1.f); // keeping the output between 0 and 1, so that the drag coefficient is always valid
+
 	return clamped;
 }
 
@@ -149,10 +149,15 @@ void Cell::update_statistics()
 	if (repro_timer_ != UINT16_MAX)         repro_timer_++;
 }
 
+float Cell::drag_coeff() const 
+{
+	return CellSettings::drag_min + sinwave_current_value_ * (CellSettings::drag_max - CellSettings::drag_min);
+}
 
 void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_death)
 {
-	sinwave_current_friction_ = calculate_friction();
+	sinwave_current_value_ = calculate_sin_output();
+	cell_calculated_drag_ = drag_coeff();
 
 	if (immune)
 		apply_immunity();
@@ -180,7 +185,7 @@ void Cell::apply_immunity()
 void Cell::apply_passive_decay()
 {
 	/* when a cell grips onto the world it costs energy */
-	delta_energy -= (1.f - sinwave_current_friction_) * friction_energy_loss_const;
+	delta_energy -= (1.f - sinwave_current_value_) * friction_energy_loss_const;
 }
 
 void Cell::apply_old_age_decay()

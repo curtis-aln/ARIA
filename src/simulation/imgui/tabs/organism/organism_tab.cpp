@@ -288,7 +288,7 @@ void OrganismTab::draw_wave_panel(ImGuiContext& ctx, const char* child_id, const
 	const WaveParam& offset, const WaveParam& vertical_shift)
 {
 	const double A = amplitude.value, B = frequency.value, D = vertical_shift.value;
-	// Same float math and same fast_sin as Cell::calculate_friction / Spring::calculate_rest_length.
+	// Same float math and same fast_sin as Cell::calculate_sin_output / Spring::calculate_rest_length.
 	const auto raw_at = [fA = amplitude.value, fB = frequency.value,
 		fC = offset.value, fD = vertical_shift.value](double t)
 		{

@@ -234,10 +234,13 @@ struct SpringGenome : GenomeBase
 struct CellGeneticConstraints
 {
 	inline static constexpr Range mass = { 55.f,         135.f };
-	inline static constexpr Range amplitude = { -2.f,         2.f };
-	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
-	inline static constexpr Range offset = { -3.14159f,    3.14159f };
-	inline static constexpr Range vertical_shift = { -1.f,        1.f };
+
+	// drag level wave: level = clamp(vertical_shift + amplitude * sin(frequency * t + offset), 0, 1)
+	// 0 -> drag_min, 1 -> drag_max (mapped in settings), so these ranges are independent of the physical drag values
+	inline static constexpr Range amplitude = { 0.f,         1.f };         // negative amplitude was just offset + π, so it's dropped
+	inline static constexpr Range frequency = { 1.f / 240.f, 1.f / 3.f };    // rad/frame, periods ~19 to ~1500 frames
+	inline static constexpr Range offset = { -3.14159f,   3.14159f };
+	inline static constexpr Range vertical_shift = { 0.f,         1.f };
 
 	inline static constexpr Range newborn_search = { 0.f, mass.max * 4.f };
 
@@ -258,18 +261,18 @@ struct CellInitialSpawnRanges
 {
 	inline static constexpr Range mass = { 55.f,          135.f };
 
-	inline static constexpr Range amplitude = { 0.01f,          0.08f };
-	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 2.f };
+	inline static constexpr Range amplitude = { 0.05f,       0.9f };
+	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 5.f };    // same band as SpringInitialSpawnRanges::frequency
 	inline static constexpr Range offset = CellGeneticConstraints::offset;
-	inline static constexpr Range vertical_shift = { 0.965f,           0.99f };
+	inline static constexpr Range vertical_shift = { 0.3f,        0.7f };
 
 	inline static constexpr Range birth_energy_thresh = { 0.8f, 0.85f };
 	inline static constexpr Range birth_integrity_thresh = { 0.f,  0.1f };
 	inline static constexpr Range birth_nutrients_thresh = { 0.f,  0.1f };
 	inline static constexpr Range offspring_energy_to_give = { 0.f,  1.f };
 
-	inline static constexpr Range newborn_search = { CellGeneticConstraints::newborn_search.max * 0.9f,
-													 CellGeneticConstraints::newborn_search.max };
+	inline static constexpr Range newborn_search = { CellGeneticConstraints::newborn_search.max * 0.1f,
+													 CellGeneticConstraints::newborn_search.max * 0.5f };
 
 	inline static constexpr Range add_cell_chance = { 0.05f, 0.05f };
 	inline static constexpr Range remove_cell_chance = { 0.05f, 0.05f };
