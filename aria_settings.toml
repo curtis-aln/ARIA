@@ -39,7 +39,6 @@ birth_grid_max_capacity               = 4
 max_cells                = 20000  # maximum number of cells in the simulation
 initial_protozoa            = 450  # seeds to create the initial population of cells  
 auto_reset_on_extinction    = true
-infant_time = 500 # time in ticks that a cell is considered an infant and can form connections
 speed_energy_tax = -0.4 # The Tax for not traveling fast enough
 
 # ── Cell ─────────────────────────────────────────────────────────────────
@@ -47,6 +46,9 @@ speed_energy_tax = -0.4 # The Tax for not traveling fast enough
 spawn_radius                = 50.0   # The radius of the circle in which cells are spawned at the start of the simulation
 reproductive_cooldown        = 500   # 
 digestive_time                = 50
+
+infant_time = 500 # time in ticks that a cell is considered an infant and can form connections
+
 
 initial_energy                = 70.0
 bite_amount = 10.0 

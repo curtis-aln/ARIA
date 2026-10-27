@@ -9,6 +9,9 @@ struct CellSettings
 	inline static size_t repro_cooldown; // how long a cell has to wait before it can reproduce again
 	inline static float digestive_time; // how long it takes for a cell to digest food before it can eat again
 
+	inline static int infant_time; // how long a cell is an infant for
+	inline static constexpr int infant_check_interval = 20; // how often to check for newborn connections, in frames
+
 	// Energy, nutrients, and integrity
 	inline static float initial_energy; // energy the protozoa spawn with
 	inline static float initial_integrity = 100.f;

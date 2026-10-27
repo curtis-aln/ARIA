@@ -45,6 +45,7 @@ void Cell::recreate()
 	reproduce_ = false;
 	dead_ = false;
 	immortal_ = false;
+	seek_newborn_links_ = false;
 
 	spring_links_.clear_connections();
 }
@@ -140,6 +141,16 @@ void Cell::turn_off_reproduction()
 	const float clamped = std::clamp(ratio, 0.f, 1.f); // keeping the output between 0 and 1, so that the drag coefficient is always valid
 
 	return clamped;
+}
+
+bool Cell::should_try_connect_to_others() const
+{
+	bool is_newborn = internal_clock_ < infant_time;
+	bool is_check_frame = internal_clock_ % infant_check_interval == 0;
+	bool is_first_gen = get_generation() == 0;
+	bool can_have_more_connections = new_connections_made < SpringLinks::max_connections;
+
+	return is_newborn && is_check_frame && !is_first_gen && can_have_more_connections && seek_newborn_links_;
 }
 
 void Cell::update_statistics()

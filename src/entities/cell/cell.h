@@ -58,9 +58,12 @@ inline float fast_sin(float x)
 
 struct Cell : public CellGenome, CellSettings
 {
+	bool seek_newborn_links_ = false;
+
 private:
 	bool reproduce_ = false; // signals to the protozoa manager that this cell needs an offspring index set
 	bool dead_ = false;      // signals that the cell is in its decaying state
+
 
 	float energy = initial_energy;
 	float integrity = max_integrity;
@@ -139,6 +142,8 @@ public:
 
 	[[nodiscard]] sf::Vector2f get_pos_nearby(const Body* body, const float range) const;
 	[[nodiscard]] float calculate_sin_output() const;
+
+	bool should_try_connect_to_others() const;
 
 	[[nodiscard]] float get_integrity() const { return integrity; }
 	[[nodiscard]] float get_energy() const { return energy; }

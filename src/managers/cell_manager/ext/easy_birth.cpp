@@ -209,6 +209,10 @@ void CellManager::protozoa_reproduce(FixedSpan<cell_idx>& parent_ids)
 			break;
 		}
 		offspring_ids[cells_created] = static_cast<cell_idx>(offspring_id);
+
+		// turning off the seek_newborn_links_ flag so the new cell does not try to connect to other newborns
+		Cell* offspring_cell = all_cells_.at(offspring_id);
+		offspring_cell->seek_newborn_links_ = false;
 	}
 
 

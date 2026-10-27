@@ -31,7 +31,7 @@ void CellManager::add_new_cells_to_grid()
 
 	for (Cell* cell : all_cells_)
 	{
-		bool is_newborn = cell->internal_clock_ < infant_time;
+		bool is_newborn = cell->internal_clock_ < CellSettings::infant_time;
 		bool is_first_gen = cell->get_generation() == 0; // we dont want the initial cells during the sim start to all tangle
 		if (!is_newborn || is_first_gen)
 			continue;
@@ -134,15 +134,8 @@ void CellManager::impulse_tax_cell(Cell* cell, const float impulse) const
 void CellManager::collect_connection_requests()
 {
 	for (Cell* cell : all_cells_)
-	{
-		bool is_newborn = cell->internal_clock_ < infant_time;
-		bool is_check_frame = cell->internal_clock_ % infant_check_interval == 0;
-		bool is_first_gen = cell->get_generation() == 0;
-		bool can_have_more_connections = cell->new_connections_made < SpringLinks::max_connections;
-
-		if (is_newborn && is_check_frame && !is_first_gen && can_have_more_connections)
+		if (cell->should_try_connect_to_others())
 			try_connect_newborn_cell(cell);
-	}
 }
 
 
@@ -167,7 +160,7 @@ void CellManager::add_cells_to_render_data(RenderData& rend_data, const sf::Floa
 		if (!visible_bounds.contains(body->position_))
 			continue;
 
-		if (show_only_newborns && cell->internal_clock_ >= infant_time)
+		if (show_only_newborns && cell->should_try_connect_to_others())
 			continue;
 
 		rend_data.outer_colors.push_back(cell->get_outer_color());
@@ -187,7 +180,7 @@ void CellManager::add_springs_to_render_data(RenderData& rend_data, const sf::Fl
 		Cell* cell_a = all_cells_.at(spring->cell_A_id);
 		Body* body_a = bodies_->at(cell_a->body_id_);
 		bool cell_a_visible = visible_bounds.contains(body_a->position_);
-		bool cell_a_newborn = cell_a->internal_clock_ < infant_time;
+		bool cell_a_newborn = cell_a->internal_clock_ < CellSettings::infant_time;
 
 		if (show_only_newborns && cell_a_newborn)
 			continue;
@@ -196,7 +189,7 @@ void CellManager::add_springs_to_render_data(RenderData& rend_data, const sf::Fl
 		Body* body_b = bodies_->at(cell_b->body_id_);
 
 		bool cell_b_visible = visible_bounds.contains(body_b->position_);
-		bool cell_b_newborn = cell_b->internal_clock_ < infant_time;
+		bool cell_b_newborn = cell_b->internal_clock_ < CellSettings::infant_time;
 
 		if (show_only_newborns && cell_b_newborn)
 			continue;

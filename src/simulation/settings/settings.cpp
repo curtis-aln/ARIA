@@ -56,7 +56,6 @@ static void load_cell_manager_settings(toml::table& tbl)
     REQUIRE(CellManagerSettings::max_cells, tbl["cell_manager"]["max_cells"]);
     REQUIRE(CellManagerSettings::initial_protozoa, tbl["cell_manager"]["initial_protozoa"]);
     REQUIRE(CellManagerSettings::auto_reset_on_extinction, tbl["cell_manager"]["auto_reset_on_extinction"]); 
-	REQUIRE(CellManagerSettings::infant_time, tbl["cell_manager"]["infant_time"]);
 	REQUIRE(CellManagerSettings::speed_energy_tax, tbl["cell_manager"]["speed_energy_tax"]);
 }
 
@@ -67,6 +66,8 @@ static void load_cell_settings(toml::table& tbl)
     REQUIRE(CellSettings::initial_energy, tbl["cell"]["initial_energy"]);
     REQUIRE(CellSettings::digestive_time, tbl["cell"]["digestive_time"]);
 	REQUIRE(CellSettings::bite_amount, tbl["cell"]["bite_amount"]);
+
+    REQUIRE(CellSettings::infant_time, tbl["cell"]["infant_time"]);
 
 	REQUIRE(CellSettings::integrity_conversion_rate, tbl["cell"]["integrity_conversion_rate"]);
 	REQUIRE(CellSettings::nutrients_conversion_rate, tbl["cell"]["nutrients_conversion_rate"]);

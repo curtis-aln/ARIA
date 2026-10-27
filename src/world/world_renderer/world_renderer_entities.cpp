@@ -134,7 +134,7 @@ void WorldRenderer::draw_newborn_connection_radius(const OrganismTracker& protoz
 	for (int i = 0; i < protozoa.cell_count; ++i)
 	{
 		const Cell& cell = protozoa.cells[i];
-		if (cell.internal_clock_ >= CellManagerSettings::infant_time)
+		if (cell.internal_clock_ >= CellSettings::infant_time)
 			continue;
 
 		const sf::Vector2f pos = protozoa.bodies[i].position_;
