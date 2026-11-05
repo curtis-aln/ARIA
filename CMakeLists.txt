@@ -114,7 +114,6 @@ add_executable(ProjectARIA
     src/simulation/imgui/tabs/debug_tab.h
     src/simulation/imgui/tabs/food_tab.cpp
     src/simulation/imgui/tabs/food_tab.h
-    src/simulation/imgui/tabs/graphs/graphs_tab.cpp
     src/simulation/imgui/tabs/grid_tab.cpp
     src/simulation/imgui/tabs/organism/organism_tab.cpp
     src/simulation/imgui/tabs/organism/brain_widget.cpp
@@ -128,6 +127,13 @@ add_executable(ProjectARIA
     src/simulation/imgui/tabs/o_vector/snapshots.cpp
     src/simulation/imgui/tabs/o_vector/o_vector_tab.h
     src/simulation/imgui/tabs/simulation_tab.cpp
+
+    src/simulation/imgui/tabs/graphs/graphs_tab.cpp
+    src/simulation/imgui/tabs/graphs/graphs_generations_tab.cpp
+    src/simulation/imgui/tabs/graphs/graphs_miscs_tab.cpp
+    src/simulation/imgui/tabs/graphs/graphs_stat_panels.cpp
+    src/simulation/imgui/tabs/graphs/graphs_tab_common.cpp
+    src/simulation/imgui/tabs/graphs/graphs_population_tab.cpp
 
     # ── World / collision resolver
     src/world/collision_resolver/detection.cpp
@@ -152,7 +158,16 @@ add_executable(ProjectARIA
     # ── ImPlot (header-only library — sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/entities/cell/spring_links.h" "src/managers/cell_manager/ext/easy_birth.cpp" "src/world/food_eat_resolver/food_resolution_settings.h" "src/world/food_eat_resolver/bite_resolution.h" "src/simulation/imgui/theme.h" "src/world/world_renderer/world_renderer.cpp" "src/world/world_renderer/world_renderer_entities.cpp" "src/entities/body/body.cpp")
+ "src/entities/cell/spring_links.h" 
+ "src/managers/cell_manager/ext/easy_birth.cpp" 
+ "src/world/food_eat_resolver/food_resolution_settings.h" 
+ "src/world/food_eat_resolver/bite_resolution.h" 
+ "src/simulation/imgui/theme.h" 
+ "src/world/world_renderer/world_renderer.cpp" 
+ "src/world/world_renderer/world_renderer_entities.cpp" 
+ "src/entities/body/body.cpp" 
+ "src/Utils/code_stats.h"  
+ "src/simulation/imgui/tabs/graphs/graphs_tab_common.h")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"
