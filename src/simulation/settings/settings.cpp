@@ -79,6 +79,7 @@ static void load_spring_settings(toml::table& tbl)
 {
     REQUIRE(SpringSettings::spring_work_const, tbl["spring"]["spring_work_const"]);  
     REQUIRE(SpringSettings::maximum_extension, tbl["spring"]["maximum_extension"]); 
+	REQUIRE(SpringSettings::minimum_extension, tbl["spring"]["minimum_extension"]);
 
 	REQUIRE(SpringSettings::spring_break_force, tbl["spring"]["spring_break_force"]);
 	REQUIRE(SpringSettings::spring_break_length_factor, tbl["spring"]["spring_break_length_factor"]);

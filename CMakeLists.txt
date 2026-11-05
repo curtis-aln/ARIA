@@ -167,7 +167,7 @@ add_executable(ProjectARIA
  "src/world/world_renderer/world_renderer_entities.cpp" 
  "src/entities/body/body.cpp" 
  "src/Utils/code_stats.h"  
- "src/simulation/imgui/tabs/graphs/graphs_tab_common.h")
+ "src/simulation/imgui/tabs/graphs/graphs_tab_common.h" "src/entities/spring/spring.cpp")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

@@ -39,7 +39,7 @@ birth_grid_max_capacity               = 4
 max_cells                = 20000  # maximum number of cells in the simulation
 initial_protozoa            = 450  # seeds to create the initial population of cells  
 auto_reset_on_extinction    = true
-speed_energy_tax = -0.4 # The Tax for not traveling fast enough
+speed_energy_tax = 0.4 # The Tax for not traveling fast enough
 
 # ── Cell ─────────────────────────────────────────────────────────────────
 [cell]
@@ -60,7 +60,8 @@ friction_energy_loss_const = 0.0075
 
 # ── Spring ─────────────────────────────────────────────────────────────────
 [spring]
-maximum_extension = 380.0               # how far a spring can stretch before it breaks
+minimum_extension = 50.0                # the minimum length a spring can be
+maximum_extension = 480.0               # how far a spring can stretch before it breaks
 spring_work_const = 0.00001             # 
 spring_break_force  = 35
 spring_break_length_factor = 1.5

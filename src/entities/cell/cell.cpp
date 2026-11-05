@@ -74,7 +74,7 @@ bool  Cell::consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f&
 
 sf::Vector2f Cell::get_pos_nearby_min_max(const sf::Vector2f parent_pos, float min_radius, float max_radius)
 {
-	static thread_local std::mt19937 rng{ std::random_device{}() };
+	static thread_local std::mt19937 rng{ Random::get_engine() };
 	constexpr float inv_range = 1.0f / 4294967295.0f; // 1 / 2^32-1
 	constexpr float two_pi = 6.28318530718f;
 

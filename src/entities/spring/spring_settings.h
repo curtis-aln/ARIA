@@ -3,6 +3,7 @@
 struct SpringSettings
 {
 	inline static float maximum_extension;
+	inline static float minimum_extension;
 
 	inline static float spring_work_const; // how we scale the energy cost of springs
 	inline static float spring_break_force;

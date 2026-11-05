@@ -67,7 +67,9 @@ public:
     // Call once at init, not every frame
     void set_jobs(const std::vector<std::function<void()>>& jobs)
     {
-        assert((int)jobs.size() <= (int)workers_.size());
+        if (jobs.size() > workers_.size())
+            throw std::invalid_argument("BarrierThreadPool::set_jobs: more jobs than workers");
+
         jobs_ = &jobs;
         job_count_ = (int)jobs.size();
     }
@@ -75,6 +77,8 @@ public:
     // Just signal and wait — no copies, no allocation
     void run_and_wait()
     {
+        if (job_count_ == 0) return;   // nothing to run; otherwise all_done_sem_ is never released
+
         pending_.store(job_count_, std::memory_order_release);
         for (int i = 0; i < job_count_; ++i)
             workers_[i]->start_sem.release();

@@ -58,7 +58,7 @@ void CellManager::speed_tax_cell(Cell* cell)
 	if (speed_sq < statistics_.min_speed * statistics_.min_speed)
 	{
 		float deficit_ratio = 1.f - (sqrt(speed_sq) / statistics_.min_speed); // 0 at threshold, 1 at rest
-		cell->change_energy(speed_energy_tax * deficit_ratio);
+		cell->change_energy(-abs(speed_energy_tax * deficit_ratio)); // guaranteed to be negative, so we use abs() to avoid confusion
 	}
 }
 
