@@ -76,12 +76,12 @@ void FoodManager::create_food_pool(unsigned amount, WorldBorder* spawn_area)
 void FoodManager::reset_food_manager()
 {
 	for (Food* food : food_vector)
-	{
 		bodies_->remove(food->body_id_);
-		food_vector.remove(food);
-	}
-
+	
+	food_vector.clear();
+	
 	create_food_pool(initial_food);
+	initial_iterations();
 }
 
 

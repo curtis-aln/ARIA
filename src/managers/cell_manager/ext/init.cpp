@@ -72,17 +72,12 @@ void CellManager::reset_cell_manager()
 	selected_cell_id_ = -1;
 
 	for (Cell* cell : all_cells_)
-	{
-		all_cells_.remove(cell->id_);
 		bodies_->remove(cell->body_id_);
-		cell->recreate();
-	}
+	all_cells_.clear();
 
 	for (CellMatter* matter : all_cell_matter_)
-	{
-		all_cell_matter_.remove(matter->id_);
 		bodies_->remove(matter->body_id_);
-	}
+	all_cell_matter_.clear();
 
 
 	for (Spring* spring : all_springs_)

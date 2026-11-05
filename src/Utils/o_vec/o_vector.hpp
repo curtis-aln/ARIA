@@ -234,6 +234,23 @@ public:
 		return &raw_object_store_[idx];
 	}
 
+	// Full reset: destroys all objects and returns to the freshly constructed state.
+	// Capacity is kept, so refilling doesn't reallocate. All Obj* pointers become dangling.
+	void clear()
+	{
+		raw_object_store_.clear();
+		all_object_indexes_.clear();
+		active_.clear();
+		free_list.clear();
+		occupied_list.clear();
+		occupied_pos.clear();
+
+		array_size = 0;
+		active_objs = 0;
+		free_count = 0;
+		occupied_count = 0;
+	}
+
 
 	void remove(Obj* obj)
 	{

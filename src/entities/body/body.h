@@ -50,7 +50,7 @@ struct Body
 		position_ += velocity_;
 	}
 
-	void reset_cell_manager()
+	void reset()
 	{
 		velocity_ = { 0.f, 0.f };
 		nearby_ids_size_ = 0;

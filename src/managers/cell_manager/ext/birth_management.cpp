@@ -223,7 +223,7 @@ void CellManager::apply_matter_birth_requests()
 		Body* body = bodies_->emplace(true, true);
 		if (body == nullptr)
 			continue;
-		body->reset_cell_manager();
+		body->reset();
 		body->position_ = req.position;
 
 		CellMatter* cell_matter = all_cell_matter_.emplace(true, true); // TODO create a creation Function;

@@ -113,7 +113,7 @@ void FoodManager::remove_food(const int food_id)
 	Body* body = bodies_->at(food->body_id_);
 
 	// we now reset the body and the food
-	body->reset_cell_manager();
+	body->reset();
 	food->reset();
 
 	// and remove them from their respective vectors

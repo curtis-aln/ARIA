@@ -400,7 +400,7 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 	cell->recreate();
 
 	// resetting the body just incase it isnt brand new
-	body->reset_cell_manager();
+	body->reset();
 
 	// connecting the two
 	cell->body_id_ = body->id_;
