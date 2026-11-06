@@ -1,5 +1,6 @@
 #pragma once
 #include "../i_tab.h"
+#include "energy/energy_history.h"
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/spring/spring.h>
@@ -8,16 +9,78 @@
 #include <SFML/System/Vector2.hpp>
 #include <simulation/context/sim_command.h>
 #include <simulation/context/sim_snapshot.h>
+#include <limits>
 #include <vector>
 
 
-// Visual dimensions for the per-cell mini bars in the Energy tab.
-static constexpr float k_mini_cell_box_width = 130.f;
-static constexpr float k_mini_bar_height = 8.f;
+// ─────────────────────────────────────────────────────────────────────────────
+//  Energy tab: palette
+// ─────────────────────────────────────────────────────────────────────────────
+inline static constexpr ImVec4 k_en_col_energy_line = { 0.35f, 0.85f, 0.40f, 1.f };
+inline static constexpr ImVec4 k_en_col_nutrients = { 0.20f, 0.60f, 1.00f, 1.f };
+inline static constexpr ImVec4 k_en_col_integrity = { 0.85f, 0.80f, 0.25f, 1.f };
+inline static constexpr ImVec4 k_en_col_cell_band = { 0.70f, 0.72f, 0.85f, 1.f };
 
-// Placeholder upper bound for cell nutrients until a hard cap is added to
-// ProtozoaSettings. Used for progress-bar scaling only — not enforced here.
-static constexpr float k_summary_bar_height = 18.f;
+inline static constexpr ImVec4 k_en_col_card_bg = { 0.13f, 0.14f, 0.17f, 1.f };
+inline static constexpr ImVec4 k_en_col_card_border = { 0.28f, 0.30f, 0.37f, 1.f };
+inline static constexpr ImVec4 k_en_col_cell_bg = { 0.18f, 0.19f, 0.23f, 1.f };
+inline static constexpr ImVec4 k_en_col_dim = { 0.55f, 0.58f, 0.65f, 1.f };
+
+inline static constexpr ImVec4 k_en_col_good = { 0.30f, 0.85f, 0.35f, 1.f };
+inline static constexpr ImVec4 k_en_col_bad = { 0.90f, 0.30f, 0.30f, 1.f };
+inline static constexpr ImVec4 k_en_col_warn = { 1.00f, 0.75f, 0.20f, 1.f };
+
+// Cell state colours (left accent stripe + badge)
+inline static constexpr ImVec4 k_en_state_ok = { 0.45f, 0.47f, 0.52f, 1.f };
+inline static constexpr ImVec4 k_en_state_starving = { 0.90f, 0.25f, 0.25f, 1.f };
+inline static constexpr ImVec4 k_en_state_damaged = { 0.95f, 0.55f, 0.20f, 1.f };
+inline static constexpr ImVec4 k_en_state_ready = { 0.30f, 0.85f, 0.35f, 1.f };
+inline static constexpr ImVec4 k_en_state_digesting = { 0.65f, 0.50f, 0.95f, 1.f };
+inline static constexpr ImVec4 k_en_state_immortal = { 0.35f, 0.85f, 0.85f, 1.f };
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Energy tab: layout + behaviour constants
+//  Layout is a single row of full-height cards. Fixed cards keep their width;
+//  History and Cells share whatever is left (55 / 45). The Constants card is
+//  dropped when the panel is too narrow to keep History and Cells usable.
+// ─────────────────────────────────────────────────────────────────────────────
+static constexpr float k_en_gauges_w = 150.f;
+static constexpr float k_en_budget_w = 200.f;
+static constexpr float k_en_feed_w = 150.f;
+static constexpr float k_en_consts_w = 210.f;
+static constexpr float k_en_history_min_w = 340.f;
+static constexpr float k_en_cells_min_w = 260.f;
+static constexpr float k_en_history_share = 0.55f;
+
+static constexpr float k_cell_card_w = 96.f;
+static constexpr float k_cell_card_h = 42.f;
+static constexpr float k_cell_card_gap = 4.f;
+static constexpr float k_strip_block = 18.f;
+static constexpr int   k_strip_auto_threshold = 24;   // "Auto" view switches to the heat-strip above this many cells
+
+static constexpr float k_starve_frac = 0.15f;   // energy below this fraction of max  -> Starving
+static constexpr float k_damaged_frac = 0.30f;   // integrity below this fraction      -> Damaged
+
+static constexpr int   k_energy_windows[] = { 300, 1000, 3000 };   // history window, in ticks
+static constexpr int   k_trend_window = 120;     // samples used for slope / trend arrows / ETAs
+static constexpr float k_trend_eps = 0.003f;  // |change per 100 ticks| (fraction of max) below which a trend reads as flat
+
+// Is the InjectProtozoa amount added to the organism total (false) or to every cell (true)?
+// Only affects the "after inject" preview in the Feed card; verify against the handler.
+static constexpr bool  k_inject_is_per_cell = false;
+
+// Instantaneous organism energy numbers, shared by all Energy-tab cards.
+// Fractions are relative to the organism maximum (0..1).
+struct EnergyStats
+{
+	int   n = 0;
+	float frac[3] = {};     // energy, nutrients, integrity
+	float thr[3] = {};     // reproduction threshold as a fraction of organism max
+	float slope[3] = {};     // measured change per tick (fraction), from EnergyHistory
+	float total_integrity = 0.f, max_integrity = 0.f;
+	float net_dE = 0.f, net_dI = 0.f;                    // sum of per-cell delta_energy / delta_integrity
+	float cell_min = 0.f, cell_mean = 0.f, cell_max = 0.f; // per-cell energy fractions
+};
 
 inline static constexpr ImVec4 friction_wave_col = { 1.00f, 0.65f, 0.25f, 1.f };
 inline static constexpr ImVec4 extension_wave_col = { 0.85f, 0.45f, 1.00f, 1.f };
@@ -65,11 +128,21 @@ private:
 	int   cell_selection_mode = 0;
 	float m_feed_amount_ = 50.f;
 
+	// ── Energy tab state ──────────────────────────────────────────────────
+	EnergyHistory m_energy_hist_;
+	long long     m_hist_last_clock_ = -1;   // last cells[0].internal_clock_ seen
+	float         m_hist_tick_ = 0.f;        // monotonic tick counter built from clock deltas
+	int   m_energy_window_ = 1;              // index into k_energy_windows
+	bool  m_show_series_[4] = { true, true, true, true };   // NRG, NUT, INT, per-cell band
+	int   m_cell_sort_ = 0;                  // 0 index, 1 energy (low), 2 integrity (low), 3 food (high)
+	int   m_cell_view_ = 0;                  // 0 auto, 1 cards, 2 heat-strip
+	int   m_strip_metric_ = 0;               // 0 energy, 1 nutrients, 2 integrity
+
 	void draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
 	static void draw_no_selection();
 	void draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
 	void draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
-	
+
 	void draw_wave_panel(ImGuiContext& ctx, const char* child_id, const char* description,
 		double now, int idx, const char* value_label, float actual_value, ImVec4 col,
 		const WaveParam& amplitude, const WaveParam& frequency,
@@ -78,6 +151,13 @@ private:
 	void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body& body);
 	void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);
 	void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);
+	void record_energy_history(const SimSnapshot& snap);   // called every frame from draw(), whatever tab is open
+	void draw_energy_gauges(const EnergyStats& st, const OrganismTracker& t);
+	void draw_energy_history(const EnergyStats& st, float w);
+	void draw_energy_budget(const EnergyStats& st, const OrganismTracker& t, bool constants_in_tooltip);
+	void draw_energy_cells(const OrganismTracker& t, float w);
+	void draw_energy_feed(ImGuiContext& ctx, const EnergyStats& st, const OrganismTracker& t);
+	static void draw_energy_constants();
 	void Brain();
 
 	void draw_cell_detail_cell_tab(const Cell& c, int period, float wave_min, float wave_max, float current_friction);

@@ -30,6 +30,9 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		return;
 	}
 
+	// Sampled every frame this tab is drawn, whichever sub-tab is open, so the Energy history has no gaps.
+	record_energy_history(snap);
+
 	// The panel showing information about the protozoa as a whole
 	ImGui::BeginChild("OV_panel", { 240.f, -1.f }, false);
 	draw_overview(snap, ctx, protozoa);
@@ -141,10 +144,10 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 	}
 
 	// Clamp selection indices to valid ranges, and switch selection type if the currently selected type is empty
-	if (!cell_count == 0)
+	if (cell_count > 0)
 		m_sel_cell_idx_ = std::min(m_sel_cell_idx_, cell_count - 1);
 
-	if (!spring_count == 0)
+	if (spring_count > 0)
 		m_sel_spring_idx_ = std::min(m_sel_spring_idx_, spring_count - 1);
 
 	// If the currently selected type is empty, switch to the other type (if it's not empty)
@@ -173,7 +176,7 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 		}
 	}
 
-	if (!spring_count == 0)
+	if (spring_count > 0)
 	{
 		ImGui::Separator();
 		for (int i = 0; i < static_cast<int>(spring_count); ++i)
@@ -192,14 +195,14 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 	ImGui::EndChild();
 	ImGui::SameLine();
 
-	if (!m_sel_is_spring_ && !cell_count == 0)
+	if (!m_sel_is_spring_ && cell_count > 0)
 	{
 		const Cell& cell = protozoa.cells[m_sel_cell_idx_];
 		const Body& body = protozoa.bodies[m_sel_cell_idx_];
 		draw_cell_detail(ctx, cell, body);
 	}
 
-	else if (m_sel_is_spring_ && !spring_count == 0)
+	else if (m_sel_is_spring_ && spring_count > 0)
 		draw_spring_detail(ctx, protozoa, protozoa.springs[m_sel_spring_idx_]);
 }
 

@@ -119,7 +119,12 @@ add_executable(ProjectARIA
     src/simulation/imgui/tabs/organism/brain_widget.cpp
     src/simulation/imgui/tabs/organism/cell_details.cpp
     src/simulation/imgui/tabs/organism/spring_details.cpp
-    src/simulation/imgui/tabs/organism/energy_subtab.cpp
+    src/simulation/imgui/tabs/organism/energy/history.cpp
+    src/simulation/imgui/tabs/organism/energy/energy_cells.cpp
+    src/simulation/imgui/tabs/organism/energy/budget.cpp
+    src/simulation/imgui/tabs/organism/energy/energy_feed.cpp
+    src/simulation/imgui/tabs/organism/energy/organism_tab_energy.cpp
+    
     src/simulation/imgui/tabs/o_vector/capacity.cpp
     src/simulation/imgui/tabs/o_vector/churn.cpp
     src/simulation/imgui/tabs/o_vector/integrity.cpp
@@ -167,7 +172,10 @@ add_executable(ProjectARIA
  "src/world/world_renderer/world_renderer_entities.cpp" 
  "src/entities/body/body.cpp" 
  "src/Utils/code_stats.h"  
- "src/simulation/imgui/tabs/graphs/graphs_tab_common.h" "src/entities/spring/spring.cpp")
+ "src/simulation/imgui/tabs/graphs/graphs_tab_common.h" 
+ "src/entities/spring/spring.cpp" 
+ "src/simulation/imgui/tabs/organism/energy/energy_history.h" 
+ "src/simulation/imgui/tabs/organism/energy/energy_ui_common.h" )
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"
