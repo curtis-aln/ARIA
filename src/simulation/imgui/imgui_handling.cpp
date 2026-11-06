@@ -19,6 +19,8 @@ void Simulation::init_imGUI()
 
 	ImGui::GetIO().FontGlobalScale = ui_scale_percent / 100.f;
 
+	m_control_panel_.set_main_window(m_window_);
+
 	ImPlot::CreateContext();
 	apply_aria_implot_theme();
 	std::cout << "ImGUI initialised\n";
