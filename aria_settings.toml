@@ -9,7 +9,7 @@
 vsync             = false
 full_screen       = false
 ui_scale_percent  = 100.0
-max_fps_rendering = 60    # 0 = uncapped
+max_fps_rendering = 144    # 0 = uncapped
 max_fps_updating  = 60
 max_runtime = 0 # simulation ends after this many seconds have passed, 0 = infinite
 max_iterations = 0 # simulation ends after this many iterations, 0 = infinite

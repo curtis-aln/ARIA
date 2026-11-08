@@ -45,6 +45,8 @@ class FoodManager : public FoodManagerSettings
 	WorldBorder* world_bounds_;
 	o_vector<Body>* bodies_;
 
+	std::vector<int> dead_ids_;
+
 	// the food container, this is where all the food is stored
 	o_vector<Food> food_vector{ max_food };
 

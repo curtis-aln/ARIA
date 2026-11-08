@@ -138,10 +138,11 @@ struct alignas(64) CollisionVector
 	///       behaviour is undefined if you write past the reserved size.
 	void add(int index_a, int index_b)
 	{
-		assert(size_ < static_cast<int>(collision_pairs_.size())
-			&& "CollisionVector capacity exceeded — increase reserve size.");
 		assert(index_a < index_b
 			&& "CollisionVector expects index_a < index_b to avoid duplicate pairs.");
+
+		if (size_ == static_cast<int>(collision_pairs_.size())) [[unlikely]]
+			grow();
 
 		collision_pairs_[size_++] = (static_cast<uint64_t>(index_a) << 32)
 			| static_cast<uint32_t>(index_b);
@@ -176,6 +177,9 @@ struct alignas(64) CollisionVector
 		return { static_cast<int>(packed >> 32), static_cast<int>(packed & 0xFFFFFFFF) };
 	}
 
+	/// @brief Number of times the buffer had to grow. Use this to tune your initial reserve.
+	[[nodiscard]] int grow_count() const { return grow_count_; }
+
 	// -------------------------------------------------------------------------
 	// Iteration
 	// -------------------------------------------------------------------------
@@ -191,6 +195,16 @@ struct alignas(64) CollisionVector
 	// -------------------------------------------------------------------------
 
 private:
+	/// Cold path: doubles capacity. Kept out of add() so the hot path stays small.
+	void grow()
+	{
+		++grow_count_;
+		const size_t new_capacity = collision_pairs_.empty() ? 64 : collision_pairs_.size() * 2;
+		collision_pairs_.resize(new_capacity);
+	}
+
+
 	std::vector<uint64_t> collision_pairs_{}; ///< Packed pair buffer. Each entry stores (index_a << 32 | index_b).
 	int size_ = 0;                            ///< Number of active pairs in the buffer this frame.
+	int grow_count_ = 0;
 };

@@ -28,7 +28,7 @@ struct SimulationToggles
 struct WorldToggles
 {
 	bool debug_mode = false;  // show per-cell debug info
-	bool paused = true;  // pause the simulation update loop
+	bool paused = false;  // pause the simulation update loop
 
 	// grids
 	bool draw_collision_grid = false;  // render the bodies spatial hash grid

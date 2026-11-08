@@ -18,7 +18,8 @@
 FoodManager::FoodManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies)
 	: world_bounds_(world_bounds), bodies_(bodies),
 	pheromone_grid(2 << pheromone_grid_power, 2 << pheromone_grid_power,
-		WorldSettings::bounds_radius * 2.f, WorldSettings::bounds_radius * 2.f)
+		WorldSettings::bounds_radius * 2.f, WorldSettings::bounds_radius * 2.f,
+		WorldSettings::updating_threads)
 {
 
 }
@@ -47,22 +48,31 @@ void FoodManager::update(int iterations)
 	handle_food_death(iterations);
 }
 
+// handle_food_death: staggered deposits, deferred removal, step on phase 0
 void FoodManager::handle_food_death(int iterations)
 {
+	const int freq = std::max(1, pheromone_update_freq);
+	const int phase = iterations % freq;
+	const bool on = toggles_.update_pheromone_grid;
+
+	dead_ids_.clear();
 	for (Food* food : food_vector)
 	{
-		if (food->is_food_dead())
-			remove_food(food->id_);
+		if (food->is_food_dead()) { dead_ids_.push_back(food->id_); continue; }
 
-		sf::Vector2f pos = bodies_->at(food->body_id_)->position_;
-
-		if (toggles_.update_pheromone_grid)
-			pheromone_grid.add_pheromone(pos.x, pos.y, 10.f / pheromone_update_freq);
+		if (on && static_cast<int>(food->id_ % freq) == phase)   // each food deposits once per interval
+		{
+			const sf::Vector2f p = bodies_->at(food->body_id_)->position_;
+			pheromone_grid.add_pheromone(p.x, p.y);              // uses deposit_amount
+		}
 	}
+	for (int id : dead_ids_) remove_food(id);
 
-	if (toggles_.update_pheromone_grid && iterations % pheromone_update_freq == 0)
+	if (on && phase == 0)
 		pheromone_grid.step();
 }
+
+
 
 void FoodManager::update_position_data(RenderData& food_data, int iterations)
 {
@@ -76,12 +86,10 @@ void FoodManager::update_position_data(RenderData& food_data, int iterations)
 	food_data.outer_colors.reserve(reserve_to);
 	food_data.velocities.reserve(reserve_to);
 
+	// update_position_data: no modulo, no texture copy
 	if (toggles_.render_pheromone_grid)
 	{
-		if (iterations % pheromone_update_freq == 0)
-		{
-			pheromone_grid.render();
-		}
+		pheromone_grid.render();                                  // no-op unless step() ran
 		food_data.pheromone_texture = pheromone_grid.get_texture();
 	}
 
