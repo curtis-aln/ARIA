@@ -46,7 +46,7 @@ void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
     ImGui::TextDisabled("Morphology");
     ImGui::Separator();
     StatRow::draw("Avg cells", "%.2f", snap.cell_manager_stats.average_cells_per_protozoa);
-    StatRow::draw("Avg springs", "%.2f", snap.cell_manager_stats.average_spring_count);
+    StatRow::draw("Avg springs", "%.2f", snap.cell_manager_stats.average_tendon_count);
     StatRow::draw("Avg offspring", "%.2f", snap.cell_manager_stats.average_offspring_count);
     StatRow::draw("Avg energy", "%.1f", snap.cell_manager_stats.average_energy);
     StatRow::draw("Energy ratio", "%.3f", snap.cell_manager_stats.energy_efficiency);

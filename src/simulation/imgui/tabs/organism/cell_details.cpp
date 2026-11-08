@@ -72,7 +72,7 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 	ImGui::Text("delta integrity: %.2f", c.delta_integrity);
 
 	// Spring links: stored IDs are absolute, show the relative cell number too.
-	const auto& ids = c.tendon_links_.connected_spring_ids_;
+	const auto& ids = c.tendon_links_.connected_tendon_ids_;
 	const uint32_t n = c.tendon_links_.size_;
 	ImGui::Text("spring links: %u", n);
 	for (uint32_t i = 0; i < n; ++i)

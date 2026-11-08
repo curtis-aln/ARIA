@@ -178,7 +178,7 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
 
 	render_data.body_debug_snapshot = FillSnapshot<Body>(dbg_bodies_, "Body", sf::Color::White);
 	render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);
-	render_data.spring_debug_snapshot = FillSnapshot<Tendon>(dbg_tendons_, "Spring", sf::Color::White);
+	render_data.tendon_debug_snapshot = FillSnapshot<Tendon>(dbg_tendons_, "Tendon", sf::Color::White);
 	render_data.cell_debug_snapshot = FillSnapshot<Cell>(dbg_cells_, "Cell", sf::Color::White);
 }
 

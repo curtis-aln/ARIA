@@ -62,9 +62,9 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		ImGui::Unindent();
 	}
 
-	toggle(snap, ctx, "spring stress integrity damage", &CellManagerToggles::spring_stress_integrity_damage);
-	toggle(snap, ctx, "spring too long breakage", &CellManagerToggles::spring_too_long_breakage);
-	toggle(snap, ctx, "spring too much force breakage", &CellManagerToggles::spring_too_much_force_breakage);
+	toggle(snap, ctx, "spring stress integrity damage", &CellManagerToggles::tendon_stress_integrity_damage);
+	toggle(snap, ctx, "spring too long breakage", &CellManagerToggles::tendon_too_long_breakage);
+	toggle(snap, ctx, "spring too much force breakage", &CellManagerToggles::tendon_too_much_force_breakage);
 
 	toggle(snap, ctx, "old age death", &CellManagerToggles::old_age_death);
 	if (ctx.cell_toggles.old_age_death)

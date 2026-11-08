@@ -95,7 +95,7 @@ void WorldRenderer::render_tendons(const SimSnapshot& snapshot)
 		return;
 
 	const bool no_curves = zoom < spring_curve_min_zoom; // optimization, if you cant see the curves, dont render them
-	connection_renderer_.update(snapshot.render.spring_connections, no_curves);
+	connection_renderer_.update(snapshot.render.tendon_connections, no_curves);
 	connection_renderer_.draw(*m_window_);
 }
 

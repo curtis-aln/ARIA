@@ -84,7 +84,7 @@ void OrganismTracker::collect_connected(const o_vector<Cell>& all_cells,
             if (!a_found && !b_found)
                 continue; // unrelated to this organism (so far)
 
-            if (is_spring_already_found(spring))
+            if (is_tendon_already_found(spring))
                 continue;
 
             springs.push_back(*spring);
@@ -109,7 +109,7 @@ void OrganismTracker::collect_connected(const o_vector<Cell>& all_cells,
     }
 }
 
-bool OrganismTracker::is_spring_already_found(const Tendon* spring) const
+bool OrganismTracker::is_tendon_already_found(const Tendon* spring) const
 {
     return std::any_of(springs.begin(), springs.end(),
         [spring](const Tendon& s) { return s.id_ == spring->id_; });
@@ -121,7 +121,7 @@ bool OrganismTracker::is_cell_already_found(const Cell* cell) const
         [cell](const Cell& c) { return c.id_ == cell->id_; });
 }
 
-const Tendon* OrganismTracker::find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Tendon>& all_springs) const
+const Tendon* OrganismTracker::find_if_tendon_connects_to_cell(const Cell* cell, const o_vector<Tendon>& all_springs) const
 {
     if (cell == nullptr)
         return nullptr;

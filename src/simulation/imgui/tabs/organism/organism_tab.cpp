@@ -317,7 +317,7 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 		for (int k = 0; k < tendon_count; ++k)
 		{
 			const int i = m_spring_order_[k];
-			const Spring& s = protozoa.springs[i];
+			const Tendon& s = protozoa.springs[i];
 
 			char a[8], b[8], id[16], lbl[40];
 			const int ra = relative_cell_index(s.cell_A_id), rb = relative_cell_index(s.cell_B_id);
@@ -381,7 +381,7 @@ void OrganismTab::draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& 
 		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::AddTendon });
 
 	if (ImGui::Button("Remove Spring", { -1.f, 0.f }))
-		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::RemoveSpring });
+		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::RemoveTendon });
 
 	ImGui::Columns(1);
 
@@ -559,7 +559,7 @@ void OrganismTab::draw_wave_panel(ImGuiContext& ctx, const char* child_id, const
 		{
 			SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = params[i].type };
 			cmd.float_val = val;
-			cmd.cell_spring_idx = idx;
+			cmd.cell_tendon_idx = idx;
 			ctx.push(cmd);
 		}
 		ImGui::PopID();

@@ -8,7 +8,6 @@ void Spring::reset()
 	cell_A_id = 0;
 	cell_B_id = 0;
 
-	internal_clock_ = 0;
 	work_done = 0.f;
 	current_length = 0.f;
 	rest_length = 0.f;
@@ -30,9 +29,7 @@ void Spring::update_physics(const CellPosVel& cell_data, const physics_toggles& 
 	const bool  disable_length_breakage = toggles.disable_length_breakage;
 	const bool  disable_force_breakage = toggles.disable_force_breakage;
 
-	// min_rest_length is the distance between the two cells when they are just touching
-	internal_clock_++;
-
+	
 	const sf::Vector2f dir = pos_b - pos_a;
 	const float length_squared = dir.x * dir.x + dir.y * dir.y;
 

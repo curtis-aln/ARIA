@@ -15,7 +15,7 @@ void OVecDebugTab::draw_overview_tab(const SimSnapshot& snap, ImGuiContext& ctx)
         snap.render.cell_debug_snapshot,
         snap.render.food_debug_snapshot,
         snap.render.body_debug_snapshot,
-        snap.render.spring_debug_snapshot
+        snap.render.tendon_debug_snapshot
     };
 
     const float card_w = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x * 3.f) / 4.f;

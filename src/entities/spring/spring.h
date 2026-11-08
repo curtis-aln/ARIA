@@ -49,8 +49,6 @@ public:
 	uint32_t cell_A_id{};
 	uint32_t cell_B_id{};
 
-	uint32_t internal_clock_{};
-
 	float work_done = 0.f;
 	float rest_length = 0.f;
 	float current_length = 0.f;

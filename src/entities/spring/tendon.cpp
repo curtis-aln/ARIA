@@ -14,6 +14,8 @@ void Tendon::reset()
 	death_chance_ = 0.f;
 	broken = false;
 
+	internal_clock_ = 0;
+
 	genome.frequency = 0.f;
 	genome.offset = 0.f;
 	genome.vertical_shift = 1.f;
@@ -32,6 +34,10 @@ void Tendon::death_update(Cell& cell_a, Cell& cell_b)
 void Tendon::update_organics(Cell& cell_a, Cell& cell_b, bool stress_damage, bool work_done_energy)
 {
 	death_update(cell_a, cell_b);
+
+	// min_rest_length is the distance between the two cells when they are just touching
+	internal_clock_++;
+	target_extension_fraction(internal_clock_);
 
 	// a spring that just snapped shouldn't still move nutrients or cost energy this tick
 	if (is_tendon_broken())
@@ -163,7 +169,8 @@ float Tendon::target_extension_fraction(const int internal_clock)
 	// sin oscillates around vertical_shift with +/- amplitude swing
 	const float sin_value = fast_sin(genome.frequency * internal_clock + genome.offset); // [-1, 1]
 	extension_ratio = genome.vertical_shift + genome.amplitude * sin_value;               // [vs-a, vs+a], unclamped
-	return std::clamp(extension_ratio, 0.f, 1.f);
+	extension_ratio = std::clamp(extension_ratio, 0.f, 1.f);
+	return extension_ratio;
 }
 
 float Tendon::get_spring_constant() const

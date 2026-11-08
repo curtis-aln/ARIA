@@ -12,7 +12,7 @@ void OVecDebugTab::draw_capacity_tab(const SimSnapshot& snap, ImGuiContext& ctx)
         snap.render.cell_debug_snapshot,
         snap.render.food_debug_snapshot,
         snap.render.body_debug_snapshot,
-        snap.render.spring_debug_snapshot
+        snap.render.tendon_debug_snapshot
     };
 
     for (int i = 0; i < 4; ++i)

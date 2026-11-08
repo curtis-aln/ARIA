@@ -17,6 +17,8 @@ struct Tendon : Spring
 	bool broken = false;
 	float extension_ratio = 0.f;
 
+	uint32_t internal_clock_{};
+
 	// The spring's genetic information, determined by its two connecting cells
 	TendonGenome genome{};
 

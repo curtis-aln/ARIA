@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cstdio>
 
-void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s, const int spring_rel)
+void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Tendon& s, const int spring_rel)
 {
     const int period = safe_time_period(s.genome.frequency, k_max_wave_buf);
     float ratio_min, ratio_max;
@@ -12,13 +12,13 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::BeginChild("SL_stat", spring_cell_box_size, true);
 
     const int ra = relative_cell_index(s.cell_A_id), rb = relative_cell_index(s.cell_B_id);
-    ImGui::TextDisabled("Spring %d", spring_rel);
+    ImGui::TextDisabled("Tendon %d", spring_rel);
     ImGui::Text("Cell %d -> Cell %d", ra, rb);
 
     ImGui::Spacing();
     ImGui::TextDisabled("Absolute IDs");
     ImGui::Separator();
-    ImGui::Text("Spring  %u", static_cast<unsigned>(s.id_));
+    ImGui::Text("Tendon  %u", static_cast<unsigned>(s.id_));
     ImGui::Text("Cell A  %u", static_cast<unsigned>(s.cell_A_id));
     ImGui::Text("Cell B  %u", static_cast<unsigned>(s.cell_B_id));
 
@@ -34,7 +34,7 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
 
     ImGui::Spacing();
     ImGui::TextDisabled("Forces");
-    ImGui::Text("Spring Force %.2f", s.spring_force);
+    ImGui::Text("Tendon Force %.2f", s.spring_force);
     ImGui::Text("Damping Force %.2f", s.damping_force);
     ImGui::Text("Total Force %.2f", s.spring_force + s.damping_force);
 
@@ -60,7 +60,7 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd(ctx, "##sk", s.genome.spring_const,
         0.f, TendonGeneticConstraints::spring_const.max,
-        "Spring constant = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringConst);
+        "Tendon constant = %.3f", CommandSection::CellManagerEvent, CommandType::SetTendonConst);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd(ctx, "##sd", s.genome.damping,
@@ -74,9 +74,9 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     draw_wave_panel(ctx, "SL_wave",
         "Extension  amplitude * sin(frequency * t + phase) + shift  [0, 1]",
         static_cast<double>(s.internal_clock_), s.id_, "Extension",
-        std::clamp(s.ratio, 0.f, 1.f), extension_wave_col,
-        { s.genome.amplitude,      0.f,                                         TendonGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetSpringAmplitude },
-        { s.genome.frequency,      TendonGeneticConstraints::frequency.min,     TendonGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetSpringFrequency },
-        { s.genome.offset,         TendonGeneticConstraints::offset.min,        TendonGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetSpringOffset },
-        { s.genome.vertical_shift, TendonGeneticConstraints::vertical_shift.min, TendonGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetSpringVerticalShift });
+        std::clamp(s.extension_ratio, 0.f, 1.f), extension_wave_col,
+        { s.genome.amplitude,      0.f,                                         TendonGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetTendonAmplitude },
+        { s.genome.frequency,      TendonGeneticConstraints::frequency.min,     TendonGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetTendonFrequency },
+        { s.genome.offset,         TendonGeneticConstraints::offset.min,        TendonGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetTendonOffset },
+        { s.genome.vertical_shift, TendonGeneticConstraints::vertical_shift.min, TendonGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetTendonVerticalShift });
 }

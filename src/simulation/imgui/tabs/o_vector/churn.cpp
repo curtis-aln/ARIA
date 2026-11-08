@@ -48,7 +48,7 @@ void OVecDebugTab::draw_churn_tab(const SimSnapshot& snap, ImGuiContext& ctx)
     case 0:  s = snap.render.cell_debug_snapshot; break;
     case 1:  s = snap.render.food_debug_snapshot; break;
     case 2:  s = snap.render.body_debug_snapshot; break;
-    default: s = snap.render.spring_debug_snapshot; break;
+    default: s = snap.render.tendon_debug_snapshot; break;
     }
 
     ImGui::Columns(3, "##churn_agg", false);

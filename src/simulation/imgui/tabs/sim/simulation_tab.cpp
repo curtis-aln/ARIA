@@ -241,23 +241,23 @@ void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	m_spring_breaking_length_ = snap.cell_manager_stats.tendon_breaking_length;
 	if (ImGui::SliderFloat("##breaking Length ratio", &m_spring_breaking_length_, 0.f, 2.f, "breaking Length %.2f"))
 	{
-		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringBreakingLength, .float_val = m_spring_breaking_length_ };
+		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetTendonBreakingLength, .float_val = m_spring_breaking_length_ };
 		ctx.push(cmd);
 	}
 
 	ImGui::SetNextItemWidth(-1.f);
-	m_spring_damage_threshold_ = snap.cell_manager_stats.spring_damage_threshold;
+	m_spring_damage_threshold_ = snap.cell_manager_stats.tendon_damage_threshold;
 	if (ImGui::SliderFloat("##Damage Threshold", &m_spring_damage_threshold_, 0.f, 60.f, "Damage Threshold %.2f"))
 	{
-		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringDamageThreshold, .float_val = m_spring_damage_threshold_ };
+		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetTendonDamageThreshold, .float_val = m_spring_damage_threshold_ };
 		ctx.push(cmd);
 	}
 
 	ImGui::SetNextItemWidth(-1.f);
-	m_spring_work_const_ = snap.cell_manager_stats.spring_work_const;
+	m_spring_work_const_ = snap.cell_manager_stats.tendon_work_const;
 	if (ImGui::SliderFloat("##Spring Work Const", &m_spring_work_const_, 0.f, 0.001f, "Spring Work Const %.6f"))
 	{
-		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetSpringWorkConst, .float_val = m_spring_work_const_ };
+		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetTendonWorkConst, .float_val = m_spring_work_const_ };
 		ctx.push(cmd);
 	}
 

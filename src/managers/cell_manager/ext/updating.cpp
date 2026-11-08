@@ -79,7 +79,7 @@ void CellManager::update(int iterations)
 	apply_tendon_death_requests();
 
 	// --------------- updating cells and matter ---------------
-	spawn_immune = iterations < init_tendon_immunity_time;
+	spawn_immune = iterations < init_spring_immunity_time;
 
 	update_tendons(spawn_immune);
 	update_cells();
@@ -299,9 +299,15 @@ void CellManager::update_tendons(bool immune)
 		const float ma = body_a->mass_, mb = body_b->mass_;
 		const float reduced_mass = (ma * mb) / (ma + mb);
 
-		const float contact_dist = (body_a->get_radius() + body_b->get_radius()) * 1.02f; // 2% margin so rest state isn't sitting on the collision boundary
+		const physics_stats stats{
+			.extension_fraction = tendon->extension_ratio,
+			.spring_constant = tendon->get_spring_constant(),
+			.damping = tendon->genome.damping,
+			.min_rest_length = (body_a->get_radius() + body_b->get_radius()) * 1.02f, // 2% margin so rest state isn't sitting on the collision boundary
+			.reduced_mass = reduced_mass };
+
 		tendon->update_physics({ body_a->get_pos(), body_a->get_vel(), body_b->get_pos(), body_b->get_vel() },
-			{ disable_length_breakage, disable_force_breakage }, { tendon->extension_ratio, tendon->get_spring_constant(), tendon->genome.damping, contact_dist, reduced_mass});
+			{ disable_length_breakage, disable_force_breakage }, stats);
 
 		body_a->apply_force(tendon->movement_vector);
 		body_b->apply_force(-tendon->movement_vector);
@@ -442,17 +448,17 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 
 bool CellManager::are_connected(cell_idx a, cell_idx b)
 {
-	const SpringLinks& links = all_cells_.at(a)->tendon_links_;
+	const TendonLinks& links = all_cells_.at(a)->tendon_links_;
 	for (uint32_t i = 0; i < links.size_; ++i)
 	{
-		const Tendon& s = *all_tendons_.at(links.connected_spring_ids_[i]);
+		const Tendon& s = *all_tendons_.at(links.connected_tendon_ids_[i]);
 		if ((s.cell_A_id == a && s.cell_B_id == b) || (s.cell_A_id == b && s.cell_B_id == a))
 			return true;
 	}
 	return false;
 }
 
-int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id)
+int32_t CellManager::create_tendon(const uint32_t cell_a_id, const uint32_t cell_b_id)
 {
 	if (are_connected(cell_a_id, cell_b_id)) return -1;
 

@@ -159,7 +159,7 @@ private:
 
 	// ── ID helpers ────────────────────────────────────────────────────────
 	static uint32_t cell_key(const Cell& c) { return c.id_; }   // switch to body_id_ if springs reference that
-	static uint32_t spring_key(const Spring& s) { return static_cast<uint32_t>(s.id_); }
+	static uint32_t spring_key(const Tendon& s) { return static_cast<uint32_t>(s.id_); }
 	void rebuild_ordering(const OrganismTracker& t);
 	void sync_selection(ImGuiContext& ctx, const OrganismTracker& t);
 	void push_highlight(ImGuiContext& ctx, uint32_t key);
@@ -177,7 +177,7 @@ private:
 		const WaveParam& offset, const WaveParam& vertical_shift);
 
 	void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body& body);
-	void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s, int spring_rel);
+	void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Tendon& s, int spring_rel);
 	void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);
 	void record_energy_history(const SimSnapshot& snap);   // called every frame from draw(), whatever tab is open
 	void draw_energy_gauges(const EnergyStats& st, const OrganismTracker& t);

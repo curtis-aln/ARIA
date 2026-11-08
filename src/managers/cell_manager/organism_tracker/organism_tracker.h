@@ -13,15 +13,15 @@
 #include "../../../Utils/spatial_grid/simple_spatial_grid.h"
 #include "../../../entities/food/food.h"
 #include "../../../entities/cell/cell.h"
-#include "../../../entities/spring/spring.h"
+#include "../../../entities/spring/tendon.h"
 #include "Utils/o_vec/o_vector.hpp"
 
 inline constexpr int neighbours_max = 100;
 
 
 // A class dedicated to tracking statistics about a protozoa (an organism).
-// It starts from the cell the user selected, walks the spring container to find every cell and
-// spring connected to it, and uses those to calculate statistics about the whole organism.
+// It starts from the cell the user selected, walks the tendon container to find every cell and
+// tendon connected to it, and uses those to calculate statistics about the whole organism.
 //
 // organism_tracker.cpp holds all the implementations.
 class OrganismTracker
@@ -87,9 +87,9 @@ public:
         const o_vector<Tendon>& all_springs,
         const o_vector<Body>& all_bodies);
 
-    bool is_spring_already_found(const Tendon* spring) const;
+    bool is_tendon_already_found(const Tendon* tendon) const;
     bool is_cell_already_found(const Cell* cell) const;
-    const Tendon* find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Tendon>& all_springs) const;
+    const Tendon* find_if_tendon_connects_to_cell(const Cell* cell, const o_vector<Tendon>& all_tendons) const;
 
     void update_statistics(const SimpleSpatialGrid* /*food_grid*/, const SimpleSpatialGrid* /*cell_grid*/,
         const o_vector<Food>& /*food_vector*/, const RenderData& /*render_data*/)
