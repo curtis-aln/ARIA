@@ -6,7 +6,7 @@
 #include <entities/cell/cell_settings.h>
 #include <entities/matter/CellMatter.h>
 #include <entities/matter/matter_settings.h>
-#include <entities/spring/spring.h>
+#include <entities/spring/tendon.h>
 #include <iostream>
 #include <managers/cell_manager/cell_manager_settings.h>
 #include <ostream>
@@ -44,21 +44,21 @@ void CellManager::remove_cells_in_radius(const sf::Vector2f& position, const flo
 	for (int i = 0; i < selected_matter_indexes_.count; ++i)
 		remove_cell_matter(selected_matter_indexes_[i]);
 
-	check_for_dangling_springs();
+	check_for_dangling_tendons();
 }
 
-void CellManager::check_for_dangling_springs()
+void CellManager::check_for_dangling_tendons()
 {
-	std::cout << "cell manager events.cpp: check_for_dangling_springs() called, checking for dangling springs..." << std::endl;
-	/* Check for springs that are connected to cells that have been removed */
-	for (Spring* spring : all_springs_)
+	std::cout << "cell manager events.cpp: check_for_dangling_tendons() called, checking for dangling tendons..." << std::endl;
+	/* Check for tendons that are connected to cells that have been removed */
+	for (Tendon* tendon : all_tendons_)
 	{
-		Cell* cell_a = all_cells_.at(spring->cell_A_id);
-		Cell* cell_b = all_cells_.at(spring->cell_B_id);
+		Cell* cell_a = all_cells_.at(tendon->cell_A_id);
+		Cell* cell_b = all_cells_.at(tendon->cell_B_id);
 		if (all_cells_.is_obj_active(cell_a->id_) == false || all_cells_.is_obj_active(cell_b->id_) == false)
 		{
-			std::cout << "cell manager events.cpp: found dangling spring, removing..." << std::endl;
-			all_springs_.remove(spring);
+			std::cout << "cell manager events.cpp: found dangling tendon, removing..." << std::endl;
+			all_tendons_.remove(tendon);
 		}
 	}
 }
@@ -98,18 +98,18 @@ void CellManager::handle_cell_manager_event(SimCommand& cmd)
 		toggles_ = cmd.cell_toggles;
 		break;
 
-		// Spring Natual Selection Modifier
-	case CommandType::SetSpringBreakingForce:
-		Spring::spring_break_force = cmd.float_val;
+		// Tendon Natual Selection Modifier
+	case CommandType::SetTendonBreakingForce:
+		Tendon::spring_break_force = cmd.float_val;
 		break;
-	case CommandType::SetSpringBreakingLength:
-		Spring::spring_break_length_factor = cmd.float_val;
+	case CommandType::SetTendonBreakingLength:
+		Tendon::spring_break_length_factor = cmd.float_val;
 		break;
-	case CommandType::SetSpringDamageThreshold:
-		Spring::spring_damage_threshold = cmd.float_val;
+	case CommandType::SetTendonDamageThreshold:
+		Tendon::spring_damage_threshold = cmd.float_val;
 		break;
-	case CommandType::SetSpringWorkConst:
-		Spring::spring_work_const = cmd.float_val;
+	case CommandType::SetTendonWorkConst:
+		Tendon::spring_work_const = cmd.float_val;
 		break;
 
 	case CommandType::SetMinSpeed:
@@ -155,12 +155,12 @@ void CellManager::handle_cell_manager_event(SimCommand& cmd)
 			remove_cell(protozoa_tracker_.original_selected_cell_id);
 		break;
 
-	case CommandType::AddSpring:
+	case CommandType::AddTendon:
 		//if (selected_protozoa)
 		//    selected_protozoa->add_spring(); todo
 		break;
 
-	case CommandType::RemoveSpring:
+	case CommandType::RemoveTendon:
 		//if (selected_protozoa)
 		//    selected_protozoa->remove_spring(); todo
 		break;
@@ -202,21 +202,21 @@ void CellManager::handle_cell_manager_event(SimCommand& cmd)
 		CellMatterSettings::max_time_to_live = cmd.int_val;
 		break;
 
-	case CommandType::SetSpringAmplitude:
+	case CommandType::SetTendonAmplitude:
 		//if (selected_protozoa)
 		//{
 		//    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].amplitude = cmd.float_val;
 		//}
 		break;
 
-	case CommandType::SetSpringFrequency:
+	case CommandType::SetTendonFrequency:
 		//if (selected_protozoa)
 		//{
 		//    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].frequency = cmd.float_val;
 		//}
 		break;
 
-	case CommandType::SetSpringOffset:
+	case CommandType::SetTendonOffset:
 		//if (selected_protozoa)
 		//{
 		//    m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].offset = cmd.float_val;
@@ -226,7 +226,7 @@ void CellManager::handle_cell_manager_event(SimCommand& cmd)
 		//}
 		break;
 
-	case CommandType::SetSpringVerticalShift:
+	case CommandType::SetTendonVerticalShift:
 		//if (selected_protozoa)
 		//{
 			//m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].vertical_shift = cmd.float_val;
@@ -240,7 +240,7 @@ void CellManager::handle_cell_manager_event(SimCommand& cmd)
 		//}
 		break;
 
-	case CommandType::SetSpringConst:
+	case CommandType::SetTendonConst:
 		//if (selected_protozoa)
 		//{
 		   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
@@ -287,7 +287,7 @@ void CellManager::inject_selected_protozoa(bool is_energy, float amount)
 
 void CellManager::kill_selected_protozoa()
 {
-	// every cell and spring in the current selected protozoa is removed from the world
+	// every cell and tendon in the current selected protozoa is removed from the world
 	if (selected_cell_id_ == -1 || protozoa_tracker_.is_active == false)
 		return;
 
@@ -296,9 +296,9 @@ void CellManager::kill_selected_protozoa()
 		remove_cell(cell.id_);
 	}
 
-	for (Spring& spring : protozoa_tracker_.springs)
+	for (Tendon& spring : protozoa_tracker_.springs)
 	{
-		all_springs_.remove(spring.id_);
+		all_tendons_.remove(spring.id_);
 	}
 }
 
@@ -359,26 +359,26 @@ void CellManager::clone_selected_protozoa()
 		old_to_new_cell_id[cell.id_] = cpair.cell_id;
 	}
 
-	for (Spring& spring : protozoa_tracker_.springs)
+	for (Tendon& spring : protozoa_tracker_.springs)
 	{
 		auto it_a = old_to_new_cell_id.find(spring.cell_A_id);
 		auto it_b = old_to_new_cell_id.find(spring.cell_B_id);
 
 		if (it_a == old_to_new_cell_id.end() || it_b == old_to_new_cell_id.end())
 		{
-			std::cerr << "[ERROR]: Spring references a cell not present in the cloned set.\n";
+			std::cerr << "[ERROR]: Tendon references a cell not present in the cloned set.\n";
 			continue;
 		}
 
-		int32_t spring_id = create_spring(it_a->second, it_b->second);
+		int32_t spring_id = create_tendon(it_a->second, it_b->second);
 
 		if (spring_id == -1)
 		{
-			std::cerr << "[ERROR]: Failed to create spring during protozoa cloning. Max springs reached.\n";
+			std::cerr << "[ERROR]: Failed to create tendon during protozoa cloning. Max springs reached.\n";
 			return;
 		}
 
-		Spring* new_spring = all_springs_.at(spring_id);
+		Tendon* new_spring = all_tendons_.at(spring_id);
 
 		new_spring->genome.copy_genetics(spring.genome);
 	}

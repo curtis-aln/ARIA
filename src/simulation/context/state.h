@@ -64,10 +64,10 @@ struct CellManagerToggles
 {
 	// integrity damage conditions
 	bool collision_integrity_damage_ = false;
-	bool spring_stress_integrity_damage = true;
+	bool tendon_stress_integrity_damage = true;
 
-	bool spring_too_long_breakage = true;
-	bool spring_too_much_force_breakage = false;
+	bool tendon_too_long_breakage = true;
+	bool tendon_too_much_force_breakage = false;
 
 	bool work_done_energy = false;
 	bool friction_energy_loss = true;
@@ -78,8 +78,8 @@ struct CellManagerToggles
 	bool show_newborn_grid = false;
 
 	// debugging
-	bool skeleton_mode = false;  // only render springs, no cell bodies
-	bool show_connections = true;   // show spring connections between cells
+	bool skeleton_mode = false;  // only render tendons, no cell bodies
+	bool show_connections = true;   // show tendon connections between cells
 	bool show_bounding_boxes = true;  // show protozoa bounding boxes
 
 	// other
@@ -156,7 +156,7 @@ struct CellManagerStatistics
 	int   total_deaths = 0;  // increments whenever a cell dies
 	int   cell_count = 0;
 	int   cell_matter_count = 0;
-	int   spring_count = 0;
+	int   tendon_count = 0;
 
 	int   peak_protozoa_ever = 0;
 	uint32_t   highest_generation_ever = 0;
@@ -169,14 +169,14 @@ struct CellManagerStatistics
 	float average_mutation_rate = 0.f;
 	float average_mutation_range = 0.f;
 	float average_energy = 0.f;
-	float average_spring_count = 0.f;
+	float average_tendon_count = 0.f;
 	float energy_efficiency = 0.f;
 	float average_lifetime = 0.f;
 
-	float spring_breaking_length = 0.f;
-	float spring_breaking_force = 0.f;
-	float spring_work_const = 0.f;
-	float spring_damage_threshold = 0.f;
+	float tendon_breaking_length = 0.f;
+	float tendon_breaking_force = 0.f;
+	float tendon_work_const = 0.f;
+	float tendon_damage_threshold = 0.f;
 
 	// hundered frame
 	float births_per_hundered_frames = 0.f;
@@ -217,14 +217,14 @@ struct RenderData
 	alignas(64) std::vector<sf::Color>    inner_colors;
 	alignas(64) std::vector<float>        radii;
 
-	std::vector<Connection> spring_connections;
+	std::vector<Connection> tendon_connections;
 
 	sf::Texture pheromone_texture;
 
 	OVecDebugImGuiSnapshot cell_debug_snapshot;
 	OVecDebugImGuiSnapshot food_debug_snapshot;
 	OVecDebugImGuiSnapshot body_debug_snapshot;
-	OVecDebugImGuiSnapshot spring_debug_snapshot;
+	OVecDebugImGuiSnapshot tendon_debug_snapshot;
 
 	void reserve(const int max_cells)
 	{
@@ -233,7 +233,7 @@ struct RenderData
 		outer_colors.resize(max_cells);
 		inner_colors.resize(max_cells);
 		radii.resize(max_cells);
-		spring_connections.resize(max_cells);
+		tendon_connections.resize(max_cells);
 	}
 
 	void clear_render_data()

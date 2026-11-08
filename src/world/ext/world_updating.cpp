@@ -47,7 +47,7 @@ void World::update(SimSnapshot& write_snapshot)
 				cm_stats.average_spring_count,
 				cm_stats.average_energy,
 				cm_stats.cell_matter_count,
-				cm_stats.spring_count);
+				cm_stats.tendon_count);
 		}
 	}
 

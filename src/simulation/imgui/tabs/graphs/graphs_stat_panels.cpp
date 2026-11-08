@@ -17,7 +17,7 @@ void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
     StatRow::draw("Cells", "%d", p);
     StatRow::draw("Food", "%d", f);
     StatRow::draw("Matter", "%d", snap.cell_manager_stats.cell_matter_count);
-    StatRow::draw("Springs", "%d", snap.cell_manager_stats.spring_count);
+    StatRow::draw("Springs", "%d", snap.cell_manager_stats.tendon_count);
     StatRow::draw("Total", "%d", p + f);
     StatRow::draw_warn("Ext. risk", risk, "%s", risk ? "YES" : "no");
     StatRow::draw("Peak ever", "%d", snap.cell_manager_stats.peak_protozoa_ever);

@@ -96,7 +96,7 @@ private:
 
 	// ── world_renderer_entities.cpp ───────────────────────────────────────
 	void render_protozoa(const SimSnapshot& snapshot);
-	void render_springs(const SimSnapshot& snapshot);
+	void render_tendons(const SimSnapshot& snapshot);
 	void draw_protozoa_debug(const SimSnapshot& snapshot);
 	void draw_newborn_connection_radius(const OrganismTracker& protozoa);
 };

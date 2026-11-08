@@ -5,7 +5,7 @@
 #include "cell_manager_settings.h"
 
 #include "../../entities/cell/cell.h"
-#include "../../entities/spring/spring.h"
+#include "../../entities/spring/tendon.h"
 #include "world/world_border.h"
 
 #include "../../simulation/context/sim_snapshot.h"
@@ -48,12 +48,12 @@ the protozoa manager detects this and
 The birth manager then processes this request by
 - creating a new cell
 - cell.offspring_index = the index of the new cell
-- a temporary spring is made between the parent cell and the new cell
+- a temporary tendon is made between the parent cell and the new cell
 
-This keeps happening until a spring detects that both its cell's have a valid offspring index
-The spring then
+This keeps happening until a tendon detects that both its cell's have a valid offspring index
+The tendon then
 - sets cell_a.connection_index = cell_b.offspring_index;
-- cell_a.spring_to_copy_index = id; this is the spring data that will be used
+- cell_a.tendon_to_copy_index = id; this is the tendon data that will be used
 This tells the protozoa manager what to connect (cell_a.connection_index, cell_b.offspring_index)
 
 The connection request is detected
@@ -103,7 +103,7 @@ class CellManager : protected CellManagerSettings
 	std::vector<BirthRequest> cell_birth_requests;
 	std::vector<MatterBirthRequest> matter_birth_requests;
 	std::vector<ConnectionRequest> connection_requests;
-	std::vector<uint32_t> spring_death_requests;
+	std::vector<uint32_t> tendon_death_requests;
 	CellManagerStatistics statistics_{};
 
 	// death requests stop us from removing cells while we are iterating over them, we store the ids of the cells to be removed here and remove them after the iteration is done
@@ -115,7 +115,7 @@ class CellManager : protected CellManagerSettings
 
 	// the main data structure for storing all protozoa in the world, this is a custom vector class that allows for fast iteration over active objects
 	o_vector<Cell> all_cells_;
-	o_vector<Spring> all_springs_;
+	o_vector<Tendon> all_tendons_;
 	o_vector<CellMatter> all_cell_matter_;
 
 	// This builds a model around a protozoa that doesnt globally exist, so it can be monitored and learned about
@@ -184,11 +184,11 @@ public:
 	const sf::Vector2f get_selected_protozoa_pos() const;
 
 	const o_vector<Cell>& get_all_cells() const { return all_cells_; }
-	const o_vector<Spring>& get_all_springs() const { return all_springs_; }
+	const o_vector<Tendon>& get_all_tendons() const { return all_tendons_; }
 	const o_vector<CellMatter>& get_all_cell_matter() const { return all_cell_matter_; }
 
 	o_vector<Cell>& get_all_cells() { return all_cells_; }
-	o_vector<Spring>& get_all_springs() { return all_springs_; }
+	o_vector<Tendon>& get_all_tendons() { return all_tendons_; }
 
 	SimpleSpatialGrid* get_new_born_cell_grid() { return &new_born_cell_grid_; }
 
@@ -219,7 +219,7 @@ private: // only functions this class can access
 	float calculate_average_generation() const;
 
 	// updating
-	void update_springs(bool immune);
+	void update_tendons(bool immune);
 	void update_cells();
 	void update_cell_matter();
 	void update_cell(Cell* cell);
@@ -227,7 +227,7 @@ private: // only functions this class can access
 	void collect_connection_requests();
 
 	void add_cells_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns);
-	void add_springs_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns);
+	void add_tendons_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns);
 	void add_matter_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds);
 
 	void ensure_update_jobs_built();
@@ -237,10 +237,11 @@ private: // only functions this class can access
 	void try_connect_newborn_cell(Cell* cell);
 
 
-	// birth - springs
-	int32_t create_spring(const uint32_t cell_a_id, const uint32_t cell_b_id);
+
+	// birth - tendons
+	int32_t create_tendon(const uint32_t cell_a_id, const uint32_t cell_b_id);
 	void create_weak_offspring(uint32_t parent_id);
-	void create_temporary_spring_connection(const cell_idx parent_id, const cell_idx offspring_id);
+	void create_temporary_tendon_connection(const cell_idx parent_id, const cell_idx offspring_id);
 	void apply_matter_birth_requests();
 	void apply_connection_requests();
 
@@ -264,14 +265,14 @@ private: // only functions this class can access
 
 	void apply_structural_mutations(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count);
 
-	void add_spring_mutation(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count, const Cell* cell);
+	void add_tendon_mutation(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count, const Cell* cell);
 
 	sf::Vector2f calculate_organism_centre(FixedSpan<cell_idx>& cell_ids);
 	float        calculate_organism_radius(FixedSpan<cell_idx>& cell_ids, const sf::Vector2f& centre);
 	sf::Vector2f calculate_clone_offset(FixedSpan<cell_idx>& parent_ids);
 
 	int32_t clone_cell(cell_idx parent_cell_id, const sf::Vector2f& offset);
-	bool    clone_spring(uint32_t parent_spring_id, cell_idx offspring_cell_a, cell_idx offspring_cell_b);
+	bool    clone_tendon(uint32_t parent_tendon_id, cell_idx offspring_cell_a, cell_idx offspring_cell_b);
 
 	// death - cell matter
 	void collect_matter_death_requests();
@@ -285,12 +286,13 @@ private: // only functions this class can access
 	void remove_cell(cell_idx cell_id);
 	void speed_tax_cell(Cell* cell);
 
-	// death - springs
-	void collect_spring_death_requests();
-	void apply_spring_death_requests();
 
-	void debug_check_spring_death_request_duplicates();
+	// death - tendons
+	void collect_tendon_death_requests();
+	void apply_tendon_death_requests();
 
-	void check_for_dangling_springs();
-	void remove_spring(uint32_t spring_id);
+	void debug_check_tendon_death_request_duplicates();
+
+	void check_for_dangling_tendons();
+	void remove_tendon(uint32_t tendon_id);
 };

@@ -59,12 +59,12 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::TextDisabled("Physical");
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd(ctx, "##sk", s.genome.spring_const,
-        0.f, SpringGeneticConstraints::spring_const.max,
+        0.f, TendonGeneticConstraints::spring_const.max,
         "Spring constant = %.3f", CommandSection::CellManagerEvent, CommandType::SetSpringConst);
 
     ImGui::SetNextItemWidth(-1.f);
     slider_float_cmd(ctx, "##sd", s.genome.damping,
-        0.f, SpringGeneticConstraints::damping.max,
+        0.f, TendonGeneticConstraints::damping.max,
         "Damping         = %.3f", CommandSection::CellManagerEvent, CommandType::SetDampingConst);
 
     ImGui::EndChild();
@@ -75,8 +75,8 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
         "Extension  amplitude * sin(frequency * t + phase) + shift  [0, 1]",
         static_cast<double>(s.internal_clock_), s.id_, "Extension",
         std::clamp(s.ratio, 0.f, 1.f), extension_wave_col,
-        { s.genome.amplitude,      0.f,                                         SpringGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetSpringAmplitude },
-        { s.genome.frequency,      SpringGeneticConstraints::frequency.min,     SpringGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetSpringFrequency },
-        { s.genome.offset,         SpringGeneticConstraints::offset.min,        SpringGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetSpringOffset },
-        { s.genome.vertical_shift, SpringGeneticConstraints::vertical_shift.min, SpringGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetSpringVerticalShift });
+        { s.genome.amplitude,      0.f,                                         TendonGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetSpringAmplitude },
+        { s.genome.frequency,      TendonGeneticConstraints::frequency.min,     TendonGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetSpringFrequency },
+        { s.genome.offset,         TendonGeneticConstraints::offset.min,        TendonGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetSpringOffset },
+        { s.genome.vertical_shift, TendonGeneticConstraints::vertical_shift.min, TendonGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetSpringVerticalShift });
 }

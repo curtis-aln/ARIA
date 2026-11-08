@@ -4,7 +4,7 @@
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/matter/CellMatter.h>
-#include <entities/spring/spring.h>
+#include <entities/spring/tendon.h>
 #include <iostream>
 #include <managers/cell_manager/cell_manager_settings.h>
 #include <SFML/System/Vector2.hpp>
@@ -23,9 +23,9 @@
 //    Cell has enough energy and wants an offspring. We clear the flag and
 //    queue a BirthRequest. apply_birth_requests() handles it next.
 //
-//  CONNECTION REQUEST (cell.spring_to_copy_index >= 0):
-//    Both this cell and its spring-partner now have valid offspring indexes,
-//    meaning two new cells exist and need wiring together with a spring.
+//  CONNECTION REQUEST (cell.tendon_to_copy_index >= 0):
+//    Both this cell and its tendon-partner now have valid offspring indexes,
+//    meaning two new cells exist and need wiring together with a tendon.
 //    We queue a ConnectionRequest and reset all three reproductive fields.
 //
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,12 +45,12 @@ void CellManager::collect_reproduction_requests()
 //  apply_birth_requests
 //
 //  Processes all queued BirthRequests: spawns an offspring cell for each
-//  parent and links them with a weak temporary spring to keep them close
-//  while waiting for the permanent spring from apply_connection_requests().
+//  parent and links them with a weak temporary tendon to keep them close
+//  while waiting for the permanent tendon from apply_connection_requests().
 //
-//  The temporary spring is nearly slack (tiny spring_const, no oscillation,
+//  The temporary tendon is nearly slack (tiny spring_const, no oscillation,
 //  heavy damping) — it just prevents the offspring from drifting out of
-//  range before the real spring is created.
+//  range before the real tendon is created.
 // ─────────────────────────────────────────────────────────────────────────────
 void CellManager::apply_reproduction_requests()
 {
@@ -114,7 +114,7 @@ void CellManager::normal_reproduce(const BirthRequest& req)
 	// create the offspring by filling in its genetics and other properties based on the parent cell
 	parent_cell->create_offspring(parent_body, offspring_cell, offspring_body, true);
 	// connecting the parent and childS
-	create_temporary_spring_connection(parent_cell->id_, offspring_cell->id_);
+	create_temporary_tendon_connection(parent_cell->id_, offspring_cell->id_);
 	// small random chance that this offspring has its own cell addition
 	if (Random::rand01_float() < offspring_cell->add_cell_chance)
 	{
@@ -122,30 +122,30 @@ void CellManager::normal_reproduce(const BirthRequest& req)
 	}
 }
 
-void CellManager::create_temporary_spring_connection(const cell_idx parent_id, const cell_idx offspring_id)
+void CellManager::create_temporary_tendon_connection(const cell_idx parent_id, const cell_idx offspring_id)
 {
 	// A weak breakable connection between the parent and child is made to keep the child around
 	// for the full reproductive process
-	int32_t new_spring_id = create_spring(parent_id, offspring_id);
-	if (new_spring_id == -1)
+	int32_t new_tendon_id = create_tendon(parent_id, offspring_id);
+	if (new_tendon_id == -1)
 		return;
-	Spring* spring = all_springs_.at(new_spring_id);
+	Tendon* tendon = all_tendons_.at(new_tendon_id);
 
-	// Setting the spring attributes - it should keep a near constant length with no oscillation
-	constexpr float spring_death_chance = 1.f / 180.f; // 1 in 300 chance of breaking per frame
-	constexpr float temporary_spring_const = 0.1f;
-	constexpr float  temporary_spring_damping = 0.5f;
-	constexpr float temporary_spring_nutrient_rate = 0.f;
+	// Setting the tendon attributes - it should keep a near constant length with no oscillation
+	constexpr float tendon_death_chance = 1.f / 180.f; // 1 in 300 chance of breaking per frame
+	constexpr float temporary_tendon_const = 0.1f;
+	constexpr float  temporary_tendon_damping = 0.5f;
+	constexpr float temporary_tendon_nutrient_rate = 0.f;
 
-	spring->death_chance_ = spring_death_chance;
+	tendon->death_chance_ = tendon_death_chance;
 
-	spring->genome.frequency = 0.f;      // no oscillation
-	spring->genome.amplitude = 0.f;      // no oscillation -> vertical_shift alone sets rest_length
-	spring->genome.vertical_shift = 0.2f;
-	spring->genome.spring_const = temporary_spring_const;
-	spring->genome.damping = temporary_spring_damping;
+	tendon->genome.frequency = 0.f;      // no oscillation
+	tendon->genome.amplitude = 0.f;      // no oscillation -> vertical_shift alone sets rest_length
+	tendon->genome.vertical_shift = 0.2f;
+	tendon->genome.spring_const = temporary_tendon_const;
+	tendon->genome.damping = temporary_tendon_damping;
 
-	spring->genome.nutrient_transfer_rate = temporary_spring_nutrient_rate;
+	tendon->genome.nutrient_transfer_rate = temporary_tendon_nutrient_rate;
 }
 
 
@@ -162,13 +162,13 @@ void CellManager::apply_connection_requests()
 
 		// if the distance is suspiciously large, print
 
-		int32_t new_spring_id = create_spring(static_cast<uint32_t>(req.offspring_id), static_cast<uint32_t>(req.connect_to_id));
+		int32_t new_tendon_id = create_tendon(static_cast<uint32_t>(req.offspring_id), static_cast<uint32_t>(req.connect_to_id));
 
-		if (new_spring_id == -1)
+		if (new_tendon_id == -1)
 			continue;
 
-		Spring* new_spring = all_springs_.at(new_spring_id);
-		new_spring->genome.sexually_reproduce(cell->spring_genome, other_cell->spring_genome);
+		Tendon* new_tendon = all_tendons_.at(new_tendon_id);
+		new_tendon->genome.sexually_reproduce(cell->tendon_genome, other_cell->tendon_genome);
 	}
 
 	connection_requests.clear();
@@ -177,7 +177,7 @@ void CellManager::apply_connection_requests()
 void CellManager::create_weak_offspring(uint32_t parent_id)
 {
 	// This function creates a new offspring cell for the given parent cell, 
-	// and connects them with a spring that is weak and has low oscillation. 
+	// and connects them with a tendon that is weak and has low oscillation. 
 	// The offspring is initialized with some random properties to ensure it doesn't cling too tightly to the parent.
 	// This is so when this mutation occours it doesnt throw off the whole organism
 
@@ -195,7 +195,7 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 	child_body->set_pos(child_body->get_pos() + Random::rand_vector(10.f, 50.f));
 
 	// setting the child cell properties
-	child_cell->copy_genetics(*parent_cell, child_body);   // assumes this also copies spring_genome
+	child_cell->copy_genetics(*parent_cell, child_body);   // assumes this also copies tendon_genome
 	child_cell->mutate(child_body);
 
 	child_body->mass_ = parent_body->mass_;
@@ -203,16 +203,16 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 	child_cell->amplitude = 0.01f;
 	child_cell->vertical_shift = 0.05f;
 
-	int32_t spring_id = create_spring(parent_id, pair.cell_id);
-	if (spring_id < 0) // potential error here
+	int32_t tendon_id = create_tendon(parent_id, pair.cell_id);
+	if (tendon_id < 0) // potential error here
 	{
 		std::cout << " birthmanagement.cpp line 190 - bad call\n";
 		return;
 	}
-	Spring* spring = all_springs_.at(spring_id);
+	Tendon* tendon = all_tendons_.at(tendon_id);
 
-	// creating a spring that is firm but doesnt oscilate mutch
-	spring->genome.sexually_reproduce(parent_cell->spring_genome, child_cell->spring_genome);
+	// creating a tendon that is firm but doesnt oscilate mutch
+	tendon->genome.sexually_reproduce(parent_cell->tendon_genome, child_cell->tendon_genome);
 
 }
 

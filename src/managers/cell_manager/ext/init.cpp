@@ -2,7 +2,7 @@
 
 CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_vector<Body>* bodies) 
 	: m_window_(window), world_bounds_(world_bounds), bodies_(bodies), 
-	all_cells_(max_cells), all_springs_(max_cells), all_cell_matter_(max_cells)
+	all_cells_(max_cells), all_tendons_(max_cells), all_cell_matter_(max_cells)
 {
 	// Initialize the cell manager with the given window, world bounds, and body vector
 	create_new_protozoa(CellManagerSettings::initial_protozoa, world_bounds);
@@ -15,7 +15,7 @@ CellManager::CellManager(sf::RenderWindow* window, WorldBorder* world_bounds, o_
 	cell_death_requests_.reserve(initial_request_capacity);
 	matter_death_requests_.reserve(initial_request_capacity);
 	matter_birth_requests.reserve(initial_request_capacity);
-	spring_death_requests.reserve(initial_request_capacity);
+	tendon_death_requests.reserve(initial_request_capacity);
 
 	std::cout << "[INFO]: CellManager initialized with protozoa: " << all_cells_.size() << "\n";
 	if (window == nullptr)
@@ -80,9 +80,9 @@ void CellManager::reset_cell_manager()
 	all_cell_matter_.clear();
 
 
-	for (Spring* spring : all_springs_)
+	for (Tendon* tendon : all_tendons_)
 	{
-		all_springs_.remove(spring->id_);
+		all_tendons_.remove(tendon->id_);
 	}
 
 	create_new_protozoa(CellManagerSettings::initial_protozoa, world_bounds_);

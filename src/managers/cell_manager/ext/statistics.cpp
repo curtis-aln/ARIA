@@ -88,7 +88,7 @@ void CellManager::update_100frame_stats(int iterations)
 
 void CellManager::update_protozoa_tracker()
 {
-	protozoa_tracker_.update_primitive(selected_cell_id_, all_cells_, all_springs_, *bodies_);
+	protozoa_tracker_.update_primitive(selected_cell_id_, all_cells_, all_tendons_, *bodies_);
 }
 
 void CellManager::update_statistics()
@@ -103,7 +103,7 @@ void CellManager::update_statistics()
 	const int count = static_cast<int>(all_cells_.size());
 	statistics_.peak_protozoa_ever = std::max(count, statistics_.peak_protozoa_ever);
 	statistics_.cell_count = count;
-	statistics_.spring_count = static_cast<int>(all_springs_.size());
+	statistics_.tendon_count = static_cast<int>(all_tendons_.size());
 	statistics_.cell_matter_count = static_cast<int>(all_cell_matter_.size());
 
 	// resetting averages
@@ -135,8 +135,8 @@ void CellManager::update_statistics()
 
 
 
-	statistics_.spring_breaking_force = Spring::spring_break_force;
-	statistics_.spring_breaking_length = Spring::spring_break_length_factor;
-	statistics_.spring_damage_threshold = Spring::spring_damage_threshold;
-	statistics_.spring_work_const = Spring::spring_work_const;
+	statistics_.tendon_breaking_force = Tendon::spring_break_force;
+	statistics_.tendon_breaking_length = Tendon::spring_break_length_factor;
+	statistics_.tendon_damage_threshold = Tendon::spring_damage_threshold;
+	statistics_.tendon_work_const = Tendon::spring_work_const;
 }

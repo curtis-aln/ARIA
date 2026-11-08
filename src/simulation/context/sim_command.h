@@ -60,8 +60,8 @@ enum class CommandType
 	MutateProtozoa,         // mutate a specific protozoa (payload identifies protozoa and mutation parameters)
 	AddCell,                // add a new cell to the selected protozoa
 	RemoveCell,             // remove a cell from the selected protozoa
-	AddSpring,              // add a spring between two cells of the selected protozoa
-	RemoveSpring,           // remove a spring between two cells of the selected protozoa
+	AddTendon,              // add a tendon between two cells of the selected protozoa
+	RemoveTendon,           // remove a tendon between two cells of the selected protozoa
 	InjectProtozoa,         // inject a protozoa with Nutrients
 	MakeImmortal,           // make the selected protozoa immortal (no death by age)
 	ForceReproduce,         // force the selected protozoa to reproduce
@@ -72,18 +72,18 @@ enum class CommandType
 
 	SetHighlightedCell,
 
-	// Springs
-	SetSpringConst,         // set the spring constant of a specific spring
-	SetDampingConst,        // set the damping constant of a specific spring
-	SetSpringAmplitude,     // set the spring amplitude of a specific spring
-	SetSpringFrequency,     // set the spring frequency of a specific spring
-	SetSpringOffset,        // set the spring offset of a specific spring
-	SetSpringVerticalShift, // set the spring vertical shift of a specific spring
+	// Tendons
+	SetTendonConst,         // set the tendon constant of a specific tendon
+	SetDampingConst,        // set the damping constant of a specific tendon
+	SetTendonAmplitude,     // set the tendon amplitude of a specific tendon
+	SetTendonFrequency,     // set the tendon frequency of a specific tendon
+	SetTendonOffset,        // set the tendon offset of a specific tendon
+	SetTendonVerticalShift, // set the tendon vertical shift of a specific tendon
 
-	SetSpringBreakingForce, // set the spring breaking force of a specific spring
-	SetSpringBreakingLength,   // set the spring breaking length of a specific spring
-	SetSpringDamageThreshold,  // set the spring damage threshold of a specific spring
-	SetSpringWorkConst,        // set the spring work constant of a specific spring
+	SetTendonBreakingForce, // set the tendon breaking force of a specific tendon
+	SetTendonBreakingLength,   // set the tendon breaking length of a specific tendon
+	SetTendonDamageThreshold,  // set the tendon damage threshold of a specific tendon
+	SetTendonWorkConst,        // set the tendon work constant of a specific tendon
 
 	SetImpulseDamageThreshold, // set the impulse damage threshold of the cell manager
 	SetImpulseDamageMultiplier,    // set the impulse damage multiplier of the cell manager
@@ -139,7 +139,7 @@ struct SimCommand
 
 	float        float_val = 0;
 	int          int_val = 0;
-	int          cell_spring_idx = 0;
+	int          cell_tendon_idx = 0;
 	bool         bool_val = false;
 
 	sf::Color    color_val_a{};

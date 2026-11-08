@@ -85,7 +85,7 @@ void WorldRenderer::render(const SimSnapshot& snapshot, const sf::Vector2f mouse
 
 	render_visual_grid(snapshot);              // renders the faint grid in the background of the simulation
 	render_spatial_grids(snapshot, mouse_pos); // renders the spatial grids for food, collision, and newborn cells if enabled
-	render_springs(snapshot);                  // renders the springs that connect the cells together
+	render_tendons(snapshot);                  // renders the springs that connect the cells together
 	render_protozoa(snapshot);                 // renders the protozoa (cells) and their debug overlays
 	draw_protozoa_debug(snapshot);             // If a protozoa is selected and debug mode is enabled, draw additional debug information for it.
 	

@@ -44,7 +44,7 @@ public:
     sf::Vector2f velocity_prev{};
 
     std::vector<Cell>   cells{};
-    std::vector<Spring> springs{};
+    std::vector<Tendon> springs{};
     std::vector<Body>   bodies{};  // bodies[i] belongs to cells[i]
 
     sf::Vector2f acceleration{};
@@ -69,7 +69,7 @@ public:
     float frames_alive = 0.f;
 
     int cell_count = 0;
-    int spring_count = 0;
+    int tendon_count = 0;
 
     int offspring_count = 0;
     int time_since_last_reproduced = 0;
@@ -84,12 +84,12 @@ public:
     // Rebuilds the organism from the selected cell and refreshes every statistic.
     void update_primitive(uint32_t selected_cell_id,
         const o_vector<Cell>& all_cells,
-        const o_vector<Spring>& all_springs,
+        const o_vector<Tendon>& all_springs,
         const o_vector<Body>& all_bodies);
 
-    bool is_spring_already_found(const Spring* spring) const;
+    bool is_spring_already_found(const Tendon* spring) const;
     bool is_cell_already_found(const Cell* cell) const;
-    const Spring* find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Spring>& all_springs) const;
+    const Tendon* find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Tendon>& all_springs) const;
 
     void update_statistics(const SimpleSpatialGrid* /*food_grid*/, const SimpleSpatialGrid* /*cell_grid*/,
         const o_vector<Food>& /*food_vector*/, const RenderData& /*render_data*/)
@@ -100,7 +100,7 @@ public:
 private:
     void deactivate();
     void collect_connected(const o_vector<Cell>& all_cells,
-        const o_vector<Spring>& all_springs,
+        const o_vector<Tendon>& all_springs,
         const o_vector<Body>& all_bodies);
     void update_bounds();
     void update_locomotion_stats(bool changed);

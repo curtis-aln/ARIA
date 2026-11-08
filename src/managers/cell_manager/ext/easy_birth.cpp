@@ -7,8 +7,8 @@
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/cell/cell_settings.h>
-#include <entities/cell/spring_links.h>
-#include <entities/spring/spring.h>
+#include <entities/cell/tendon_links.h>
+#include <entities/spring/tendon.h>
 #include <iostream>
 #include <SFML/System/Vector2.hpp>
 #include <unordered_set>
@@ -19,7 +19,7 @@
 #include <vector>
 
 
-void CellManager::create_protozoa_from_pool(const sf::Vector2f position, const unsigned max_cells, const unsigned max_springs)
+void CellManager::create_protozoa_from_pool(const sf::Vector2f position, const unsigned max_cells, const unsigned max_tendons)
 {
 	float spawn_radius = CellSettings::spawn_radius * 5.f;
 
@@ -36,35 +36,35 @@ void CellManager::create_protozoa_from_pool(const sf::Vector2f position, const u
 	}
 
 	const size_t n = cell_indexes.size();
-	if (n < 2 || max_springs == 0)
+	if (n < 2 || max_tendons == 0)
 		return; // nothing to connect
 
-	// Track which pairs already have a spring, so we never place two springs
+	// Track which pairs already have a tendon, so we never place two tendons
 	// on the same pair of cells. Pair key: smaller index combined with larger.
 	auto pair_key = [](uint32_t a, uint32_t b) -> uint64_t {
 		if (a > b) std::swap(a, b);
 		return (static_cast<uint64_t>(a) << 32) | b;
 		};
 	std::unordered_set<uint64_t> used_pairs;
-	used_pairs.reserve(max_springs);
+	used_pairs.reserve(max_tendons);
 
-	unsigned springs_placed = 0;
+	unsigned tendons_placed = 0;
 
-	auto try_add_spring = [&](uint32_t cell_a, uint32_t cell_b) -> bool {
+	auto try_add_tendon = [&](uint32_t cell_a, uint32_t cell_b) -> bool {
 		const uint64_t key = pair_key(cell_a, cell_b);
 		if (used_pairs.contains(key))
 			return false;
 
-		const int32_t result = create_spring(cell_a, cell_b); // adjust to your actual API
+		const int32_t result = create_tendon(cell_a, cell_b); // adjust to your actual API
 		if (result == -1)
 			return false;
 
-		Spring* spring = all_springs_.at(result);
-		spring->genome.sexually_reproduce(all_cells_.at(cell_a)->spring_genome,
-			all_cells_.at(cell_b)->spring_genome);
+		Tendon* tendon = all_tendons_.at(result);
+		tendon->genome.sexually_reproduce(all_cells_.at(cell_a)->tendon_genome,
+			all_cells_.at(cell_b)->tendon_genome);
 
 		used_pairs.insert(key);
-		++springs_placed;
+		++tendons_placed;
 		return true;
 		};
 
@@ -74,28 +74,28 @@ void CellManager::create_protozoa_from_pool(const sf::Vector2f position, const u
 	std::vector<uint32_t> shuffled = cell_indexes;
 	std::shuffle(shuffled.begin(), shuffled.end(), Random::get_engine());
 
-	for (size_t i = 1; i < shuffled.size() && springs_placed < max_springs; ++i)
+	for (size_t i = 1; i < shuffled.size() && tendons_placed < max_tendons; ++i)
 	{
 		const size_t connect_to = Random::rand_range(size_t(0), i - 1); // random index in [0, i)
-		try_add_spring(shuffled[i], shuffled[connect_to]);
+		try_add_tendon(shuffled[i], shuffled[connect_to]);
 	}
 
-	// --- Phase 2: fill remaining spring budget with random extra edges ---
-	const unsigned remaining_budget = max_springs - springs_placed;
+	// --- Phase 2: fill remaining tendon budget with random extra edges ---
+	const unsigned remaining_budget = max_tendons - tendons_placed;
 	if (remaining_budget == 0 || n < 2)
 		return;
 
 	// Cap attempts so a nearly-saturated small graph can't spin forever
 	// trying to find a pair that isn't already used.
 	const unsigned max_attempts = remaining_budget * 10;
-	for (unsigned attempt = 0; attempt < max_attempts && springs_placed < max_springs; ++attempt)
+	for (unsigned attempt = 0; attempt < max_attempts && tendons_placed < max_tendons; ++attempt)
 	{
 		const uint32_t a = cell_indexes[Random::rand_range(size_t(0), n - 1)];
 		uint32_t b = cell_indexes[Random::rand_range(size_t(0), n - 1)];
 		if (a == b)
 			continue;
 
-		try_add_spring(a, b);
+		try_add_tendon(a, b);
 	}
 }
 
@@ -114,14 +114,14 @@ namespace
 		return false;
 	}
 
-	// The cell at the other end of the spring
-	cell_idx other_end_of(const Spring& spring, const cell_idx this_end)
+	// The cell at the other end of the tendon
+	cell_idx other_end_of(const Tendon& tendon, const cell_idx this_end)
 	{
-		return (spring.cell_A_id == this_end) ? spring.cell_B_id : spring.cell_A_id;
+		return (tendon.cell_A_id == this_end) ? tendon.cell_B_id : tendon.cell_A_id;
 	}
 }
 
-// Walks cell -> spring -> cell from start_id (breadth-first).
+// Walks cell -> tendon -> cell from start_id (breadth-first).
 // Returns true only if every connected cell is ready to reproduce AND the organism has
 // no more than max_protozoa_cells cells.
 // On true, organism_cell_ids holds every cell in the organism. On false its contents are unspecified.
@@ -151,14 +151,14 @@ bool CellManager::can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell
 
 		quorum_sum += current_cell.quorum_fraction;
 
-		const SpringLinks& links = current_cell.spring_links_;
+		const TendonLinks& links = current_cell.tendon_links_;
 		for (uint32_t link = 0; link < links.size_; ++link)
 		{
-			const uint32_t spring_id = links.connected_spring_ids_[link];
-			const Spring& spring = *all_springs_.at(spring_id);
-			assert(spring.cell_A_id == current_cell_id || spring.cell_B_id == current_cell_id);
+			const uint32_t tendon_id = links.connected_tendon_ids_[link];
+			const Tendon& tendon = *all_tendons_.at(tendon_id);
+			assert(tendon.cell_A_id == current_cell_id || tendon.cell_B_id == current_cell_id);
 
-			const cell_idx neighbour_id = other_end_of(spring, current_cell_id);
+			const cell_idx neighbour_id = other_end_of(tendon, current_cell_id);
 			if (contains(organism_cell_ids, neighbour_id))
 				continue;
 
@@ -216,27 +216,27 @@ void CellManager::protozoa_reproduce(FixedSpan<cell_idx>& parent_ids)
 	}
 
 
-	// springs
+	// tendons
 	for (int cell_index = 0; success && cell_index < cell_count; ++cell_index)
 	{
 		const cell_idx parent_cell_id = parent_ids[cell_index];
-		const SpringLinks links = all_cells_.at(parent_cell_id)->spring_links_; // copy, so we iterate a stable snapshot
+		const TendonLinks links = all_cells_.at(parent_cell_id)->tendon_links_; // copy, so we iterate a stable snapshot
 
 		for (uint32_t link = 0; success && link < links.size_; ++link)
 		{
-			const uint32_t parent_spring_id = links.connected_spring_ids_[link];
-			const Spring* parent_spring = all_springs_.at(parent_spring_id);
+			const uint32_t parent_tendon_id = links.connected_tendon_ids_[link];
+			const Tendon* parent_tendon = all_tendons_.at(parent_tendon_id);
 
-			// each spring is seen from both of its cells, so only handle it from the A side
-			if (parent_spring->cell_A_id != parent_cell_id)
+			// each tendon is seen from both of its cells, so only handle it from the A side
+			if (parent_tendon->cell_A_id != parent_cell_id)
 				continue;
 
-			// a spring leading outside the organism has nothing to connect to
-			const int other_index = index_of_parent(parent_spring->cell_B_id);
+			// a tendon leading outside the organism has nothing to connect to
+			const int other_index = index_of_parent(parent_tendon->cell_B_id);
 			if (other_index < 0)
 				continue;
 
-			success = clone_spring(parent_spring_id, offspring_ids[cell_index], offspring_ids[other_index]);
+			success = clone_tendon(parent_tendon_id, offspring_ids[cell_index], offspring_ids[other_index]);
 		}
 	}
 
@@ -256,9 +256,9 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 			create_weak_offspring(cell->id_);
 		}
 
-		if (Random::rand01_float() < cell->add_spring_chance)
+		if (Random::rand01_float() < cell->add_tendon_chance)
 		{
-			add_spring_mutation(cell_ids, cell_count, cell);
+			add_tendon_mutation(cell_ids, cell_count, cell);
 		}
 
 		if (Random::rand01_float() < cell->remove_cell_chance)
@@ -266,19 +266,19 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 			cell->kill();
 		}
 
-		if (Random::rand01_float() < cell->remove_spring_chance)
+		if (Random::rand01_float() < cell->remove_tendon_chance)
 		{
-			auto& links = cell->spring_links_;
+			auto& links = cell->tendon_links_;
 			if (links.size_ == 0)
 				continue;
 			const uint32_t idx = Random::rand_range(uint32_t(0), links.size_ - 1);
-			all_springs_.at(links.connected_spring_ids_[idx])->break_spring();
+			all_tendons_.at(links.connected_tendon_ids_[idx])->break_tendon();
 
 		}
 	}
 }
 
-void CellManager::add_spring_mutation(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count, const Cell* cell)
+void CellManager::add_tendon_mutation(std::array<cell_idx, max_protozoa_cells>& cell_ids, int cell_count, const Cell* cell)
 {
 	// pick a random cell from the cell_ids
 	Cell* other_cell = all_cells_.at(cell_ids[Random::rand_range(0, cell_count - 1)]);
@@ -292,18 +292,17 @@ void CellManager::add_spring_mutation(std::array<cell_idx, max_protozoa_cells>& 
 	if (other_cell->id_ == cell->id_ || cell->already_connected_to(other_cell->id_))
 		return;
 
-	// if not, create a spring between the two cells
-	const int32_t spring_id = create_spring(cell->id_, other_cell->id_);
+	// if not, create a tendon between the two cells
+	const int32_t spring_id = create_tendon(cell->id_, other_cell->id_);
 	if (spring_id == -1)
 	{
-		std::cout << "easy_birth.cpp spring creation was flagged as a -1 \n";
-		return;
+		return; // tendon links is full
 	}
 
-	Spring* spring = all_springs_.at(spring_id);
+	Tendon* spring = all_tendons_.at(spring_id);
 
-	// give the spring the appropriate genetics
-	spring->genome.sexually_reproduce(cell->spring_genome, other_cell->spring_genome);
+	// give the tendon the appropriate genetics
+	spring->genome.sexually_reproduce(cell->tendon_genome, other_cell->tendon_genome);
 }
 
 
@@ -377,19 +376,19 @@ int32_t CellManager::clone_cell(const cell_idx parent_cell_id, const sf::Vector2
 	return static_cast<int32_t>(pair.cell_id);
 }
 
-// Creates a spring between the two offspring cells, with the parent spring's genome copied and mutated.
-bool CellManager::clone_spring(const uint32_t parent_spring_id, const cell_idx offspring_cell_a, const cell_idx offspring_cell_b)
+// Creates a tendon between the two offspring cells, with the parent tendon's genome copied and mutated.
+bool CellManager::clone_tendon(const uint32_t parent_tendon_id, const cell_idx offspring_cell_a, const cell_idx offspring_cell_b)
 {
-	const int32_t offspring_spring_id = create_spring(offspring_cell_a, offspring_cell_b);
-	if (offspring_spring_id == -1)
+	const int32_t offspring_tendon_id = create_tendon(offspring_cell_a, offspring_cell_b);
+	if (offspring_tendon_id == -1)
 		return false;
 
-	// re-fetch after create_spring
-	Spring* parent_spring = all_springs_.at(parent_spring_id);
-	Spring* offspring_spring = all_springs_.at(offspring_spring_id);
+	// re-fetch after create_tendon
+	Tendon* parent_tendon = all_tendons_.at(parent_tendon_id);
+	Tendon* offspring_tendon = all_tendons_.at(offspring_tendon_id);
 
-	SpringGenome& genome_a = all_cells_.at(offspring_cell_a)->spring_genome;
-	SpringGenome& genome_b = all_cells_.at(offspring_cell_b)->spring_genome;
-	offspring_spring->genome.sexually_reproduce(genome_a, genome_b);
+	TendonGenome& genome_a = all_cells_.at(offspring_cell_a)->tendon_genome;
+	TendonGenome& genome_b = all_cells_.at(offspring_cell_b)->tendon_genome;
+	offspring_tendon->genome.sexually_reproduce(genome_a, genome_b);
 	return true;
 }

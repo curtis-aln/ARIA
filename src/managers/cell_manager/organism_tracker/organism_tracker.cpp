@@ -7,7 +7,7 @@
 
 void OrganismTracker::update_primitive(const uint32_t selected_cell_id,
     const o_vector<Cell>& all_cells,
-    const o_vector<Spring>& all_springs,
+    const o_vector<Tendon>& all_springs,
     const o_vector<Body>& all_bodies)
 {
     if (selected_cell_id == invalid_cell_id)
@@ -62,7 +62,7 @@ void OrganismTracker::deactivate()
 // Each pass scans the springs once; a spring touching any found cell belongs to the organism.
 // This replaces the old recursion, which rescanned every spring in the world once per cell.
 void OrganismTracker::collect_connected(const o_vector<Cell>& all_cells,
-    const o_vector<Spring>& all_springs,
+    const o_vector<Tendon>& all_springs,
     const o_vector<Body>& all_bodies)
 {
     const auto has_cell = [this](const auto cell_id)
@@ -76,7 +76,7 @@ void OrganismTracker::collect_connected(const o_vector<Cell>& all_cells,
     {
         grew = false;
 
-        for (const Spring* spring : all_springs)
+        for (const Tendon* spring : all_springs)
         {
             const bool a_found = has_cell(spring->cell_A_id);
             const bool b_found = has_cell(spring->cell_B_id);
@@ -109,10 +109,10 @@ void OrganismTracker::collect_connected(const o_vector<Cell>& all_cells,
     }
 }
 
-bool OrganismTracker::is_spring_already_found(const Spring* spring) const
+bool OrganismTracker::is_spring_already_found(const Tendon* spring) const
 {
     return std::any_of(springs.begin(), springs.end(),
-        [spring](const Spring& s) { return s.id_ == spring->id_; });
+        [spring](const Tendon& s) { return s.id_ == spring->id_; });
 }
 
 bool OrganismTracker::is_cell_already_found(const Cell* cell) const
@@ -121,13 +121,13 @@ bool OrganismTracker::is_cell_already_found(const Cell* cell) const
         [cell](const Cell& c) { return c.id_ == cell->id_; });
 }
 
-const Spring* OrganismTracker::find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Spring>& all_springs) const
+const Tendon* OrganismTracker::find_if_spring_connects_to_cell(const Cell* cell, const o_vector<Tendon>& all_springs) const
 {
     if (cell == nullptr)
         return nullptr;
 
     const auto id = cell->id_;
-    for (const Spring* spring : all_springs)
+    for (const Tendon* spring : all_springs)
     {
         if (spring->cell_A_id == id || spring->cell_B_id == id)
             return spring;
@@ -192,7 +192,7 @@ void OrganismTracker::update_locomotion_stats(const bool changed)
 void OrganismTracker::update_energy()
 {
     cell_count = static_cast<int>(cells.size());
-    spring_count = static_cast<int>(springs.size());
+    tendon_count = static_cast<int>(springs.size());
 
     total_energy = 0.f;
     total_nutrients = 0.f;
@@ -217,7 +217,7 @@ void OrganismTracker::update_energy()
         cells_ready_to_reproduce += cell.should_reproduce();
     }
 
-    for (const Spring& spring : springs)
+    for (const Tendon& spring : springs)
         spring_total_work_done += spring.work_done;
 
     if (cell_count == 0)

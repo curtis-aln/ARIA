@@ -5,7 +5,7 @@
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/matter/CellMatter.h>
-#include <entities/spring/spring.h>
+#include <entities/spring/tendon.h>
 #include <iostream>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -72,16 +72,16 @@ void CellManager::update(int iterations)
 	// --------------- death management ---------------
 	collect_cell_death_requests();
 	collect_matter_death_requests();
-	collect_spring_death_requests();
+	collect_tendon_death_requests();
 
 	apply_cell_death_requests();
 	apply_matter_death_requests();
-	apply_spring_death_requests();
+	apply_tendon_death_requests();
 
 	// --------------- updating cells and matter ---------------
-	spawn_immune = iterations < init_spring_immunity_time;
+	spawn_immune = iterations < init_tendon_immunity_time;
 
-	update_springs(spawn_immune);
+	update_tendons(spawn_immune);
 	update_cells();
 	update_cell_matter();
 
@@ -142,11 +142,11 @@ void CellManager::collect_connection_requests()
 
 void CellManager::update_position_container(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns, const bool show_cells, const bool show_matter)
 {
-	rend_data.spring_connections.clear();
+	rend_data.tendon_connections.clear();
 	if (show_cells)
 	{
 		add_cells_to_render_data(rend_data, visible_bounds, show_only_newborns);
-		add_springs_to_render_data(rend_data, visible_bounds, show_only_newborns);
+		add_tendons_to_render_data(rend_data, visible_bounds, show_only_newborns);
 	}
 
 	if (!show_only_newborns && show_matter)
@@ -175,13 +175,13 @@ void CellManager::add_cells_to_render_data(RenderData& rend_data, const sf::Floa
 	}
 }
 
-void CellManager::add_springs_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns)
+void CellManager::add_tendons_to_render_data(RenderData& rend_data, const sf::FloatRect& visible_bounds, const bool show_only_newborns)
 {
-	const int spring_count = static_cast<int>(all_springs_.size());
+	const int tendon_count = static_cast<int>(all_tendons_.size());
 
-	for (Spring* spring : all_springs_)
+	for (Tendon* tendon : all_tendons_)
 	{
-		Cell* cell_a = all_cells_.at(spring->cell_A_id);
+		Cell* cell_a = all_cells_.at(tendon->cell_A_id);
 		Body* body_a = bodies_->at(cell_a->body_id_);
 
 		const sf::Vector2f pos_a = body_a->get_pos();
@@ -192,7 +192,7 @@ void CellManager::add_springs_to_render_data(RenderData& rend_data, const sf::Fl
 		if (show_only_newborns && cell_a_newborn)
 			continue;
 
-		Cell* cell_b = all_cells_.at(spring->cell_B_id);
+		Cell* cell_b = all_cells_.at(tendon->cell_B_id);
 		Body* body_b = bodies_->at(cell_b->body_id_);
 
 		const sf::Vector2f pos_b = body_b->get_pos();
@@ -210,13 +210,13 @@ void CellManager::add_springs_to_render_data(RenderData& rend_data, const sf::Fl
 
 		// The reason why we cant use indexing to fill this array is because we dont know how many bodies are not active,
 		// so it messes with the indexing and leads to null connections
-		rend_data.spring_connections.push_back({
+		rend_data.tendon_connections.push_back({
 			pos_a,
 			pos_b,
-			spring->genome.outer_r, spring->genome.outer_g, spring->genome.outer_b,
+			tendon->genome.outer_r, tendon->genome.outer_g, tendon->genome.outer_b,
 			min_dist,
 			min_dist * 3.f,
-			spring->stress });
+			tendon->stress });
 	}
 }
 
@@ -256,7 +256,7 @@ void CellManager::try_connect_newborn_cell(Cell* cell)
 
 		// Canonical ordering: only the lower-id cell in a pair ever issues
 		// the request. Both cells sit in the same grid and would otherwise
-		// discover each other independently -> two requests, two springs.
+		// discover each other independently -> two requests, two tendons.
 		if (cell->id_ > other_cell_id)
 			continue;
 
@@ -277,34 +277,34 @@ void CellManager::try_connect_newborn_cell(Cell* cell)
 }
 
 
-void CellManager::update_springs(bool immune)
+void CellManager::update_tendons(bool immune)
 {
-	for (Spring* spring : all_springs_)
+	for (Tendon* tendon : all_tendons_)
 	{
-		if (spring->is_spring_broken()) continue;
+		if (tendon->is_tendon_broken()) continue;
 
-		Cell* cell_a = all_cells_.at(spring->cell_A_id);
-		Cell* cell_b = all_cells_.at(spring->cell_B_id);
+		Cell* cell_a = all_cells_.at(tendon->cell_A_id);
+		Cell* cell_b = all_cells_.at(tendon->cell_B_id);
 
-		bool true_immune = immune || !toggles_.spring_stress_integrity_damage;
-		spring->update_organics(*cell_a, *cell_b, !true_immune, toggles_.work_done_energy);
+		bool true_immune = immune || !toggles_.tendon_stress_integrity_damage;
+		tendon->update_organics(*cell_a, *cell_b, !true_immune, toggles_.work_done_energy);
 
-		// otherwise we update the spring physics and organics
+		// otherwise we update the tendon physics and organics
 		Body* body_a = bodies_->at(cell_a->body_id_);
 		Body* body_b = bodies_->at(cell_b->body_id_);
 
-		bool disable_length_breakage = immune || !toggles_.spring_too_long_breakage;
-		bool disable_force_breakage = immune || !toggles_.spring_too_much_force_breakage;
+		bool disable_length_breakage = immune || !toggles_.tendon_too_long_breakage;
+		bool disable_force_breakage = immune || !toggles_.tendon_too_much_force_breakage;
 
 		const float ma = body_a->mass_, mb = body_b->mass_;
 		const float reduced_mass = (ma * mb) / (ma + mb);
 
 		const float contact_dist = (body_a->get_radius() + body_b->get_radius()) * 1.02f; // 2% margin so rest state isn't sitting on the collision boundary
-		spring->update_physics(body_a->get_pos(), body_a->get_vel(), body_b->get_pos(), body_b->get_vel(),
-			disable_length_breakage, disable_force_breakage, contact_dist, reduced_mass);
+		tendon->update_physics({ body_a->get_pos(), body_a->get_vel(), body_b->get_pos(), body_b->get_vel() },
+			{ disable_length_breakage, disable_force_breakage }, { tendon->extension_ratio, tendon->get_spring_constant(), tendon->genome.damping, contact_dist, reduced_mass});
 
-		body_a->apply_force(spring->movement_vector);
-		body_b->apply_force(-spring->movement_vector);
+		body_a->apply_force(tendon->movement_vector);
+		body_b->apply_force(-tendon->movement_vector);
 	}
 }
 
@@ -442,10 +442,10 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 
 bool CellManager::are_connected(cell_idx a, cell_idx b)
 {
-	const SpringLinks& links = all_cells_.at(a)->spring_links_;
+	const SpringLinks& links = all_cells_.at(a)->tendon_links_;
 	for (uint32_t i = 0; i < links.size_; ++i)
 	{
-		const Spring& s = *all_springs_.at(links.connected_spring_ids_[i]);
+		const Tendon& s = *all_tendons_.at(links.connected_spring_ids_[i]);
 		if ((s.cell_A_id == a && s.cell_B_id == b) || (s.cell_A_id == b && s.cell_B_id == a))
 			return true;
 	}
@@ -460,11 +460,11 @@ int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell
 	Cell* cell_a = all_cells_.at(cell_a_id);
 	Cell* cell_b = all_cells_.at(cell_b_id);
 
-	// if either of the cells have reached their maximum number of connections, we cannot create a spring between them
-	if (cell_a->spring_links_.is_full() || cell_b->spring_links_.is_full())
+	// if either of the cells have reached their maximum number of connections, we cannot create a tendon between them
+	if (cell_a->tendon_links_.is_full() || cell_b->tendon_links_.is_full())
 		return -1;
 
-	Spring* spring = all_springs_.emplace(true, true);
+	Tendon* spring = all_tendons_.emplace(true, true);
 
 	if (spring == nullptr)
 	{
@@ -474,8 +474,8 @@ int32_t CellManager::create_spring(const uint32_t cell_a_id, const uint32_t cell
 	spring->cell_A_id = cell_a_id;
 	spring->cell_B_id = cell_b_id;
 
-	cell_a->spring_links_.add_connection(spring->id_);
-	cell_b->spring_links_.add_connection(spring->id_);
+	cell_a->tendon_links_.add_connection(spring->id_);
+	cell_b->tendon_links_.add_connection(spring->id_);
 
 	return spring->id_;
 }

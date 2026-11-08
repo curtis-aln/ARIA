@@ -66,14 +66,14 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 	ImGui::Text("Offspring so far: %d", static_cast<int>(c.offspring_count));
 
 	ImGui::Spacing();
-	ImGui::Text("Spring Damage %.2f", c.cumulative_spring_damage_);
+	ImGui::Text("Spring Damage %.2f", c.cumulative_tendon_damage_);
 	ImGui::Text("Collision Damage %.2f", c.cumulative_collision_damage_);
 	ImGui::Text("delta energy: %.2f", c.delta_energy);
 	ImGui::Text("delta integrity: %.2f", c.delta_integrity);
 
 	// Spring links: stored IDs are absolute, show the relative cell number too.
-	const auto& ids = c.spring_links_.connected_spring_ids_;
-	const uint32_t n = c.spring_links_.size_;
+	const auto& ids = c.tendon_links_.connected_spring_ids_;
+	const uint32_t n = c.tendon_links_.size_;
 	ImGui::Text("spring links: %u", n);
 	for (uint32_t i = 0; i < n; ++i)
 	{

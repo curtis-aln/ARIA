@@ -31,7 +31,7 @@ void Cell::recreate()
 	offspring_count = 0;
 
 	cumulative_collision_damage_ = 0.f;
-	cumulative_spring_damage_ = 0.f;
+	cumulative_tendon_damage_ = 0.f;
 
 	new_connections_made = uint8_t(0);
 
@@ -40,14 +40,14 @@ void Cell::recreate()
 	nearby_food_ids_size_ = 0;
 
 	randomize();
-	spring_genome.randomize();   // <-- clears stale genome from recycled pool slot
+	tendon_genome.randomize();   // <-- clears stale genome from recycled pool slot
 
 	reproduce_ = false;
 	dead_ = false;
 	immortal_ = false;
 	seek_newborn_links_ = false;
 
-	spring_links_.clear_connections();
+	tendon_links_.clear_connections();
 }
 
 bool Cell::eat(const float nutrients)
@@ -103,14 +103,14 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	energy = total_energy * (1.f - give);
 	child->energy = total_energy * give;
 
-	// Finally the genetics, we copy the cell and spring genetics and only mutate them if permissable
+	// Finally the genetics, we copy the cell and tendon genetics and only mutate them if permissable
 	child->copy_genetics(*this, child_body);
-	child->spring_genome.copy_genetics(spring_genome);
+	child->tendon_genome.copy_genetics(tendon_genome);
 
 	if (mutate)
 	{
 		child->mutate(child_body);
-		child->spring_genome.mutate();
+		child->tendon_genome.mutate();
 	}
 
 	// The mass is an evolutionary paramater that needs to be told to the body
@@ -150,7 +150,7 @@ bool Cell::should_try_connect_to_others() const
 	bool is_newborn = internal_clock_ < infant_time;
 	bool is_check_frame = internal_clock_ % infant_check_interval == 0;
 	bool is_first_gen = get_generation() == 0;
-	bool can_have_more_connections = new_connections_made < SpringLinks::max_connections;
+	bool can_have_more_connections = new_connections_made < TendonLinks::max_connections;
 
 	return is_newborn && is_check_frame && !is_first_gen && can_have_more_connections && seek_newborn_links_;
 }
@@ -212,7 +212,7 @@ void Cell::apply_old_age_decay()
 }
 
 // Applies accumulated change_energy()/change_integrity() calls from this tick
-// (springs, impulse damage, etc.) in one clamped step.
+// (tendons, impulse damage, etc.) in one clamped step.
 void Cell::flush_deltas()
 {
 	energy = std::clamp(energy + delta_energy, 0.f, max_energy);

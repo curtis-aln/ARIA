@@ -86,7 +86,7 @@ class World : public WorldSettings
 	OVecDebug<Cell> dbg_cells_{ cell_manager_.get_all_cells() };
 	OVecDebug<Food> dbg_food_{ food_manager_.get_food_vector() };
 	OVecDebug<Body> dbg_bodies_{ bodies_ };
-	OVecDebug<Spring> dbg_springs_{ cell_manager_.get_all_springs() };
+	OVecDebug<Tendon> dbg_springs_{ cell_manager_.get_all_tendons() };
 
 public:
 	// ── Toggles — written by ImGui (main thread), read by update thread ──────

@@ -12,48 +12,12 @@
 #include <cstdint>
 #include <string.h>
 
-#include "spring_links.h"
+#include "tendon_links.h"
 
-// Each organism consists of cells which work together via springs
+#include "../../Utils/fast_funcs.h"
+
+// Each organism consists of cells which work together via tendons
 // Each cell has their own radius and drag  coefficient, as well as cosmetic factors such as color
-
-
-// a faster implementation of the round function
-inline float fast_round(float x)
-{
-	return x >= 0.0f ? floorf(x + 0.5f) : ceilf(x - 0.5f);
-}
-
-inline float fast_sqrt(float x)
-{
-	float y = x;
-
-	// Initial approximation
-	uint32_t i;
-	std::memcpy(&i, &y, sizeof(float));
-
-	i = (i + 0x3f800000) >> 1;
-
-	std::memcpy(&y, &i, sizeof(float));
-
-	// Newton refinement
-	return 0.5f * (y + x / y);
-}
-
-inline float fast_sin(float x)
-{
-	constexpr float PI = 3.14159265358979323846f;
-	constexpr float TWO_PI = 6.28318530717958647692f;
-
-	// Wrap to [-PI, PI]
-	x = x - TWO_PI * floorf((x + PI) / TWO_PI);
-
-	// Bhaskara I approximation
-	float y = (16.0f * x * (PI - fabsf(x))) /
-		(5.0f * PI * PI - 4.0f * fabsf(x) * (PI - fabsf(x)));
-
-	return y;
-}
 
 
 struct Cell : public CellGenome, CellSettings
@@ -71,13 +35,13 @@ private:
 public:
 	uint32_t id_ = 0;        // The unique identifier for this cell
 	uint32_t body_id_ = 0;   // Reference to the body 
-	SpringLinks spring_links_; // The springs that connect this cell to other cells
+	TendonLinks tendon_links_; // The tendons that connect this cell to other cells
 
 	bool immortal_ = false;  // cell is unaffected by death
 
-	// when a spring is created between this cell and other, the springs properties
-	// will be average between the two cell's spring genomes
-	SpringGenome spring_genome{};
+	// when a tendon is created between this cell and other, the tendons properties
+	// will be average between the two cell's tendon genomes
+	TendonGenome tendon_genome{};
 
 	// Stomach and food
 	uint16_t time_since_last_ate_ = 0;
@@ -93,7 +57,7 @@ public:
 	uint8_t  offspring_count = 0;
 
 	float cumulative_collision_damage_ = 0.f;
-	float cumulative_spring_damage_ = 0.f;
+	float cumulative_tendon_damage_ = 0.f;
 
 	std::array<uint32_t, 8> nearby_food_ids_{};
 	int nearby_food_ids_size_ = 0;
@@ -107,7 +71,7 @@ public:
 	float delta_integrity = 0.f;
 
 	// cell.h, public section
-	std::array<uint32_t, SpringLinks::max_connections> connected_partner_ids_{};
+	std::array<uint32_t, TendonLinks::max_connections> connected_partner_ids_{};
 
 	[[nodiscard]] bool can_eat() const { return time_since_last_ate_ >= digestive_time && nutrients_ < max_nutrients; }
 
@@ -121,14 +85,14 @@ public:
 
 	void register_connection(uint32_t other_id)
 	{
-		if (new_connections_made < SpringLinks::max_connections)
+		if (new_connections_made < TendonLinks::max_connections)
 			connected_partner_ids_[new_connections_made++] = other_id;
 	}
 
 	Cell(const uint32_t body_id = 0)
 	{
 		body_id_ = body_id;
-		spring_genome.randomize();
+		tendon_genome.randomize();
 	}
 
 	// ------------ Data accessors ------------

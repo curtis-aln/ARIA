@@ -87,7 +87,7 @@ void WorldRenderer::render_protozoa(const SimSnapshot& snapshot)
 // ─────────────────────────────────────────────────────────────────────────────
 //  Springs
 // ─────────────────────────────────────────────────────────────────────────────
-void WorldRenderer::render_springs(const SimSnapshot& snapshot)
+void WorldRenderer::render_tendons(const SimSnapshot& snapshot)
 {
 	// We dont render springs if the camera is zoomed out too far
 	const float zoom = snapshot.sim_stats.camera_zoom;

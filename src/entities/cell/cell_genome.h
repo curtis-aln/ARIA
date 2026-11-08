@@ -16,7 +16,7 @@ struct Range
 };
 
 // ---------------------------------------------------------------------------
-// Shared base: every genome type (Cell, Spring, future types) inherits this.
+// Shared base: every genome type (Cell, Tendon, future types) inherits this.
 // ---------------------------------------------------------------------------
 struct BaseConstants
 {
@@ -113,9 +113,9 @@ private:
 };
 
 // ---------------------------------------------------------------------------
-// Spring genome
+// Tendon genome
 // ---------------------------------------------------------------------------
-struct SpringGeneticConstraints
+struct TendonGeneticConstraints
 {
 	inline static constexpr Range amplitude = { 0.f,          1.f };
 	inline static constexpr Range frequency = { -1.f / 120.f, 1.f };
@@ -126,11 +126,11 @@ struct SpringGeneticConstraints
 	inline static constexpr Range nutrient_transfer_rate = { -1.f,          1.f };
 };
 
-struct SpringInitialSpawnRanges
+struct TendonInitialSpawnRanges
 {
 	inline static constexpr Range amplitude = { 0.1f,         0.8f };
 	inline static constexpr Range frequency = { 1.f / 30.f,  1.f / 5.f }; // 1 / 60 = once every 60 frames, 1 / 30 = once every 30 frames
-	inline static constexpr Range offset = SpringGeneticConstraints::offset;
+	inline static constexpr Range offset = TendonGeneticConstraints::offset;
 	inline static constexpr Range vertical_shift = { 0.3f,          1.f };
 
 	inline static constexpr Range spring_const = { 1.25f, 2.2f };
@@ -139,19 +139,19 @@ struct SpringInitialSpawnRanges
 	inline static constexpr Range nutrient_transfer_rate = { -0.1f, 0.5f };
 };
 
-struct SpringGenome : GenomeBase
+struct TendonGenome : GenomeBase
 {
 	float amplitude, frequency, offset, vertical_shift;
 	float nutrient_transfer_rate;
 	float spring_const, damping;
 
-	SpringGenome() { randomize(); };
+	TendonGenome() { randomize(); };
 
 	void randomize()
 	{
 		randomize_base();
 
-		using Limit = SpringInitialSpawnRanges;
+		using Limit = TendonInitialSpawnRanges;
 
 		rand_in_range(amplitude, Limit::amplitude);
 		rand_in_range(frequency, Limit::frequency);
@@ -168,7 +168,7 @@ struct SpringGenome : GenomeBase
 	{
 		range = range > 0.f ? range : mutation_range;
 
-		const auto& C = SpringGeneticConstraints{};
+		const auto& C = TendonGeneticConstraints{};
 
 		amplitude = maybe_mutate_gaussian(amplitude, C.amplitude, range, guassian_const);
 		frequency = maybe_mutate_gaussian(frequency, C.frequency, range, guassian_const);
@@ -183,7 +183,7 @@ struct SpringGenome : GenomeBase
 		mutate_meta();
 	}
 
-	void copy_genetics(const SpringGenome& parent)
+	void copy_genetics(const TendonGenome& parent)
 	{
 		amplitude = parent.amplitude;
 		frequency = parent.frequency;
@@ -204,7 +204,7 @@ struct SpringGenome : GenomeBase
 		generation = parent.generation;
 	}
 
-	void sexually_reproduce(const SpringGenome& a, const SpringGenome& b)
+	void sexually_reproduce(const TendonGenome& a, const TendonGenome& b)
 	{
 		auto mid = [](float x, float y) { return (x + y) * 0.5f; };
 		auto midc = [](uint8_t x, uint8_t y) { return static_cast<uint8_t>((int(x) + int(y)) / 2); };
@@ -252,8 +252,8 @@ struct CellGeneticConstraints
 
 	inline static constexpr Range add_cell_chance = { 0.f, 1.f };
 	inline static constexpr Range remove_cell_chance = { 0.f, 1.f };
-	inline static constexpr Range add_spring_chance = { 0.f, 1.f };
-	inline static constexpr Range remove_spring_chance = { 0.f, 1.f };
+	inline static constexpr Range add_tendon_chance = { 0.f, 1.f };
+	inline static constexpr Range remove_tendon_chance = { 0.f, 1.f };
 
 	inline static constexpr Range quorum_fraction = { 0.2f, 1.f };
 };
@@ -263,7 +263,7 @@ struct CellInitialSpawnRanges
 	inline static constexpr Range mass = { 55.f,          135.f };
 
 	inline static constexpr Range amplitude = { 0.05f,       0.9f };
-	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 5.f };    // same band as SpringInitialSpawnRanges::frequency
+	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 5.f };    // same band as TendonInitialSpawnRanges::frequency
 	inline static constexpr Range offset = CellGeneticConstraints::offset;
 	inline static constexpr Range vertical_shift = { 0.3f,        0.7f };
 
@@ -277,8 +277,8 @@ struct CellInitialSpawnRanges
 
 	inline static constexpr Range add_cell_chance = { 0.05f, 0.05f };
 	inline static constexpr Range remove_cell_chance = { 0.05f, 0.05f };
-	inline static constexpr Range add_spring_chance = { 0.05f, 0.05f };
-	inline static constexpr Range remove_spring_chance = { 0.05f, 0.05f };
+	inline static constexpr Range add_tendon_chance = { 0.05f, 0.05f };
+	inline static constexpr Range remove_tendon_chance = { 0.05f, 0.05f };
 
 	inline static constexpr Range quorum_fraction = { 0.5f, 0.5f };
 };
@@ -299,14 +299,14 @@ struct CellGenome : GenomeBase, HardConstants
 	float birth_nutrients_thresh = 0.1f;
 
 	float offspring_energy_to_give = 0.25f;
-	float connective_spring_spring_const = 0.1f;
-	float connective_spring_damping = 0.1f;
+	float connective_tendon_spring_const = 0.1f;
+	float connective_tendon_damping = 0.1f;
 
 	// mutation genes
 	float add_cell_chance = 0.05f;
 	float remove_cell_chance = 0.05f;
-	float add_spring_chance = 0.05f;
-	float remove_spring_chance = 0.05f;
+	float add_tendon_chance = 0.05f;
+	float remove_tendon_chance = 0.05f;
 
 	float newborn_search_radius = CellGeneticConstraints::newborn_search.max;
 
@@ -324,7 +324,7 @@ struct CellGenome : GenomeBase, HardConstants
 
 		using Limit = CellInitialSpawnRanges;
 		using C_Const = CellGeneticConstraints;
-		using S_Const = SpringGeneticConstraints;
+		using S_Const = TendonGeneticConstraints;
 		rand_in_range(amplitude, Limit::amplitude);
 		rand_in_range(frequency, Limit::frequency);
 		rand_in_range(offset, Limit::offset);
@@ -337,8 +337,8 @@ struct CellGenome : GenomeBase, HardConstants
 		rand_in_range(birth_nutrients_thresh, { 0.f, 0.1f });
 
 		rand_in_range(offspring_energy_to_give, { 0.f, 1.f });
-		rand_in_range(connective_spring_spring_const, S_Const::spring_const);
-		rand_in_range(connective_spring_damping, S_Const::damping);
+		rand_in_range(connective_tendon_spring_const, S_Const::spring_const);
+		rand_in_range(connective_tendon_damping, S_Const::damping);
 
 		rand_in_range(birth_energy_thresh, Limit::birth_energy_thresh);
 		rand_in_range(birth_integrity_thresh, Limit::birth_integrity_thresh);
@@ -347,16 +347,16 @@ struct CellGenome : GenomeBase, HardConstants
 		rand_in_range(newborn_search_radius, Limit::newborn_search);
 		rand_in_range(add_cell_chance, Limit::add_cell_chance);
 		rand_in_range(remove_cell_chance, Limit::remove_cell_chance);
-		rand_in_range(add_spring_chance, Limit::add_spring_chance);
-		rand_in_range(remove_spring_chance, Limit::remove_spring_chance);
+		rand_in_range(add_tendon_chance, Limit::add_tendon_chance);
+		rand_in_range(remove_tendon_chance, Limit::remove_tendon_chance);
 		rand_in_range(quorum_fraction, Limit::quorum_fraction);
 
 		rand_in_range(newborn_search_radius, { C_Const::newborn_search.max * 0.9f, C_Const::newborn_search.max });
 
 		add_cell_chance = 0.05f;
 		remove_cell_chance = 0.05f;
-		add_spring_chance = 0.05f;
-		remove_spring_chance = 0.05f;
+		add_tendon_chance = 0.05f;
+		remove_tendon_chance = 0.05f;
 		quorum_fraction = 0.5f;
 	}
 
@@ -381,13 +381,13 @@ struct CellGenome : GenomeBase, HardConstants
 
 		offspring_energy_to_give = maybe_mutate_gaussian(offspring_energy_to_give, { 0.f, 1.f }, range, guassian_const);
 
-		connective_spring_damping = maybe_mutate_gaussian(connective_spring_damping, SpringGeneticConstraints::damping, range, guassian_const);
-		connective_spring_spring_const = maybe_mutate_gaussian(connective_spring_spring_const, SpringGeneticConstraints::spring_const, range, guassian_const);
+		connective_tendon_damping = maybe_mutate_gaussian(connective_tendon_damping, TendonGeneticConstraints::damping, range, guassian_const);
+		connective_tendon_spring_const = maybe_mutate_gaussian(connective_tendon_spring_const, TendonGeneticConstraints::spring_const, range, guassian_const);
 
 		add_cell_chance = maybe_mutate_gaussian(add_cell_chance, { 0.f, 1.f }, range, guassian_const);
 		remove_cell_chance = maybe_mutate_gaussian(remove_cell_chance, { 0.f, 1.f }, range, guassian_const);
-		add_spring_chance = maybe_mutate_gaussian(add_spring_chance, { 0.f, 1.f }, range, guassian_const);
-		remove_spring_chance = maybe_mutate_gaussian(remove_spring_chance, { 0.f, 1.f }, range, guassian_const);
+		add_tendon_chance = maybe_mutate_gaussian(add_tendon_chance, { 0.f, 1.f }, range, guassian_const);
+		remove_tendon_chance = maybe_mutate_gaussian(remove_tendon_chance, { 0.f, 1.f }, range, guassian_const);
 
 		const float r_max = CellGeneticConstraints::mass.max;
 		newborn_search_radius = maybe_mutate_gaussian(newborn_search_radius, CellGeneticConstraints::newborn_search, range, guassian_const);
@@ -415,8 +415,8 @@ struct CellGenome : GenomeBase, HardConstants
 		birth_nutrients_thresh = parent.birth_nutrients_thresh;
 
 		offspring_energy_to_give = parent.offspring_energy_to_give;
-		connective_spring_spring_const = parent.connective_spring_spring_const;
-		connective_spring_damping = parent.connective_spring_damping;
+		connective_tendon_spring_const = parent.connective_tendon_spring_const;
+		connective_tendon_damping = parent.connective_tendon_damping;
 
 		newborn_search_radius = parent.newborn_search_radius;
 
@@ -427,8 +427,8 @@ struct CellGenome : GenomeBase, HardConstants
 
 		add_cell_chance = parent.add_cell_chance;
 		remove_cell_chance = parent.remove_cell_chance;
-		add_spring_chance = parent.add_spring_chance;
-		remove_spring_chance = parent.remove_spring_chance;
+		add_tendon_chance = parent.add_tendon_chance;
+		remove_tendon_chance = parent.remove_tendon_chance;
 
 		generation = parent.generation;
 	}
@@ -449,13 +449,13 @@ GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, offset);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, vertical_shift);
 
 // Spring
-GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, amplitude);
-GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, frequency);
-GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, offset);
-GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, vertical_shift);
-GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, spring_const);
-GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, damping);
-GENOME_RANGE_CHECK(SpringGeneticConstraints, SpringInitialSpawnRanges, nutrient_transfer_rate);
+GENOME_RANGE_CHECK(TendonGeneticConstraints, TendonInitialSpawnRanges, amplitude);
+GENOME_RANGE_CHECK(TendonGeneticConstraints, TendonInitialSpawnRanges, frequency);
+GENOME_RANGE_CHECK(TendonGeneticConstraints, TendonInitialSpawnRanges, offset);
+GENOME_RANGE_CHECK(TendonGeneticConstraints, TendonInitialSpawnRanges, vertical_shift);
+GENOME_RANGE_CHECK(TendonGeneticConstraints, TendonInitialSpawnRanges, spring_const);
+GENOME_RANGE_CHECK(TendonGeneticConstraints, TendonInitialSpawnRanges, damping);
+GENOME_RANGE_CHECK(TendonGeneticConstraints, TendonInitialSpawnRanges, nutrient_transfer_rate);
 
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, birth_energy_thresh);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, birth_integrity_thresh);
@@ -464,8 +464,8 @@ GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, offspring_ene
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, newborn_search);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, add_cell_chance);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, remove_cell_chance);
-GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, add_spring_chance);
-GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, remove_spring_chance);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, add_tendon_chance);
+GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, remove_tendon_chance);
 GENOME_RANGE_CHECK(CellGeneticConstraints, CellInitialSpawnRanges, quorum_fraction);
 
 // BASE

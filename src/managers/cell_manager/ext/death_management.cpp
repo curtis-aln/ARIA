@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <entities/cell/cell.h>
 #include <entities/matter/CellMatter.h>
-#include <entities/spring/spring.h>
+#include <entities/spring/tendon.h>
 #include <iostream>
 #include <ostream>
 #include <SFML/System/Vector2.hpp>
@@ -15,13 +15,13 @@
 
 
 // ---------------------------- collect death requests ----------------------------
-void CellManager::collect_spring_death_requests()
+void CellManager::collect_tendon_death_requests()
 {
-	spring_death_requests.clear();
-	for (Spring* spring : all_springs_)
+	tendon_death_requests.clear();
+	for (Tendon* tendon : all_tendons_)
 	{
-		if (spring->is_spring_broken())
-			spring_death_requests.push_back(spring->id_);
+		if (tendon->is_tendon_broken())
+			tendon_death_requests.push_back(tendon->id_);
 	}
 }
 
@@ -73,13 +73,13 @@ void CellManager::remove_cell(cell_idx cell_id)
 
 	cell->kill();
 
-	// removing all the springs attached to this cell
-	for (int i = 0; i < cell->spring_links_.size_; ++i)
+	// removing all the tendons attached to this cell
+	for (int i = 0; i < cell->tendon_links_.size_; ++i)
 	{
-		uint32_t spring_id = cell->spring_links_.connected_spring_ids_[i];
-		Spring* spring = all_springs_.at(spring_id);
-		if (spring == nullptr) continue;
-		spring->break_spring();
+		uint32_t tendon_id = cell->tendon_links_.connected_tendon_ids_[i];
+		Tendon* tendon = all_tendons_.at(tendon_id);
+		if (tendon == nullptr) continue;
+		tendon->break_tendon();
 	}
 
 	// removing the cell and body from their respective containers
@@ -95,25 +95,25 @@ void CellManager::remove_cell_matter(cell_idx matter_id)
 	bodies_->remove(matter->body_id_);
 }
 
-void CellManager::remove_spring(uint32_t spring_id)
+void CellManager::remove_tendon(uint32_t tendon_id)
 {
-	Spring* spring = all_springs_.at(spring_id);
-	if (spring == nullptr) return;
+	Tendon* tendon = all_tendons_.at(tendon_id);
+	if (tendon == nullptr) return;
 
-	// all springs are connected to cells, when the cells die they automatically remove the springs.
-	// due to this we dont know whever the spring is connected to a cell that is still alive or not
-	// However there is no harm in trying to remove a spring from a cell that is already dead, so we do it anyway
-	Cell* cellA = all_cells_.at(spring->cell_A_id);
-	Cell* cellB = all_cells_.at(spring->cell_B_id);
+	// all tendons are connected to cells, when the cells die they automatically remove the tendons.
+	// due to this we dont know whever the tendon is connected to a cell that is still alive or not
+	// However there is no harm in trying to remove a tendon from a cell that is already dead, so we do it anyway
+	Cell* cellA = all_cells_.at(tendon->cell_A_id);
+	Cell* cellB = all_cells_.at(tendon->cell_B_id);
 
 	for (Cell* cell : { cellA, cellB })
 	{
-		cell->spring_links_.remove_connection(spring->id_);
+		cell->tendon_links_.remove_connection(tendon->id_);
 	}
 
-	// resetting the spring so it can be reused
-	spring->reset();
-	all_springs_.remove(spring);
+	// resetting the tendon so it can be reused
+	tendon->reset();
+	all_tendons_.remove(tendon);
 }
 
 // ---------------------------- Apply death requests ----------------------------
@@ -138,26 +138,26 @@ void CellManager::apply_matter_death_requests()
 	matter_death_requests_.clear();
 }
 
-void CellManager::apply_spring_death_requests()
+void CellManager::apply_tendon_death_requests()
 {
-	for (uint32_t spring_id : spring_death_requests)
+	for (uint32_t tendon_id : tendon_death_requests)
 	{
-		remove_spring(spring_id);
+		remove_tendon(tendon_id);
 	}
-	spring_death_requests.clear();
+	tendon_death_requests.clear();
 }
 
 
-void CellManager::debug_check_spring_death_request_duplicates()
+void CellManager::debug_check_tendon_death_request_duplicates()
 {
-	// checks the spring_death_requests vector for duplicates, which should never happen. If it does, it indicates a bug in the code
-	for (size_t i = 0; i < spring_death_requests.size(); ++i)
+	// checks the tendon_death_requests vector for duplicates, which should never happen. If it does, it indicates a bug in the code
+	for (size_t i = 0; i < tendon_death_requests.size(); ++i)
 	{
-		for (size_t j = i + 1; j < spring_death_requests.size(); ++j)
+		for (size_t j = i + 1; j < tendon_death_requests.size(); ++j)
 		{
-			if (spring_death_requests[i] == spring_death_requests[j])
+			if (tendon_death_requests[i] == tendon_death_requests[j])
 			{
-				std::cout << "Duplicate spring death request found: " << spring_death_requests[i] << std::endl;
+				std::cout << "Duplicate tendon death request found: " << tendon_death_requests[i] << std::endl;
 			}
 		}
 	}

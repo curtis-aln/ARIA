@@ -128,7 +128,7 @@ void OrganismTab::rebuild_ordering(const OrganismTracker& t)
 	}
 
 	const int nc = t.cell_count;
-	const int ns = static_cast<int>(t.spring_count);
+	const int ns = static_cast<int>(t.tendon_count);
 
 	m_cell_order_.resize(static_cast<size_t>(nc));
 	std::iota(m_cell_order_.begin(), m_cell_order_.end(), 0);
@@ -176,7 +176,7 @@ void OrganismTab::rebuild_ordering(const OrganismTracker& t)
 
 void OrganismTab::sync_selection(ImGuiContext& ctx, const OrganismTracker& t)
 {
-	const int ns = static_cast<int>(t.spring_count);
+	const int ns = static_cast<int>(t.tendon_count);
 	if (t.cell_count > 0)
 	{
 		m_sel_cell_idx_ = std::clamp(m_sel_cell_idx_, 0, t.cell_count - 1);
@@ -227,7 +227,7 @@ void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, cons
 
 	ImGui::TextDisabled("Identity");
 	ImGui::Text("Cells   %d", protozoa.cell_count);
-	ImGui::Text("Springs %d", protozoa.spring_count);
+	ImGui::Text("Springs %d", protozoa.tendon_count);
 
 	ImGui::Spacing();
 	ImGui::TextDisabled("Misc");
@@ -281,15 +281,15 @@ void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, cons
 void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa)
 {
 	const int cell_count = protozoa.cell_count;
-	const int spring_count = static_cast<int>(protozoa.spring_count);
+	const int tendon_count = static_cast<int>(protozoa.tendon_count);
 
-	if (cell_count == 0 && spring_count == 0)
+	if (cell_count == 0 && tendon_count == 0)
 	{
 		ImGui::TextDisabled("No cells or springs.");
 		return;
 	}
 
-	if (m_sel_is_spring_ && spring_count == 0) m_sel_is_spring_ = false;
+	if (m_sel_is_spring_ && tendon_count == 0) m_sel_is_spring_ = false;
 	if (!m_sel_is_spring_ && cell_count == 0)  m_sel_is_spring_ = true;
 
 	ImGui::BeginChild("CS_list", { k_list_w, -1.f }, true);
@@ -310,11 +310,11 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 	}
 
 	// Springs: relative numbering, single flat colour.
-	if (spring_count > 0)
+	if (tendon_count > 0)
 	{
 		ImGui::Separator();
 		ImGui::TextDisabled("Springs");
-		for (int k = 0; k < spring_count; ++k)
+		for (int k = 0; k < tendon_count; ++k)
 		{
 			const int i = m_spring_order_[k];
 			const Spring& s = protozoa.springs[i];
@@ -340,7 +340,7 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 
 	if (!m_sel_is_spring_ && cell_count > 0)
 		draw_cell_detail(ctx, protozoa.cells[m_sel_cell_idx_], protozoa.bodies[m_sel_cell_idx_]);
-	else if (m_sel_is_spring_ && spring_count > 0)
+	else if (m_sel_is_spring_ && tendon_count > 0)
 		draw_spring_detail(ctx, protozoa, protozoa.springs[m_sel_spring_idx_], m_spring_rank_[m_sel_spring_idx_]);
 }
 
@@ -378,7 +378,7 @@ void OrganismTab::draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& 
 
 	ImGui::NextColumn();
 	if (ImGui::Button("Add Spring", { -1.f, 0.f }))
-		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::AddSpring });
+		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::AddTendon });
 
 	if (ImGui::Button("Remove Spring", { -1.f, 0.f }))
 		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::RemoveSpring });
