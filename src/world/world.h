@@ -6,7 +6,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 
 #include "../managers/cell_manager/cell_manager_settings.h"
-#include "../managers/cell_manager/organism_tracker.h"
+#include "../managers/cell_manager/organism_tracker/organism_tracker.h"
 #include "../simulation/context/state.h"
 #include "world_settings.h"
 
@@ -72,7 +72,6 @@ class World : public WorldSettings
 		collision_resolver_.get_grid(),
 		&food_eat_resolver_.get_spatial_grid(),
 		cell_manager_.get_new_born_cell_grid(),
-		food_manager_.get_pheromone_grid(),
 		world_rect_bounds_,
 		world_circular_bounds_ };
 

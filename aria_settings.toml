@@ -82,7 +82,7 @@ food_visibility_ramp_frames  = 90.0
 food_max_alpha                = 200.0
 
 food_random_spawn_per_frame = 1
-food_random_spawn_chance = 0.03
+food_random_spawn_chance = 0.08
 
 spawn_proportionality_constant = 0.005
 food_spawn_distance           = 200.0
@@ -100,7 +100,7 @@ reproductive_cooldown          = 400
 nutrient_reproductive_threshold = 0.99 # ratio
 
 initial_nutrients             = 20.0
-final_nutrients                = 130.0
+final_nutrients                = 160.0
 nutrient_development_time       = 1000
 
 spawn_immunity = 20

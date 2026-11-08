@@ -5,7 +5,7 @@
 #include <entities/cell/cell.h>
 #include <entities/food/food.h>
 #include <entities/spring/spring.h>
-#include <managers/cell_manager/organism_tracker.h>
+#include <managers/cell_manager/organism_tracker/organism_tracker.h>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -14,7 +14,7 @@
 #include <simulation/context/sim_command.h>
 #include <simulation/context/sim_snapshot.h>
 #include <simulation/context/state.h>
-#include <Utils/Graphics/pheromone_grid.h>
+#include <Utils/pheromones/pheromone_grid.h>
 #include <Utils/o_vec/o_vec_snapshot.h>
 #include <world/world_border.h>
 #include <world/world_settings.h>

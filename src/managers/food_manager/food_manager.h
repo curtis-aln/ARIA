@@ -14,7 +14,7 @@
 #include <simulation/context/sim_command.h>
 #include <world/world_settings.h>
 
-#include "../../Utils/Graphics/pheromone_grid.h"
+#include "../../Utils/pheromones/pheromone_grid.h"
 #include <cstdint>
 #include <functional>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -119,5 +119,8 @@ private:
 	float calculate_spawn_chance() const;
 
 	// Death
-	void handle_food_death(int iterations);
+	void handle_food_death();
+	
+	
+	void fill_pheromone_grid(int iterations);
 };

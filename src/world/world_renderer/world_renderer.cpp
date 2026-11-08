@@ -36,7 +36,6 @@ WorldRenderer::WorldRenderer(
 	SimpleSpatialGrid* collision_grid,
 	SimpleSpatialGrid* food_grid,
 	SimpleSpatialGrid* newborn_grid,
-	PheromoneGrid* /*food_pheromone_grid*/,
 	sf::FloatRect& bounds_rect,
 	WorldBorder& circular_bounds)
 	:
@@ -88,6 +87,8 @@ void WorldRenderer::render(const SimSnapshot& snapshot, const sf::Vector2f mouse
 	render_spatial_grids(snapshot, mouse_pos); // renders the spatial grids for food, collision, and newborn cells if enabled
 	render_springs(snapshot);                  // renders the springs that connect the cells together
 	render_protozoa(snapshot);                 // renders the protozoa (cells) and their debug overlays
+	draw_protozoa_debug(snapshot);             // If a protozoa is selected and debug mode is enabled, draw additional debug information for it.
+	
 	render_influence_radii(snapshot);          // renders a circle around the mouse to show its influence radius when adding or removing entities
 
 	render_world_border();                     // renders the circular world border
@@ -108,10 +109,9 @@ void WorldRenderer::render_pheromone_grid(const SimSnapshot& snapshot)
 		return;
 
 	pheromone_sprite_.setTexture(snapshot.render.pheromone_texture, true);
-	const sf::Vector2f size = {
-		static_cast<float>(snapshot.food_manager_stats.pheromone_grid_cells_x),
-		static_cast<float>(snapshot.food_manager_stats.pheromone_grid_cells_y) };
-	pheromone_sprite_.setScale(size);
+	pheromone_sprite_.setScale({
+		snapshot.food_manager_stats.pheromone_cell_width,
+		snapshot.food_manager_stats.pheromone_cell_height });
 	pheromone_sprite_.setPosition({ 0.f, 0.f });
 
 	m_window_->draw(pheromone_sprite_, sf::RenderStates());

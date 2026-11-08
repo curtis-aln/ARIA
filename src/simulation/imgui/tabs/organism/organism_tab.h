@@ -6,7 +6,7 @@
 #include <entities/cell/cell.h>
 #include <entities/spring/spring.h>
 #include <imgui.h>
-#include <managers/cell_manager/organism_tracker.h>
+#include <managers/cell_manager/organism_tracker/organism_tracker.h>
 #include <SFML/System/Vector2.hpp>
 #include <simulation/context/sim_command.h>
 #include <simulation/context/sim_snapshot.h>

@@ -7,7 +7,7 @@
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <managers/cell_manager/cell_manager_settings.h>
-#include <managers/cell_manager/organism_tracker.h>
+#include <managers/cell_manager/organism_tracker/organism_tracker.h>
 
 #include "../../Utils/utility_SFML.h" // draw_protozoa_bounding_box
 
@@ -81,10 +81,6 @@ void WorldRenderer::render_protozoa(const SimSnapshot& snapshot)
 	}
 
 	utilise_circle_renderer(outer_circle_renderer_, rd.outer_colors, outer_positions_, outer_radii_);
-
-	// If a protozoa is selected and debug mode is enabled, draw additional debug information for it.
-	if (snapshot.protozoa_tracker.is_active && snapshot.world_toggles.debug_mode)
-		draw_protozoa_debug(snapshot);
 }
 
 
@@ -109,6 +105,9 @@ void WorldRenderer::render_springs(const SimSnapshot& snapshot)
 // ─────────────────────────────────────────────────────────────────────────────
 void WorldRenderer::draw_protozoa_debug(const SimSnapshot& snapshot)
 {
+	if (!snapshot.protozoa_tracker.is_active || !snapshot.world_toggles.debug_mode)
+		return;
+
 	/* When the user has selected a protozoa we can draw more specific information on and around it */
 	const OrganismTracker& protozoa = snapshot.protozoa_tracker;
 	if (!protozoa.is_active)

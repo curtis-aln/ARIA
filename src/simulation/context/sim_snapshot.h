@@ -2,7 +2,7 @@
 
 #include "state.h"
 #include "simulation/imgui/tabs/graphs/population_history.h"
-#include "../../managers/cell_manager/organism_tracker.h"
+#include "../../managers/cell_manager/organism_tracker/organism_tracker.h"
 
 
 struct SimSnapshot

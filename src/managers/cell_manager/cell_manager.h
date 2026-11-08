@@ -9,7 +9,7 @@
 #include "world/world_border.h"
 
 #include "../../simulation/context/sim_snapshot.h"
-#include "organism_tracker.h"
+#include "organism_tracker/organism_tracker.h"
 
 #include <array>
 #include <cstdint>

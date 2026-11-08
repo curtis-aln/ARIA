@@ -63,13 +63,13 @@ struct WorldToggles
 struct CellManagerToggles
 {
 	// integrity damage conditions
-	bool collision_integrity_damage_ = true;
+	bool collision_integrity_damage_ = false;
 	bool spring_stress_integrity_damage = true;
 
 	bool spring_too_long_breakage = true;
 	bool spring_too_much_force_breakage = false;
 
-	bool work_done_energy = true;
+	bool work_done_energy = false;
 	bool friction_energy_loss = true;
 	bool old_age_death = true;
 
@@ -198,6 +198,9 @@ struct FoodManagerStatistics
 
 	float pheromone_grid_cells_x = 0;
 	float pheromone_grid_cells_y = 0;
+
+	float pheromone_cell_width = 0;
+	float pheromone_cell_height = 0;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

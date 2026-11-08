@@ -4,7 +4,6 @@
 #include <simulation/context/sim_command.h>
 #include <simulation/context/sim_snapshot.h>
 #include <simulation/context/state.h>
-#include <Utils/Graphics/pheromone_grid.h>
 
 void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {

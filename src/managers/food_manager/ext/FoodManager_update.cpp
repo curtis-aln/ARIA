@@ -129,4 +129,7 @@ void FoodManager::influence_food_velocities_in_radii(const sf::Vector2f& positio
 void FoodManager::update_statistics()
 {
 	statistics_.food_count = food_vector.size();
+
+	statistics_.pheromone_cell_width = pheromone_grid.get_grid_size().x;
+	statistics_.pheromone_cell_height = pheromone_grid.get_grid_size().y;
 }

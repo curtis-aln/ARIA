@@ -142,6 +142,9 @@ add_executable(ProjectARIA
 
     src/simulation/imgui/popout_window.cpp
 
+    src/Utils/pheromones/pheromone_grid.cpp
+    src/Utils/pheromones/pheromone_grid_renderer.cpp
+
     # ── World / collision resolver
     src/world/collision_resolver/detection.cpp
     src/world/collision_resolver/init.cpp
@@ -177,7 +180,8 @@ add_executable(ProjectARIA
  "src/simulation/imgui/tabs/graphs/graphs_tab_common.h" 
  "src/entities/spring/spring.cpp" 
  "src/simulation/imgui/tabs/organism/energy/energy_history.h" 
- "src/simulation/imgui/tabs/organism/energy/energy_ui_common.h"  "src/simulation/imgui/popout_window.h")
+ "src/simulation/imgui/tabs/organism/energy/energy_ui_common.h"  
+ "src/simulation/imgui/popout_window.h" "src/Utils/pheromones/pheromone_grid.cpp" "src/Utils/pheromones/pheromone_grid_renderer.cpp" "src/Utils/pheromones/pheromone_grid_kernels.cpp" "src/managers/cell_manager/organism_tracker/organism_tracker.cpp")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

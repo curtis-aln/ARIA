@@ -19,7 +19,7 @@
 
 #include "../../Utils/Graphics/CircleBatchRenderer.h"
 #include "../../Utils/Graphics/SFML_Grid.h"
-#include "../../Utils/Graphics/pheromone_grid.h"
+#include "../../Utils/pheromones/pheromone_grid.h"
 
 #include "../../simulation/context/sim_snapshot.h"
 
@@ -34,7 +34,7 @@ uint32_t compute_grid_cell_count(float world_size, float target_cell_size);
 
 /* This class renders pretty much the entire simulation, including the world, cells, and other entities.
  *
- * world_renderer.cpp          - construction, world border, background grid, spatial grids, pheromones, mouse radius
+ * world_renderer.cpp          - construction, world border, background grid, spatial grids, mouse radius
  * world_renderer_entities.cpp - protozoa circles, springs, selected-organism debug overlays
  */
 class WorldRenderer : public WorldSettings
@@ -77,7 +77,6 @@ public:
 		SimpleSpatialGrid* collision_grid,
 		SimpleSpatialGrid* food_grid,
 		SimpleSpatialGrid* newborn_grid,
-		PheromoneGrid* food_pheromone_grid, // unused: pheromones are drawn from the snapshot texture
 		sf::FloatRect& bounds_rect,
 		WorldBorder& circular_bounds);
 

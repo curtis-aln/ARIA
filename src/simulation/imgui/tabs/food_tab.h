@@ -1,6 +1,6 @@
 #pragma once
 #include "i_tab.h"
-#include "../.../../../../Utils/Graphics/pheromone_grid.h"
+#include "../.../../../../Utils/pheromones/pheromone_grid.h"
 
 class FoodTab : public ITab
 {

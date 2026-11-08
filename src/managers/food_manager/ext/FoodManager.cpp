@@ -9,7 +9,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <simulation/context/sim_command.h>
 #include <simulation/context/state.h>
-#include <Utils/Graphics/pheromone_grid.h>
+#include <Utils/pheromones/pheromone_grid.h>
 #include <Utils/o_vec/o_vector.hpp>
 #include <world/world_border.h>
 #include <world/world_settings.h>
@@ -45,28 +45,37 @@ void FoodManager::update(int iterations)
 	update_food();
 
 	update_statistics();
-	handle_food_death(iterations);
+	handle_food_death();
+	fill_pheromone_grid(iterations);
 }
 
 // handle_food_death: staggered deposits, deferred removal, step on phase 0
-void FoodManager::handle_food_death(int iterations)
+void FoodManager::handle_food_death()
 {
+	dead_ids_.clear();
+	for (Food* food : food_vector)
+		if (food->is_food_dead()) { dead_ids_.push_back(food->id_); continue; }
+	
+	for (int id : dead_ids_) 
+		remove_food(id);
+
+}
+
+void FoodManager::fill_pheromone_grid(int iterations)
+{
+	/* This goes through each food and adds its pheromones to the grid */
 	const int freq = std::max(1, pheromone_update_freq);
 	const int phase = iterations % freq;
 	const bool on = toggles_.update_pheromone_grid;
 
-	dead_ids_.clear();
 	for (Food* food : food_vector)
 	{
-		if (food->is_food_dead()) { dead_ids_.push_back(food->id_); continue; }
-
 		if (on && static_cast<int>(food->id_ % freq) == phase)   // each food deposits once per interval
 		{
 			const sf::Vector2f p = bodies_->at(food->body_id_)->get_pos();
 			pheromone_grid.add_pheromone(p.x, p.y);              // uses deposit_amount
 		}
 	}
-	for (int id : dead_ids_) remove_food(id);
 
 	if (on && phase == 0)
 		pheromone_grid.step();
