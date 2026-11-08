@@ -26,7 +26,8 @@ void CellManager::gather_objects_in_radius(FixedSpan<cell_idx, uint16_t>& indexe
 	for (T* object : objects)
 	{
 		Body* body = bodies_->at(object->body_id_);
-		float dist_sq = (body->position_ - position).lengthSquared();
+		const sf::Vector2f pos = body->get_pos();
+		float dist_sq = (pos - position).lengthSquared();
 
 		if (dist_sq < radius * radius)
 			indexes.add(object->id_);
@@ -72,18 +73,20 @@ void CellManager::influence_cell_velocities_in_radii(const sf::Vector2f& positio
 	{
 		Cell* cell = all_cells_.at(selected_cells_indexes_[i]);
 		Body* body = bodies_->at(cell->body_id_);
+		const sf::Vector2f pos = body->get_pos();
 
-		sf::Vector2f direction = (position - body->position_).normalized();
-		body->velocity_ += direction * intensity;
+		sf::Vector2f direction = (position - pos).normalized();
+		body->apply_force(direction * intensity);
 	}
 
 	for (int i = 0; i < selected_matter_indexes_.count; ++i)
 	{
 		CellMatter* matter = all_cell_matter_.at(selected_matter_indexes_[i]);
 		Body* body = bodies_->at(matter->body_id_);
+		const sf::Vector2f pos = body->get_pos();
 
-		sf::Vector2f direction = (position - body->position_).normalized();
-		body->velocity_ += direction * (float)intensity;
+		sf::Vector2f direction = (position - pos).normalized();
+		body->apply_force(direction * (float)intensity);
 	}
 }
 
@@ -259,7 +262,8 @@ void CellManager::mutate_selected_protozoa()
 	for (Cell& fake_cell : protozoa_tracker_.cells)
 	{
 		Cell* cell = all_cells_.at(fake_cell.id_);
-		cell->mutate();
+		Body* body = bodies_->at(cell->body_id_);
+		cell->mutate(body);
 	}
 }
 
@@ -348,9 +352,9 @@ void CellManager::clone_selected_protozoa()
 		Cell* new_cell = all_cells_.at(cpair.cell_id);
 		Body* new_body = bodies_->at(cpair.body_id);
 
-		new_cell->copy_genetics(cell);
+		new_cell->copy_genetics(cell, new_body);
 		new_body->copy(parent_body);
-		new_body->position_ = Random::rand_position_in_circle(child_spawn_pos, child_spawn_rad);
+		new_body->set_pos(Random::rand_position_in_circle(child_spawn_pos, child_spawn_rad));
 
 		old_to_new_cell_id[cell.id_] = cpair.cell_id;
 	}

@@ -13,10 +13,11 @@
 
 void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body& body)
 {
-	const float speed_sq = body.velocity_.lengthSquared();
+	const sf::Vector2f vel = body.get_vel();
+	const float speed_sq = vel.lengthSquared();
 	float speed = -1;
 	if (speed_sq != 0)
-		speed = body.velocity_.length();
+		speed = vel.length();
 
 	const int frames_alive = c.internal_clock_;
 	const float current_friction = c.calculate_sin_output();
@@ -155,11 +156,11 @@ void OrganismTab::draw_cell_detail_body_tab(ImGuiContext& ctx, const Cell& c,
 	const Body& body)
 {
 	ImGui::Text("ID       %d", c.body_id_);
-	ImGui::Text("Pos      (%.0f, %.0f)", body.position_.x, body.position_.y);
-	ImGui::Text("Speed    %.3f", body.velocity_.length());
+	ImGui::Text("Pos      (%.0f, %.0f)", body.get_pos().x, body.get_pos().y);
+	ImGui::Text("Speed    %.3f", body.get_vel().length());
 	ImGui::Spacing();
 	ImGui::Text("Mass     %.3f", body.mass_);
-	ImGui::Text("Radius   %.1f", body.radius_);
+	ImGui::Text("Radius   %.1f", body.get_radius());
 	ImGui::Spacing();
 	ImGui::Text("Impulse   %.3f", body.impulse_);
 	ImGui::Text("Nearby count %d", body.nearby_ids_size_);

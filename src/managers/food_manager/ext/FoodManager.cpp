@@ -62,7 +62,7 @@ void FoodManager::handle_food_death(int iterations)
 
 		if (on && static_cast<int>(food->id_ % freq) == phase)   // each food deposits once per interval
 		{
-			const sf::Vector2f p = bodies_->at(food->body_id_)->position_;
+			const sf::Vector2f p = bodies_->at(food->body_id_)->get_pos();
 			pheromone_grid.add_pheromone(p.x, p.y);              // uses deposit_amount
 		}
 	}
@@ -97,9 +97,9 @@ void FoodManager::update_position_data(RenderData& food_data, int iterations)
 	{
 		Body* body = bodies_->at(food->body_id_);
 
-		food_data.positions.push_back(body->position_);
-		food_data.radii.push_back(body->radius_);
-		food_data.velocities.push_back(body->velocity_);
+		food_data.positions.push_back(body->get_pos());
+		food_data.radii.push_back(body->get_radius());
+		food_data.velocities.push_back(body->get_vel());
 
 		// handling color
 		sf::Color inner_col_copy = food->color_inner;

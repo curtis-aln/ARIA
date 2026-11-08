@@ -198,8 +198,8 @@ public:
 			const Body* body = all_bodies.at(cell.body_id_);
 			if (body != nullptr)
 			{
-				const sf::Vector2f& pos = body->position_;
-				const float rad = body->radius_;
+				const sf::Vector2f pos = body->get_pos();
+				const float rad = body->get_radius();
 				min_x = std::min(min_x, pos.x - rad);
 				min_y = std::min(min_y, pos.y - rad);
 				max_x = std::max(max_x, pos.x + rad);

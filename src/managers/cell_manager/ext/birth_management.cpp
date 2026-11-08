@@ -192,11 +192,11 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 
 	// creating a child which doesnt grab on too much
 	child_body->copy(parent_body);
-	child_body->position_ += Random::rand_vector(10.f, 50.f);
+	child_body->set_pos(child_body->get_pos() + Random::rand_vector(10.f, 50.f));
 
 	// setting the child cell properties
-	child_cell->copy_genetics(*parent_cell);   // assumes this also copies spring_genome
-	child_cell->mutate();
+	child_cell->copy_genetics(*parent_cell, child_body);   // assumes this also copies spring_genome
+	child_cell->mutate(child_body);
 
 	child_body->mass_ = parent_body->mass_;
 	child_body->set_radius();
@@ -224,7 +224,9 @@ void CellManager::apply_matter_birth_requests()
 		if (body == nullptr)
 			continue;
 		body->reset();
-		body->position_ = req.position;
+		body->mass_ = 0.1f;
+		body->set_radius();
+		body->set_pos(req.position);
 
 		CellMatter* cell_matter = all_cell_matter_.emplace(true, true); // TODO create a creation Function;
 		if (cell_matter == nullptr)

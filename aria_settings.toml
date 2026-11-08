@@ -63,9 +63,9 @@ friction_energy_loss_const = 0.0075
 minimum_extension = 50.0                # the minimum length a spring can be
 maximum_extension = 480.0               # how far a spring can stretch before it breaks
 spring_work_const = 0.00001             # 
-spring_break_force  = 35
+spring_break_force  = 475
 spring_break_length_factor = 1.5
-spring_damage_threshold = 30.5
+spring_damage_threshold = 350.5
 fully_developed_age = 300
 nutrients_transfer_loss = 0.04
 stress_damage_const = 0.095
@@ -108,6 +108,6 @@ vibrate_freq = 0.0065
 
 death_age                     = 2500.0
 
-nutrients_to_radius_scale = 1.0
+nutrients_to_mass_scale = 1.0
 vibration_strength             = 0.12
 

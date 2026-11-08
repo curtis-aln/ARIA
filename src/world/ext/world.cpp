@@ -204,9 +204,9 @@ int World::check_mouse_press(const OrganismTracker& protozoa, const sf::Vector2f
 	for (const Cell& cell : protozoa.cells)
 	{
 		const Body* body = bodies_.at(cell.body_id_);
-		const float dist_sq = (body->position_ - mousePosition).lengthSquared();
+		const float dist_sq = (body->get_pos() - mousePosition).lengthSquared();
 
-		const float rad = body->radius_ * cell_press_tollarance_factor;
+		const float rad = body->get_radius() * cell_press_tollarance_factor;
 		if (dist_sq < rad * rad)
 			return cell.body_id_;
 	}

@@ -1,5 +1,6 @@
 #pragma once
 #include "../../Utils/random.h"
+#include "../body/body.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -120,7 +121,7 @@ struct SpringGeneticConstraints
 	inline static constexpr Range frequency = { -1.f / 120.f, 1.f };
 	inline static constexpr Range offset = { -3.14159f,    3.14159f };
 	inline static constexpr Range vertical_shift = { -1.f,        1.f };
-	inline static constexpr Range spring_const = { 0.f,          1.f };
+	inline static constexpr Range spring_const = { 0.f,          3.f };
 	inline static constexpr Range damping = { 0.f,          1.f };
 	inline static constexpr Range nutrient_transfer_rate = { -1.f,          1.f };
 };
@@ -128,11 +129,11 @@ struct SpringGeneticConstraints
 struct SpringInitialSpawnRanges
 {
 	inline static constexpr Range amplitude = { 0.1f,         0.8f };
-	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 5.f }; // 1 / 60 = once every 60 frames, 1 / 30 = once every 30 frames
+	inline static constexpr Range frequency = { 1.f / 30.f,  1.f / 5.f }; // 1 / 60 = once every 60 frames, 1 / 30 = once every 30 frames
 	inline static constexpr Range offset = SpringGeneticConstraints::offset;
 	inline static constexpr Range vertical_shift = { 0.7f,          1.f };
 
-	inline static constexpr Range spring_const = { 0.01f, 0.3f };
+	inline static constexpr Range spring_const = { 1.25f, 2.2f };
 	inline static constexpr Range damping = { 0.01f, 0.1f };
 
 	inline static constexpr Range nutrient_transfer_rate = { -0.1f, 0.5f };
@@ -359,13 +360,16 @@ struct CellGenome : GenomeBase, HardConstants
 		quorum_fraction = 0.5f;
 	}
 
-	void mutate(float range = 0.f)
+	void mutate(Body* body, float range = 0.f)
 	{
 		range = range > 0.f ? range : mutation_range;
 
 		const auto& C = CellGeneticConstraints{};
 
 		mass = maybe_mutate_gaussian(mass, C.mass, range, guassian_const);
+		body->mass_ = mass;
+		body->set_radius();
+
 		amplitude = maybe_mutate_gaussian(amplitude, C.amplitude, range, guassian_const);
 		frequency = maybe_mutate_gaussian(frequency, C.frequency, range, guassian_const);
 		offset = maybe_mutate_gaussian(offset, C.offset, range, guassian_const);
@@ -393,13 +397,15 @@ struct CellGenome : GenomeBase, HardConstants
 		mutate_meta();
 	}
 
-	void copy_genetics(const CellGenome& parent)
+	void copy_genetics(const CellGenome& parent, Body* this_body)
 	{
 		amplitude = parent.amplitude;
 		frequency = parent.frequency;
 		offset = parent.offset;
 		vertical_shift = parent.vertical_shift;
 		mass = parent.mass;
+		this_body->mass_ = mass;
+		this_body->set_radius();
 
 		outer_r = parent.outer_r; outer_g = parent.outer_g; outer_b = parent.outer_b;
 		inner_r = parent.inner_r; inner_g = parent.inner_g; inner_b = parent.inner_b;

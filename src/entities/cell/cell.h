@@ -201,6 +201,6 @@ private:
 	void process_nutrients();
 	void repair_integrity();
 
-	sf::Vector2f get_pos_nearby_min_max(const sf::Vector2f parent_pos, float min_radius, float max_radius);
+	sf::Vector2f get_pos_nearby_min_max(const sf::Vector2f parent_pos, float min_radius, float max_mass);
 
 };

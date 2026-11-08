@@ -175,10 +175,13 @@ public:
 
 	Cell* find_cell_by_id(const int id) { return all_cells_.at(id); }
 	Cell* find_cell_at_point(const sf::Vector2f mouse_position, bool make_selected_cell);
-	sf::Vector2f& get_cell_pos(int cell_id);
+	
+	const sf::Vector2f get_cell_pos(int cell_id);
+	const void set_cell_pos(int cell_id, const sf::Vector2f& position);
+	
 	Body* get_cell_body(int cell_id);
 
-	const sf::Vector2f* get_selected_protozoa_pos() const;
+	const sf::Vector2f get_selected_protozoa_pos() const;
 
 	const o_vector<Cell>& get_all_cells() const { return all_cells_; }
 	const o_vector<Spring>& get_all_springs() const { return all_springs_; }

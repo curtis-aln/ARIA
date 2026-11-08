@@ -59,13 +59,13 @@ struct Food : FoodSettings
 		return nutrients < initial_nutrients && age > spawn_immunity;
 	}
 
-	float calculate_food_size() const
+	float calculate_food_mass() const
 	{
-		// Radius is directly proportional to current nutrients
+		// Mass is directly proportional to current nutrients
 		if (nutrients == 0.f)
 			return 0.f;
 
-		return nutrients * nutrients_to_radius_scale;
+		return nutrients * nutrients_to_mass_scale;
 	}
 
 	bool can_reproduce()

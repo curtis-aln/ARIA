@@ -325,7 +325,7 @@ float CellManager::calculate_organism_radius(FixedSpan<cell_idx>& cell_ids, cons
 	for (int i = 0; i < cell_ids.count; ++i)
 	{
 		const Body* body = get_cell_body(cell_ids[i]);
-		radius = std::max(radius, (body->position_ - centre).length() + body->radius_);
+		radius = std::max(radius, (body->get_pos() - centre).length() + body->get_radius());
 	}
 	return radius;
 }
@@ -366,8 +366,8 @@ int32_t CellManager::clone_cell(const cell_idx parent_cell_id, const sf::Vector2
 	parent_cell->create_offspring(parent_body, offspring_cell, offspring_body, true);
 
 	// create_offspring scatters the child randomly; override with the rigid offset
-	offspring_body->position_ = parent_body->position_ + offset;
-	offspring_body->velocity_ = { 0.f, 0.f };
+	offspring_body->set_pos(parent_body->get_pos() + offset);
+	offspring_body->set_vel({ 0.f, 0.f });
 
 	// stop the newborn auto-connect logic from adding extra springs; we build them ourselves
 	// offspring_cell->new_connections_made = Cell::max_cell_connections; Todo // BUG

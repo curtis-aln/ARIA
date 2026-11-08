@@ -57,7 +57,7 @@ public:
 	void update_physics(
 		const sf::Vector2f& pos_a, const sf::Vector2f& vel_a,
 		const sf::Vector2f& pos_b, const sf::Vector2f& vel_b,
-		bool disable_length_breakage, bool disable_force_breakage, float min_rest_length);
+		bool disable_length_breakage, bool disable_force_breakage, float min_rest_length, const float reduced_mass);
 
 	void death_update(Cell& cell_a, Cell& cell_b);
 	void update_organics(Cell& cell_a, Cell& cell_b, bool stress_damage, bool work_done_energy);

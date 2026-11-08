@@ -28,7 +28,7 @@ struct CellMatter : CellMatterSettings
 	void update(Body* body)
 	{
 		time_alive++;
-		body->velocity_ *= friction;
+		body->apply_drag(drag_coefficient);
 
 		dead = time_alive > max_time_to_live;
 
@@ -53,7 +53,8 @@ struct CellMatter : CellMatterSettings
 		time_alive = 0;
 		fade_complete_ = false;
 
-		body->radius_ = Random::rand_range<uint8_t>(min_radius, max_radius);
+		body->mass_ = Random::rand_range<uint8_t>(min_mass, max_mass);
+		body->set_radius();
 
 		body_id_ = body->id_;
 

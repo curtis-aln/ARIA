@@ -76,8 +76,8 @@ class FoodEatResolver : private FoodResolutionSettings
 				continue;
 
 			Body* food_body = body_vector_->at(food->body_id_);
-			const float rel_rad = food_body->radius_ + body->radius_;
-			const float dist_sq = (food_body->position_ - body->position_).lengthSquared();
+			const float rel_rad = food_body->get_radius() + body->get_radius();
+			const float dist_sq = (food_body->get_pos() - body->get_pos()).lengthSquared();
 
 			if (dist_sq < rel_rad * rel_rad + 1.f)
 			{
@@ -219,7 +219,8 @@ private:
 		for (Food* food : *food_vector_)
 		{
 			Body* body = body_vector_->at(food->body_id_);
-			spatial_grid_.add_object(body->position_.x, body->position_.y, food->id_);
+			const sf::Vector2f pos = body->get_pos();
+			spatial_grid_.add_object(pos.x, pos.y, food->id_);
 		}
 	}
 
@@ -232,10 +233,11 @@ private:
 
 	void detect_bite_for_cell(Cell* cell, Body* body, BiteResolution& resolution)
 	{
+		const sf::Vector2f pos = body->get_pos();
 		cell->nearby_food_ids_size_ = 0;
 
 		tl_nearby_ids_.count = 0;
-		spatial_grid_.find(body->position_.x, body->position_.y, &tl_nearby_ids_);
+		spatial_grid_.find(pos.x, pos.y, &tl_nearby_ids_);
 
 		const int cache_capacity = (int)cell->nearby_food_ids_.size();
 		for (int i = 0; i < tl_nearby_ids_.count && i < cache_capacity; ++i)

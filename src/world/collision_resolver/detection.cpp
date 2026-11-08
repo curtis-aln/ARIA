@@ -61,10 +61,10 @@ void CollisionResolver::detect_collisions_for_grid_cell(const int grid_cell_id, 
 			const int pid = self_contents[idx];
 			Body* particle = collision_bodies_->at(pid);
 
-			const sf::Vector2f pos = particle->position_;
+			const sf::Vector2f pos = particle->get_pos();
 			const float ax = pos.x;
 			const float ay = pos.y;
-			const float r = particle->radius_;
+			const float r = particle->get_radius();
 
 			if (!(ax - r >= cell_min_x && ax + r <= cell_max_x &&
 				ay - r >= cell_min_y && ay + r <= cell_max_y))
@@ -111,46 +111,36 @@ void CollisionResolver::update_nearby_container(const int32_t neighbour_index_x,
 
 void CollisionResolver::check_collisions_for_body(
 	const BodyId collision_body_id,
-	const FixedSpan<obj_idx>&nearby_ids,
-	CollisionVector & collision_vector,
-	int check_count)  // -1 means check all
+	const FixedSpan<obj_idx>& nearby_ids,
+	CollisionVector& collision_vector,
+	int check_count)
 {
-	const uint8_t limit = (check_count < 0) ? nearby_ids.count : check_count;
+	const int limit = (check_count < 0) ? nearby_ids.count : check_count;
+	Body* body = collision_bodies_->at(collision_body_id);
+	body->nearby_ids_size_ = 0;                       // rebuild the cache each detection pass
 
-	Body* protozoa_cell = collision_bodies_->at(collision_body_id);
-
-	for (uint8_t idx = 0; idx < limit; ++idx)
+	for (int idx = 0; idx < limit; ++idx)
 	{
 		const BodyId id = nearby_ids.buffer[idx];
+		if (id <= collision_body_id) continue;
 
-		// Only process forward pairs — eliminates all (b,a) duplicates
-		if (id <= collision_body_id)
-			continue;
+		body2bodycollisiondetection(body, collision_bodies_->at(id), collision_vector);
 
-		body2bodycollisiondetection(protozoa_cell, collision_bodies_->at(id), collision_vector);
-
-		if (idx < protozoa_cell->nearby_ids_.size())
-		{
-			if (id > 1000000)
-			{
-				std::cout << "Error: id is too large, this should never happen\n";
-			}
-			protozoa_cell->nearby_ids_[idx] = id;
-			protozoa_cell->nearby_ids_size_++;
-		}
+		if (body->nearby_ids_size_ < body->nearby_ids_.size())
+			body->nearby_ids_[body->nearby_ids_size_++] = id;
 	}
 }
 
 void CollisionResolver::body2bodycollisiondetection(const Body* protozoa_cell, const Body* other_cell, CollisionVector& collision_vector)
 {
-	const sf::Vector2f pos = protozoa_cell->position_;
+	const sf::Vector2f pos = protozoa_cell->get_pos();
 	const float ax = pos.x;
 	const float ay = pos.y;
-	const float rad_a = protozoa_cell->radius_;
+	const float rad_a = protozoa_cell->get_radius();
 
-	const sf::Vector2f other_pos = other_cell->position_;
+	const sf::Vector2f other_pos = other_cell->get_pos();
 
-	const float rad_b = other_cell->radius_; // Todo - dynamic radii
+	const float rad_b = other_cell->get_radius(); // Todo - dynamic radii
 	const float rad_sq = (rad_a + rad_b) * (rad_a + rad_b);
 	const float dx = ax - other_pos.x;
 	const float dy = ay - other_pos.y;

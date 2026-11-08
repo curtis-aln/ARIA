@@ -53,7 +53,7 @@ void CellManager::speed_tax_cell(Cell* cell)
 	if (cell->immortal_ || statistics_.min_speed <= 0.f)
 		return;
 
-	sf::Vector2f velocity = bodies_->at(cell->body_id_)->velocity_;
+	sf::Vector2f velocity = bodies_->at(cell->body_id_)->get_vel();
 	float speed_sq = velocity.x * velocity.x + velocity.y * velocity.y;
 	if (speed_sq < statistics_.min_speed * statistics_.min_speed)
 	{

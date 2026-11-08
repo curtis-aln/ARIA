@@ -8,9 +8,16 @@
 
 using BodyId = uint32_t;
 
-struct Body
+class Body
 {
+private: // the body's position and velocity are private so we can handle force and mass calculations here
+	sf::Vector2f position_{};
+	sf::Vector2f velocity_{};
+	sf::Vector2f acceleration_{};
 
+	float radius_ = 0.f;
+
+public:
 	bool active = true;
 
 	// This id references the body itself
@@ -20,13 +27,10 @@ struct Body
 	std::array<BodyId, 8> nearby_ids_{};
 	uint8_t nearby_ids_size_ = 0;
 
-	sf::Vector2f position_{};
-	sf::Vector2f velocity_{};
-
 	float mass_ = 0.f;
-	float radius_ = 0.f;
 
 	float impulse_ = 0.f; // impulse applied to this body, used for collision damage
+
 
 	// Radius <-> mass curve: radius = size_scale * mass^size_exponent.
 	// Defined in body.cpp so tuning the anchors doesn't recompile the world.
@@ -40,21 +44,41 @@ struct Body
 
 	static float mass_to_radius(const float mass);
 
-	void accelerate(const sf::Vector2f& acceleration)
+	[[nodiscard]] const sf::Vector2f get_pos() const { return position_; }
+	[[nodiscard]] const sf::Vector2f get_vel() const { return velocity_; }
+	[[nodiscard]] const sf::Vector2f get_acc() const { return acceleration_; }
+	[[nodiscard]] float inv_mass() const { return mass_ > 0.f ? 1.f / mass_ : 0.f; }
+	[[nodiscard]] float get_radius() const { return radius_; }
+
+	void translate(const sf::Vector2f& d) { position_ += d; }
+	void apply_impulse(const sf::Vector2f& j) { if (mass_ > 0.f) velocity_ += j / mass_; }
+	
+	void set_pos(const sf::Vector2f& pos) { position_ = pos; }
+	void set_vel(const sf::Vector2f& vel) { velocity_ = vel; }
+	
+	void apply_force(const sf::Vector2f& force)
 	{
-		velocity_ += acceleration;
+		if (mass_ > 0.f) acceleration_ += force / mass_;
 	}
 
 	void update_physics()
 	{
+		velocity_ += acceleration_;
 		position_ += velocity_;
+
+		acceleration_ = { 0.f, 0.f };
+
+		// Todo Friction
 	}
 
 	void reset()
 	{
+		acceleration_ = { 0.f, 0.f };
 		velocity_ = { 0.f, 0.f };
 		nearby_ids_size_ = 0;
 		impulse_ = 0.f;
+		mass_ = 0.f;
+		radius_ = 0.f;
 	}
 
 	void copy(const Body* other)
@@ -62,7 +86,7 @@ struct Body
 		position_ = other->position_;
 		velocity_ = other->velocity_;
 		mass_ = other->mass_;
-		radius_ = other->radius_;
+		radius_ = other->get_radius();
 		impulse_ = 0.f;          // a copy shouldn't inherit the parent's collision damage
 		nearby_ids_size_ = 0;
 	}

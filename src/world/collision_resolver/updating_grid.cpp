@@ -13,7 +13,7 @@ void CollisionResolver::add_particles_to_grid()
     for (Body* entity : *collision_bodies_)
     {
         entity->nearby_ids_size_ = 0;
-        sf::Vector2f pos = entity->position_;
+        sf::Vector2f pos = entity->get_pos();
 
         // only add this particle to the grid if it matches this frame's parity
         //if ((i & 1) == frame_parity)

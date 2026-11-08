@@ -14,8 +14,11 @@ void FoodManager::update_food_item(Food* food)
 	Body* body = bodies_->at(food->body_id_);
 	food->update();
 
-	body->velocity_ = (body->velocity_ + sf::Vector2f{ food->vibration_x, food->vibration_y }) * friction;
-	body->radius_ = food->calculate_food_size();
+	body->apply_force(sf::Vector2f{ food->vibration_x, food->vibration_y });
+	body->mass_ = std::max(food->calculate_food_mass(), 0.1f);
+	body->set_radius();
+
+	body->apply_drag(kDragLinearCoeff);
 }
 
 
@@ -100,7 +103,7 @@ void FoodManager::gather_food_in_radius(FixedSpan<cell_idx, uint16_t>& indexes, 
 	for (Food* food : food_vector)
 	{
 		Body* body = bodies_->at(food->body_id_);
-		float dist_sq = (body->position_ - position).lengthSquared();
+		float dist_sq = (body->get_pos() - position).lengthSquared();
 		if (dist_sq < radius * radius)
 		{
 			indexes.add(food->id_);
@@ -118,8 +121,8 @@ void FoodManager::influence_food_velocities_in_radii(const sf::Vector2f& positio
 		Food* food = food_vector.at(selected_cells_indexes_[i]);
 		Body* body = bodies_->at(food->body_id_);
 
-		sf::Vector2f direction = (position - body->position_).normalized();
-		body->velocity_ += direction * intensity;
+		sf::Vector2f direction = (position - body->get_pos()).normalized();
+		body->apply_force(direction * intensity);
 	}
 }
 

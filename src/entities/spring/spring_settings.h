@@ -15,4 +15,6 @@ struct SpringSettings
 
 	inline static float stress_damage_const;
 
+	inline static constexpr float spring_work_energy_loss_k = 0.1f;
+
 };

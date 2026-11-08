@@ -39,7 +39,7 @@ void Spring::reset()
 void Spring::update_physics(
 	const sf::Vector2f& pos_a, const sf::Vector2f& vel_a,
 	const sf::Vector2f& pos_b, const sf::Vector2f& vel_b,
-	bool disable_length_breakage, bool disable_force_breakage, float min_rest_length)
+	bool disable_length_breakage, bool disable_force_breakage, float min_rest_length, const float reduced_mass)
 {
 	// min_rest_length is the distance between the two cells when they are just touching
 	internal_clock_++;
@@ -78,7 +78,12 @@ void Spring::update_physics(
 	const float inv_length = 1.0f / current_length;
 	const sf::Vector2f normalised_dir{ dir.x * inv_length, dir.y * inv_length };
 	const sf::Vector2f vel_difference = (vel_b - vel_a);
-	damping_force = normalised_dir.dot(vel_difference) * genome.damping;
+
+	// Reduced mass, m_a·m_b / (m_a + m_b), is the single effective mass that makes two bodies joined by a spring behave like one body of that mass, so the spring’s stretch and compression respond to it.
+	//It is always smaller than the lighter of the two masses, so the lighter cell dominates how fast the spring oscillates and how easily damping overshoots.
+	// That’s why K / m_reduced and c / m_reduced are the right quantities to check for stability, not either cell’s mass alone.
+	const float damping = std::min(genome.damping, reduced_mass);   // c / m_reduced <= 1 per tick
+	damping_force = normalised_dir.dot(vel_difference) * damping;
 
 	// Calculating total force (sum of the two forces)
 	const float total_force = spring_force + damping_force;
@@ -127,7 +132,7 @@ void Spring::update_organics(Cell& cell_a, Cell& cell_b, bool stress_damage, boo
 
 	if (work_done_energy)
 	{
-		float energy_cost = -work_done / 2.f;
+		float energy_cost = -work_done * spring_work_energy_loss_k;
 		cell_a.change_energy(energy_cost);
 		cell_b.change_energy(energy_cost);
 	}

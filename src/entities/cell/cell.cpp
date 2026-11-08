@@ -72,14 +72,14 @@ bool  Cell::consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f&
 	return (food_pos - cell_pos).lengthSquared() < combined_rad * combined_rad;
 }
 
-sf::Vector2f Cell::get_pos_nearby_min_max(const sf::Vector2f parent_pos, float min_radius, float max_radius)
+sf::Vector2f Cell::get_pos_nearby_min_max(const sf::Vector2f parent_pos, float min_mass, float max_mass)
 {
 	static thread_local std::mt19937 rng{ Random::get_engine() };
 	constexpr float inv_range = 1.0f / 4294967295.0f; // 1 / 2^32-1
 	constexpr float two_pi = 6.28318530718f;
 
 	const float angle = (rng() * inv_range) * two_pi;
-	const float radius = min_radius + (rng() * inv_range) * (max_radius - min_radius);
+	const float radius = min_mass + (rng() * inv_range) * (max_mass - min_mass);
 
 	return parent_pos + sf::Vector2f(std::cos(angle) * radius, std::sin(angle) * radius);
 }
@@ -89,8 +89,8 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	// This function takes in blank child and child_body data and creates an offspring with it
 
 	child_body->copy(this_body); // copies the body 
-	float min_r = this_body->radius_ + child_body->radius_ + 1.f; // minimum distance between the two cells
-	child_body->position_ = get_pos_nearby_min_max(this_body->position_, min_r, min_r * 2.f); // moves the position to somewhere near the parent
+	float min_r = this_body->get_radius() + child_body->get_radius() + 1.f; // minimum distance between the two cells
+	child_body->set_pos(get_pos_nearby_min_max(this_body->get_pos(), min_r, min_r * 2.f)); // moves the position to somewhere near the parent
 
 	// Updating this cell's (parent)'s statistics
 	repro_timer_ = 0;
@@ -104,12 +104,12 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	child->energy = total_energy * give;
 
 	// Finally the genetics, we copy the cell and spring genetics and only mutate them if permissable
-	child->copy_genetics(*this);
+	child->copy_genetics(*this, child_body);
 	child->spring_genome.copy_genetics(spring_genome);
 
 	if (mutate)
 	{
-		child->mutate();
+		child->mutate(child_body);
 		child->spring_genome.mutate();
 	}
 
@@ -128,9 +128,11 @@ void Cell::turn_off_reproduction()
 [[nodiscard]] sf::Vector2f  Cell::get_pos_nearby(const Body* body, const float range) const
 {
 	// Range in terms of radii
+	const sf::Vector2f pos = body->get_pos();
+	const float radius = body->get_radius();
 	return Random::rand_pos_in_rect(sf::FloatRect{
-		{ body->position_.x - body->radius_ * range, body->position_.y - body->radius_ * range },
-		{ body->radius_ * range * 2 , body->radius_ * range * 2 }
+		{ pos.x - radius * range, pos.y - radius * range },
+		{ radius * range * 2 , radius * range * 2 }
 		});
 }
 

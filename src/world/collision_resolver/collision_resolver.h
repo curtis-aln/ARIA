@@ -112,12 +112,18 @@ public:
 
 					for (uint8_t j = 0; j < obj->nearby_ids_size_; ++j)
 					{
-						BodyId idx = obj->nearby_ids_[j];
-						if (idx == obj->id_ || idx >= (BodyId)collision_bodies_->raw_object_store_.size())
-							continue;  // skip self-collision
-						Body* other_body = collision_bodies_->at(idx);
-						if (other_body == nullptr || !other_body->active)
+						const BodyId idx = obj->nearby_ids_[j];
+
+						// forward pairs only (also covers self), and stay inside the store
+						if (idx <= obj->id_ || idx >= (BodyId)collision_bodies_->raw_object_store_.size())
 							continue;
+
+						Body* other_body = collision_bodies_->at(idx);
+
+						// skip empty, dead, or recycled-and-not-yet-initialised bodies
+						if (other_body == nullptr || !other_body->active || other_body->mass_ <= 0.f)
+							continue;
+
 						body2bodycollisiondetection(obj, other_body, collision_indexes_[t]);
 					}
 				}

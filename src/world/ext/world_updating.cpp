@@ -165,36 +165,49 @@ void World::bound_bodies()
 
 void World::bound_body_to_world(Body* body)
 {
+	/*  1. Inside the repulsion zone (near the wall): push inward, proportional to depth.
+		2. Past the hard limit (body touching the wall): snap back onto it and reflect velocity.
+		3. Optionally: a very weak pull toward the centre.
+
+		The sqrt is only needed near the wall, so the common case (body in the interior)
+		is a single squared-distance comparison. */
 	body->update_physics();
 
-	constexpr float bounce_coefficient = 0.93f;
+	const sf::Vector2f pos = body->get_pos();
+	const sf::Vector2f vel = body->get_vel();
 
-	// Circular boundary bounce
-	const sf::Vector2f diff = body->position_ - world_circular_bounds_.center_;
-	const float dist_sq = diff.x * diff.x + diff.y * diff.y;
+	const sf::Vector2f offset = pos - world_circular_bounds_.center_;
+	const float        dist_sq = offset.x * offset.x + offset.y * offset.y;
 
-	const float max_dist = world_circular_bounds_.bounds_radius - (body->radius_ * 2.f);
-	const float max_dist_sq = max_dist * max_dist;
+	const float world_radius = world_circular_bounds_.bounds_radius;
+	const float repulsion_start = std::max(0.f, world_radius - kRepulsionZoneWidth);
+	const float repulsion_start_sq = repulsion_start * repulsion_start;
 
-	if (dist_sq > max_dist_sq && dist_sq > 0.0001f)
+	if (dist_sq > repulsion_start_sq)
 	{
-		// Reflect velocity using the raw (unnormalized) diff instead of a unit normal.
-		// v -= n * (2*v.n) with n = diff/sqrt(dist_sq) simplifies algebraically to:
-		// v -= diff * (2 * v.diff / dist_sq)  -- same result, zero sqrt calls.
-		const float vel_dot_diff = body->velocity_.dot(diff);
-		if (vel_dot_diff > 0.f)
-			body->velocity_ -= diff * ((1.f + bounce_coefficient) * vel_dot_diff / dist_sq);
+		const float        dist = std::sqrt(dist_sq);
+		const sf::Vector2f normal = offset / dist;          // outward unit normal
+		const float        limit = world_radius - body->get_radius() * 2.f;
 
-		// Soft position correction: nudge back proportional to overshoot instead of
-		// clamping exactly onto the circle (that would need sqrt too). Converges
-		// quickly and is visually indistinguishable from a hard clamp for small overshoots.
-		const float correction = (dist_sq - max_dist_sq) / dist_sq;
-		body->position_ -= diff * correction;
+		if (dist > limit)
+		{
+			// Hard wall: reflect only if moving outward, then clamp exactly onto the limit.
+			const float outward_speed = vel.dot(normal);
+			if (outward_speed > 0.f)
+				body->apply_force(- normal * ((1.f + kBounceCoeff) * outward_speed));
+
+			body->set_pos(world_circular_bounds_.center_ + normal * limit);
+		}
+		else
+		{
+			// Soft wall: linear spring pushing back toward the centre.
+			const float depth = (dist - repulsion_start) / kRepulsionZoneWidth; // normalised 0..1
+			body->apply_force(-normal * (kRepulsionCoeff * kRepulsionZoneWidth * depth * depth));
+		}
 	}
 
-	// very small attraction to the centre of the world
 	if (world_toggles.central_gravity)
-		body->velocity_ += (world_circular_bounds_.center_ - body->position_) * border_repulsion_magnitude;
+		body->apply_force(-offset * kCentralGravityCoeff);
 }
 
 

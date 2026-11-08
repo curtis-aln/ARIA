@@ -29,4 +29,13 @@ struct WorldSettings
 	inline static constexpr float fade_zoom_dist = 0.05f; // grid will be fully invisible at start_fading_zoom + fade_zoom_dist
 	
 	inline static constexpr float target_visual_cell_size = 1200.f;
+
+	// border settings
+	inline static constexpr float kBounceCoeff = 0.93f;    // restitution when hitting the wall
+	inline static constexpr float kRepulsionCoeff = 0.0002f;   // inward velocity per unit of depth into the repulsion zone
+	inline static constexpr float kCentralGravityCoeff = 0.0000001f; // very weak pull toward the world centre
+	inline static constexpr float kRepulsionZoneRadii = 25.f;     // zone width, in multiples of the largest possible body radius
+
+	inline static const float kRepulsionZoneWidth = 10500;
+
 };

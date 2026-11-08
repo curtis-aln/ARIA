@@ -50,7 +50,7 @@ void FoodManager::reproduce_food(Food* parent_food)
 {
 	// This function returns true if the food container is full and the food cannot reproduce, false if it can reproduce and has spawned a new food
 	Body* parent_body = bodies_->at(parent_food->body_id_);
-	sf::Vector2f parent_pos = parent_body->position_;
+	sf::Vector2f parent_pos = parent_body->get_pos();
 
 	// Creating a new food body pair and linking them together
 	FoodBodyPair pair = create_food_body_pair(parent_pos);
@@ -66,11 +66,11 @@ void FoodManager::reproduce_food(Food* parent_food)
 		{ food_spawn_distance * 2, food_spawn_distance * 2 } };
 
 	// setting the attributes for this new_body
-	child_body->position_ = Random::rand_pos_in_rect(spawn_rect);
+	child_body->set_pos(Random::rand_pos_in_rect(spawn_rect));
 
 	// small chance of it spawning with a high velocity
 	if (Random::rand01_float() < food_launch_chance)
-		child_body->velocity_ = Random::rand_vector(-food_launch_strength, food_launch_strength);
+		child_body->set_vel(Random::rand_vector(-food_launch_strength, food_launch_strength));
 
 	parent_food->reproduce();
 	return;
@@ -100,7 +100,9 @@ FoodBodyPair FoodManager::create_food_body_pair(const sf::Vector2f& position)
 	// connecting the two
 	food->reset();
 	food->body_id_ = body->id_;
-	body->position_ = position;
+
+	body->set_pos(position);
+	body->mass_ = 1.f;
 
 	return { (int32_t)food->id_, (int32_t)body->id_ };
 }

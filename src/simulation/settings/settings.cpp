@@ -116,7 +116,7 @@ static void load_food_settings(toml::table& tbl)
 	REQUIRE(FoodSettings::spawn_immunity, tbl["food"]["spawn_immunity"]);
 	REQUIRE(FoodSettings::vibrate_freq, tbl["food"]["vibrate_freq"]);
 	REQUIRE(FoodSettings::death_age, tbl["food"]["death_age"]);
-	REQUIRE(FoodSettings::nutrients_to_radius_scale, tbl["food"]["nutrients_to_radius_scale"]);
+	REQUIRE(FoodSettings::nutrients_to_mass_scale, tbl["food"]["nutrients_to_mass_scale"]);
 	REQUIRE(FoodSettings::vibration_strength, tbl["food"]["vibration_strength"]);
 }
 
