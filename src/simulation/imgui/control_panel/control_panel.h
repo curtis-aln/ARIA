@@ -1,7 +1,7 @@
 #pragma once
-#include "../context/sim_snapshot.h"
-#include "popout_window.h"
-#include "tabs/i_tab.h"
+#include "../../context/sim_snapshot.h"
+#include "../misc/popout_window.h"
+#include "../tabs/i_tab.h"
 #include <functional>
 #include <memory>
 #include <simulation/context/sim_command.h>

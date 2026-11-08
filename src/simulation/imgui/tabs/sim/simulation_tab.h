@@ -1,5 +1,5 @@
 #pragma once
-#include "i_tab.h"
+#include "../i_tab.h"
 
 class SimulationTab : public ITab
 {

@@ -1,16 +1,16 @@
 #include "control_panel.h"
-#include "tabs/debug_tab.h"
-#include "tabs/food_tab.h"
-#include "tabs/graphs/graphs_tab.h"
-#include "tabs/grid_tab.h"
-#include "tabs/o_vector/o_vector_tab.h"
-#include "tabs/organism/organism_tab.h"
-#include "tabs/simulation_tab.h"
+#include "../tabs/debug/debug_tab.h"
+#include "../tabs/food/food_tab.h"
+#include "../tabs/graphs/graphs_tab.h"
+#include "../tabs/grid/grid_tab.h"
+#include "../tabs/o_vector/o_vector_tab.h"
+#include "../tabs/organism/organism_tab.h"
+#include "../tabs/sim/simulation_tab.h"
 #include <algorithm>
 #include <cstring>
 #include <imgui.h>
 
-#include "imgui_settings.h"
+#include "../misc/imgui_settings.h"
 #include <memory>
 #include <simulation/context/sim_command.h>
 #include <simulation/context/sim_snapshot.h>

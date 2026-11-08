@@ -72,116 +72,102 @@ set(IMGUI_DIR ${imgui_SOURCE_DIR} CACHE PATH "" FORCE)
 
 # ── Executable sources ────────────────────────────────────────────────────────
 # Listed explicitly (no glob) so CMake always detects added/removed files.
+# Only translation units are listed: CMake doesn't compile headers, and the IDE
+# Folder View shows them regardless.
 add_executable(ProjectARIA
     # ── Entry point
     src/main.cpp
     src/pch/pch.cpp
 
     # ── Entities
-    "src/entities/body/body.h"
-    src/entities/matter/CellMatter.h
+    src/entities/body/body.cpp
     src/entities/cell/cell.cpp
-    src/entities/cell/cell_settings.h
-    src/entities/spring/spring_settings.h
+    src/entities/spring/spring.cpp
 
     # ── Managers: cell_manager
-    src/managers/cell_manager/cell_manager_settings.h
     src/managers/cell_manager/ext/birth_management.cpp
     src/managers/cell_manager/ext/death_management.cpp
+    src/managers/cell_manager/ext/easy_birth.cpp
     src/managers/cell_manager/ext/events.cpp
     src/managers/cell_manager/ext/init.cpp
     src/managers/cell_manager/ext/statistics.cpp
     src/managers/cell_manager/ext/updating.cpp
+    src/managers/cell_manager/organism_tracker/organism_tracker.cpp
 
     # ── Managers: food_manager
-    src/managers/food_manager/food_manager_settings.h
     src/managers/food_manager/ext/FoodManager.cpp
     src/managers/food_manager/ext/FoodManager_spawn.cpp
     src/managers/food_manager/ext/FoodManager_update.cpp
 
     # ── Simulation core
-    src/simulation/events.cpp
-    src/simulation/simulation.cpp
+    src/simulation/ext/events.cpp
+    src/simulation/ext/imgui_handling.cpp
+    src/simulation/ext/simulation.cpp
     src/simulation/settings/settings.cpp
 
-    # ── ImGui control panel + helpers
-    src/simulation/imgui/control_panel.cpp
-    src/simulation/imgui/imgui_handling.cpp
-    src/simulation/imgui/imgui_settings.h
+    # ── ImGui: control panel + misc
+    src/simulation/imgui/control_panel/control_panel.cpp
+    src/simulation/imgui/misc/popout_window.cpp
 
-    # ── ImGui tab implementations
-    src/simulation/imgui/tabs/debug_tab.cpp
-    src/simulation/imgui/tabs/debug_tab.h
-    src/simulation/imgui/tabs/food_tab.cpp
-    src/simulation/imgui/tabs/food_tab.h
-    src/simulation/imgui/tabs/grid_tab.cpp
-    src/simulation/imgui/tabs/organism/organism_tab.cpp
+    # ── ImGui tabs: simple tabs
+    src/simulation/imgui/tabs/debug/debug_tab.cpp
+    src/simulation/imgui/tabs/food/food_tab.cpp
+    src/simulation/imgui/tabs/grid/grid_tab.cpp
+    src/simulation/imgui/tabs/sim/simulation_tab.cpp
+
+    # ── ImGui tabs: graphs
+    src/simulation/imgui/tabs/graphs/graphs_generations_tab.cpp
+    src/simulation/imgui/tabs/graphs/graphs_miscs_tab.cpp
+    src/simulation/imgui/tabs/graphs/graphs_population_tab.cpp
+    src/simulation/imgui/tabs/graphs/graphs_stat_panels.cpp
+    src/simulation/imgui/tabs/graphs/graphs_tab.cpp
+    src/simulation/imgui/tabs/graphs/graphs_tab_common.cpp
+
+    # ── ImGui tabs: organism
     src/simulation/imgui/tabs/organism/brain_widget.cpp
     src/simulation/imgui/tabs/organism/cell_details.cpp
+    src/simulation/imgui/tabs/organism/organism_tab.cpp
     src/simulation/imgui/tabs/organism/spring_details.cpp
-    src/simulation/imgui/tabs/organism/energy/history.cpp
-    src/simulation/imgui/tabs/organism/energy/energy_cells.cpp
+
+    # ── ImGui tabs: organism / energy
     src/simulation/imgui/tabs/organism/energy/budget.cpp
+    src/simulation/imgui/tabs/organism/energy/energy_cells.cpp
     src/simulation/imgui/tabs/organism/energy/energy_feed.cpp
+    src/simulation/imgui/tabs/organism/energy/history.cpp
     src/simulation/imgui/tabs/organism/energy/organism_tab_energy.cpp
-    
+
+    # ── ImGui tabs: o_vector
     src/simulation/imgui/tabs/o_vector/capacity.cpp
     src/simulation/imgui/tabs/o_vector/churn.cpp
     src/simulation/imgui/tabs/o_vector/integrity.cpp
     src/simulation/imgui/tabs/o_vector/overview.cpp
     src/simulation/imgui/tabs/o_vector/snapshots.cpp
-    src/simulation/imgui/tabs/o_vector/o_vector_tab.h
-    src/simulation/imgui/tabs/simulation_tab.cpp
 
-    src/simulation/imgui/tabs/graphs/graphs_tab.cpp
-    src/simulation/imgui/tabs/graphs/graphs_generations_tab.cpp
-    src/simulation/imgui/tabs/graphs/graphs_miscs_tab.cpp
-    src/simulation/imgui/tabs/graphs/graphs_stat_panels.cpp
-    src/simulation/imgui/tabs/graphs/graphs_tab_common.cpp
-    src/simulation/imgui/tabs/graphs/graphs_population_tab.cpp
-
-    src/simulation/imgui/popout_window.cpp
-
+    # ── Utilities
     src/Utils/pheromones/pheromone_grid.cpp
+    src/Utils/pheromones/pheromone_grid_kernels.cpp
     src/Utils/pheromones/pheromone_grid_renderer.cpp
+    src/Utils/spatial_grid/spatial_grid_renderer.cpp
 
-    # ── World / collision resolver
+    # ── World: collision resolver
     src/world/collision_resolver/detection.cpp
     src/world/collision_resolver/init.cpp
     src/world/collision_resolver/resolution.cpp
     src/world/collision_resolver/updating_grid.cpp
 
-    # ── World / simulation update loop
+    # ── World: update loop
     src/world/ext/statistics_snapshot.cpp
     src/world/ext/world.cpp
     src/world/ext/world_updating.cpp
-    "src/world/food_eat_resolver/food_eat_resolver.h"
-    src/world/world_border.h
-    src/world/world_settings.h
-    src/world/world_renderer/world_renderer.h
 
-    # ── Utilities
-    src/Utils/o_vec/o_vec_debug.h
-    src/Utils/o_vec/o_vec_snapshot.h
-    src/Utils/spatial_grid/spatial_grid_renderer.cpp
+    # ── World: renderer
+    src/world/world_renderer/world_renderer.cpp
+    src/world/world_renderer/world_renderer_entities.cpp
 
-    # ── ImPlot (header-only library — sources must be compiled as part of our target)
+    # ── ImPlot (sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/entities/cell/spring_links.h" 
- "src/managers/cell_manager/ext/easy_birth.cpp" 
- "src/world/food_eat_resolver/food_resolution_settings.h" 
- "src/world/food_eat_resolver/bite_resolution.h" 
- "src/simulation/imgui/theme.h" 
- "src/world/world_renderer/world_renderer.cpp" 
- "src/world/world_renderer/world_renderer_entities.cpp" 
- "src/entities/body/body.cpp" 
- "src/Utils/code_stats.h"  
- "src/simulation/imgui/tabs/graphs/graphs_tab_common.h" 
- "src/entities/spring/spring.cpp" 
- "src/simulation/imgui/tabs/organism/energy/energy_history.h" 
- "src/simulation/imgui/tabs/organism/energy/energy_ui_common.h"  
- "src/simulation/imgui/popout_window.h" "src/Utils/pheromones/pheromone_grid.cpp" "src/Utils/pheromones/pheromone_grid_renderer.cpp" "src/Utils/pheromones/pheromone_grid_kernels.cpp" "src/managers/cell_manager/organism_tracker/organism_tracker.cpp")
+)
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

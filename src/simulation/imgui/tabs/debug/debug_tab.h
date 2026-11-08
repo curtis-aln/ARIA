@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../../world/world_settings.h"
-#include "i_tab.h"
+#include "../../../../world/world_settings.h"
+#include "../i_tab.h"
 #include <simulation/context/sim_command.h>
 #include <simulation/context/sim_snapshot.h>
 

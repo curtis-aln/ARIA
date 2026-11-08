@@ -1,7 +1,7 @@
-#include "context/sim_command.h"
-#include "context/sim_snapshot.h"
-#include "settings/settings.h"
-#include "simulation.h"
+#include "../context/sim_command.h"
+#include "../context/sim_snapshot.h"
+#include "../settings/settings.h"
+#include "../simulation.h"
 #include <imgui-SFML.h>
 #include <implot.h>
 #include <iostream>

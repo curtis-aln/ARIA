@@ -1,4 +1,4 @@
-#include "graphs/plot_utils.h"
+#include "../graphs/plot_utils.h"
 #include "simulation_tab.h"
 #include <imgui.h>
 

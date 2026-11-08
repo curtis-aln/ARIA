@@ -1,6 +1,6 @@
 #pragma once
 #include "../world/world.h"
-#include "imgui/control_panel.h"
+#include "imgui/control_panel/control_panel.h"
 #include "imgui/tabs/graphs/population_history.h"
 #include "settings/settings.h"
 

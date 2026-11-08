@@ -1,6 +1,6 @@
-#include "context/sim_command.h"
-#include "settings/settings.h"
-#include "simulation.h"
+#include "../context/sim_command.h"
+#include "../settings/settings.h"
+#include "../simulation.h"
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <SFML/System/Vector2.hpp>
