@@ -70,6 +70,8 @@ enum class CommandType
 
 	SetEasyNaturalBirthRatio, // set the easy natural birth ratio of the cell manager
 
+	SetHighlightedCell,
+
 	// Springs
 	SetSpringConst,         // set the spring constant of a specific spring
 	SetDampingConst,        // set the damping constant of a specific spring

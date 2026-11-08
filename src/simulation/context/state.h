@@ -85,6 +85,9 @@ struct CellManagerToggles
 	// other
 	bool easy_reproduction = true;  // cells can reproduce through hardcoded copy paste
 	bool prune_cells = true;  // cells can be removed from the simulation if there are too many
+
+	bool show_cell_bounding_boxes = false;
+	bool show_nearby = false;
 };
 
 struct FoodToggles

@@ -131,7 +131,7 @@ struct SpringInitialSpawnRanges
 	inline static constexpr Range amplitude = { 0.1f,         0.8f };
 	inline static constexpr Range frequency = { 1.f / 30.f,  1.f / 5.f }; // 1 / 60 = once every 60 frames, 1 / 30 = once every 30 frames
 	inline static constexpr Range offset = SpringGeneticConstraints::offset;
-	inline static constexpr Range vertical_shift = { 0.7f,          1.f };
+	inline static constexpr Range vertical_shift = { 0.3f,          1.f };
 
 	inline static constexpr Range spring_const = { 1.25f, 2.2f };
 	inline static constexpr Range damping = { 0.01f, 0.1f };

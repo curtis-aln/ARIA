@@ -1,6 +1,7 @@
 #pragma once
 #include "../i_tab.h"
 #include "energy/energy_history.h"
+#include <cstdint>
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/spring/spring.h>
@@ -52,7 +53,7 @@ static constexpr float k_en_history_min_w = 340.f;
 static constexpr float k_en_cells_min_w = 260.f;
 static constexpr float k_en_history_share = 0.55f;
 
-static constexpr float k_cell_card_w = 96.f;
+static constexpr float k_cell_card_w = 112.f;   // widened so "Cell 12" + the state badge fit
 static constexpr float k_cell_card_h = 42.f;
 static constexpr float k_cell_card_gap = 4.f;
 static constexpr float k_strip_block = 18.f;
@@ -68,6 +69,9 @@ static constexpr float k_trend_eps = 0.003f;  // |change per 100 ticks| (fractio
 // Is the InjectProtozoa amount added to the organism total (false) or to every cell (true)?
 // Only affects the "after inject" preview in the Feed card; verify against the handler.
 static constexpr bool  k_inject_is_per_cell = false;
+
+// Sentinel for "nothing selected" in the ID-based selection keys.
+static constexpr uint32_t k_no_key = 0xFFFFFFFFu;
 
 // Instantaneous organism energy numbers, shared by all Energy-tab cards.
 // Fractions are relative to the organism maximum (0..1).
@@ -117,10 +121,25 @@ public:
 	void        draw(const SimSnapshot& snap, ImGuiContext& ctx)   override;
 
 private:
-	int  m_last_id_ = -1;
-	int  m_sel_cell_idx_ = 0;
-	int  m_sel_spring_idx_ = 0;
-	bool m_sel_is_spring_ = false;
+	// ── Selection ─────────────────────────────────────────────────────────
+	// Selection is stored by ID (the *_key_ fields). The *_idx_ fields are tracker
+	// indices that rebuild_ordering() re-resolves from the keys at the start of every frame.
+	int      m_last_id_ = -1;                // energy-history organism tracking (record_energy_history)
+	int      m_sel_org_id_ = -1;             // organism the keys below belong to
+	int      m_sel_cell_idx_ = 0;
+	int      m_sel_spring_idx_ = 0;
+	bool     m_sel_is_spring_ = false;
+	uint32_t m_sel_cell_key_ = k_no_key;
+	uint32_t m_sel_spring_key_ = k_no_key;
+	uint32_t m_pushed_highlight_ = k_no_key; // last cell ID sent to the world for the white circle
+
+	// Sorted-by-ID views of the tracker, rebuilt every frame.
+	//   m_cell_order_[k] = tracker index of the k-th cell (k is the displayed "Cell k")
+	//   m_cell_rank_[i]  = relative number of the cell at tracker index i
+	std::vector<int>      m_cell_order_, m_cell_rank_;
+	std::vector<int>      m_spring_order_, m_spring_rank_;
+	std::vector<uint32_t> m_sorted_cell_keys_;   // cell IDs in sorted order, for lookup by absolute ID
+
 	int  m_wave_cycles_ = 8;   // number of full periods shown in the sinwave graph
 
 	// ── Feed state (owned here, shared by Energy tab) ─────────────────────
@@ -138,6 +157,15 @@ private:
 	int   m_cell_view_ = 0;                  // 0 auto, 1 cards, 2 heat-strip
 	int   m_strip_metric_ = 0;               // 0 energy, 1 nutrients, 2 integrity
 
+	// ── ID helpers ────────────────────────────────────────────────────────
+	static uint32_t cell_key(const Cell& c) { return c.id_; }   // switch to body_id_ if springs reference that
+	static uint32_t spring_key(const Spring& s) { return static_cast<uint32_t>(s.id_); }
+	void rebuild_ordering(const OrganismTracker& t);
+	void sync_selection(ImGuiContext& ctx, const OrganismTracker& t);
+	void push_highlight(ImGuiContext& ctx, uint32_t key);
+	int  relative_cell_index(uint32_t abs_id) const;   // -1 if the cell is not in this organism
+
+	// ── Drawing ───────────────────────────────────────────────────────────
 	void draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
 	static void draw_no_selection();
 	void draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
@@ -149,7 +177,7 @@ private:
 		const WaveParam& offset, const WaveParam& vertical_shift);
 
 	void draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body& body);
-	void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s);
+	void draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Spring& s, int spring_rel);
 	void draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap);
 	void record_energy_history(const SimSnapshot& snap);   // called every frame from draw(), whatever tab is open
 	void draw_energy_gauges(const EnergyStats& st, const OrganismTracker& t);

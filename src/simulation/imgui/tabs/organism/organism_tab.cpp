@@ -14,8 +14,56 @@
 #include <vector>
 #include <limits>
 #include <numbers>
+#include <numeric>
 
+namespace
+{
+	constexpr float k_list_w = 132.f;
+	constexpr float k_row_h = 22.f;
 
+	constexpr float k_swatch = 12.f;
+	constexpr float k_swatch_mute = 0.70f;   // 1 = original colour, 0 = fully blended into the row bg
+
+	// Pulls a genome colour toward the dark row background so the chip isn't loud.
+	ImU32 muted_u32(const sf::Color& c)
+	{
+		constexpr float bg[3] = { 0.15f, 0.16f, 0.19f };
+		auto mix = [](float ch, float b) { return (ch / 255.f) * k_swatch_mute + b * (1.f - k_swatch_mute); };
+		return ImGui::ColorConvertFloat4ToU32({ mix(c.r, bg[0]), mix(c.g, bg[1]), mix(c.b, bg[2]), 1.f });
+	}
+
+	// Full-width clickable row: dark neutral background, small split colour chip on the left.
+	// `upper` fills the chip's top-left triangle, `lower` the bottom-right (same colour twice = flat).
+	bool colour_row(const char* id, const char* text, const sf::Color& upper, const sf::Color& lower, bool selected)
+	{
+		const float w = ImGui::GetContentRegionAvail().x;
+		const ImVec2 p0 = ImGui::GetCursorScreenPos();
+		const ImVec2 p1 = { p0.x + w, p0.y + k_row_h };
+
+		const bool pressed = ImGui::InvisibleButton(id, { w, k_row_h });
+		const bool hovered = ImGui::IsItemHovered();
+
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+
+		const ImVec4 bg = selected ? ImVec4{ 0.24f, 0.26f, 0.32f, 1.f }
+			: hovered ? ImVec4{ 0.20f, 0.21f, 0.26f, 1.f }
+		: ImVec4{ 0.15f, 0.16f, 0.19f, 1.f };
+		dl->AddRectFilled(p0, p1, ImGui::ColorConvertFloat4ToU32(bg), 3.f);
+		if (selected)
+			dl->AddRect(p0, p1, IM_COL32(255, 255, 255, 90), 3.f, 0, 1.f);
+
+		// Colour chip
+		const float sx0 = p0.x + 6.f, sx1 = sx0 + k_swatch;
+		const float sy0 = p0.y + (k_row_h - k_swatch) * 0.5f, sy1 = sy0 + k_swatch;
+		dl->AddTriangleFilled({ sx0, sy0 }, { sx1, sy0 }, { sx0, sy1 }, muted_u32(upper));
+		dl->AddTriangleFilled({ sx1, sy0 }, { sx1, sy1 }, { sx0, sy1 }, muted_u32(lower));
+		dl->AddRect({ sx0, sy0 }, { sx1, sy1 }, IM_COL32(0, 0, 0, 120), 0.f, 0, 1.f);
+
+		const ImVec2 tp = { sx1 + 8.f, p0.y + (k_row_h - ImGui::GetTextLineHeight()) * 0.5f };
+		dl->AddText(tp, selected ? IM_COL32(217, 222, 235, 255) : IM_COL32(178, 184, 199, 255), text);
+		return pressed;
+	}
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Top-level draw
@@ -24,16 +72,17 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 {
 	const OrganismTracker& protozoa = snap.protozoa_tracker;
 
-	if (snap.protozoa_tracker.selected_id == -1)
+	if (protozoa.selected_id == -1)
 	{
+		push_highlight(ctx, k_no_key);   // clear the world-side circle
+		m_sel_org_id_ = -1;
 		draw_no_selection();
 		return;
 	}
 
-	// Sampled every frame this tab is drawn, whichever sub-tab is open, so the Energy history has no gaps.
 	record_energy_history(snap);
+	rebuild_ordering(protozoa);
 
-	// The panel showing information about the protozoa as a whole
 	ImGui::BeginChild("OV_panel", { 240.f, -1.f }, false);
 	draw_overview(snap, ctx, protozoa);
 	ImGui::EndChild();
@@ -49,7 +98,6 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 6.f, 2.f });
 
-	// The different tabs of this
 	if (ImGui::BeginTabItem("Cells & Springs"))
 	{
 		draw_cells_springs_tab(snap, ctx, protozoa);
@@ -57,13 +105,105 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		draw_mutation_controls(snap, ctx, protozoa);
 		ImGui::EndTabItem();
 	}
-
-	if (ImGui::BeginTabItem("Energy")) { draw_energy_tab(ctx, snap);           ImGui::EndTabItem(); }
-	if (ImGui::BeginTabItem("Brain")) { Brain(); ImGui::EndTabItem(); }
+	if (ImGui::BeginTabItem("Energy")) { draw_energy_tab(ctx, snap); ImGui::EndTabItem(); }
+	if (ImGui::BeginTabItem("Brain")) { Brain();                    ImGui::EndTabItem(); }
 	ImGui::PopStyleVar();
 
 	ImGui::EndTabBar();
 	ImGui::EndChild();
+
+	sync_selection(ctx, protozoa);   // after the UI, so clicks in any tab are captured
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Selection stability: sort by ID, re-resolve the selected index from its stored key
+// ─────────────────────────────────────────────────────────────────────────────
+void OrganismTab::rebuild_ordering(const OrganismTracker& t)
+{
+	if (t.selected_id != m_sel_org_id_)   // genuinely different organism: reset
+	{
+		m_sel_org_id_ = t.selected_id;
+		m_sel_cell_key_ = m_sel_spring_key_ = k_no_key;
+		m_sel_is_spring_ = false;
+	}
+
+	const int nc = t.cell_count;
+	const int ns = static_cast<int>(t.spring_count);
+
+	m_cell_order_.resize(static_cast<size_t>(nc));
+	std::iota(m_cell_order_.begin(), m_cell_order_.end(), 0);
+	std::stable_sort(m_cell_order_.begin(), m_cell_order_.end(),
+		[&](int a, int b) { return cell_key(t.cells[a]) < cell_key(t.cells[b]); });
+
+	m_cell_rank_.assign(static_cast<size_t>(nc), 0);
+	m_sorted_cell_keys_.resize(static_cast<size_t>(nc));
+	for (int k = 0; k < nc; ++k)
+	{
+		m_cell_rank_[m_cell_order_[k]] = k;
+		m_sorted_cell_keys_[k] = cell_key(t.cells[m_cell_order_[k]]);
+	}
+
+	m_spring_order_.resize(static_cast<size_t>(ns));
+	std::iota(m_spring_order_.begin(), m_spring_order_.end(), 0);
+	std::stable_sort(m_spring_order_.begin(), m_spring_order_.end(),
+		[&](int a, int b) { return spring_key(t.springs[a]) < spring_key(t.springs[b]); });
+
+	m_spring_rank_.assign(static_cast<size_t>(ns), 0);
+	std::vector<uint32_t> spring_keys(static_cast<size_t>(ns));
+	for (int k = 0; k < ns; ++k)
+	{
+		m_spring_rank_[m_spring_order_[k]] = k;
+		spring_keys[k] = spring_key(t.springs[m_spring_order_[k]]);
+	}
+
+	// Resolve stored keys back to tracker indices (fall back to the first entry).
+	m_sel_cell_idx_ = nc > 0 ? m_cell_order_[0] : 0;
+	if (m_sel_cell_key_ != k_no_key)
+	{
+		const auto it = std::lower_bound(m_sorted_cell_keys_.begin(), m_sorted_cell_keys_.end(), m_sel_cell_key_);
+		if (it != m_sorted_cell_keys_.end() && *it == m_sel_cell_key_)
+			m_sel_cell_idx_ = m_cell_order_[static_cast<size_t>(it - m_sorted_cell_keys_.begin())];
+	}
+
+	m_sel_spring_idx_ = ns > 0 ? m_spring_order_[0] : 0;
+	if (m_sel_spring_key_ != k_no_key)
+	{
+		const auto it = std::lower_bound(spring_keys.begin(), spring_keys.end(), m_sel_spring_key_);
+		if (it != spring_keys.end() && *it == m_sel_spring_key_)
+			m_sel_spring_idx_ = m_spring_order_[static_cast<size_t>(it - spring_keys.begin())];
+	}
+}
+
+void OrganismTab::sync_selection(ImGuiContext& ctx, const OrganismTracker& t)
+{
+	const int ns = static_cast<int>(t.spring_count);
+	if (t.cell_count > 0)
+	{
+		m_sel_cell_idx_ = std::clamp(m_sel_cell_idx_, 0, t.cell_count - 1);
+		m_sel_cell_key_ = cell_key(t.cells[m_sel_cell_idx_]);
+	}
+	if (ns > 0)
+	{
+		m_sel_spring_idx_ = std::clamp(m_sel_spring_idx_, 0, ns - 1);
+		m_sel_spring_key_ = spring_key(t.springs[m_sel_spring_idx_]);
+	}
+	push_highlight(ctx, (!m_sel_is_spring_ && t.cell_count > 0) ? m_sel_cell_key_ : k_no_key);
+}
+
+void OrganismTab::push_highlight(ImGuiContext& ctx, const uint32_t key)
+{
+	if (key == m_pushed_highlight_) return;   // only talk to the sim on change
+	m_pushed_highlight_ = key;
+	SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetHighlightedCell };
+	cmd.int_val = key == k_no_key ? -1 : static_cast<int>(key);
+	ctx.push(cmd);
+}
+
+int OrganismTab::relative_cell_index(const uint32_t abs_id) const
+{
+	const auto it = std::lower_bound(m_sorted_cell_keys_.begin(), m_sorted_cell_keys_.end(), abs_id);
+	return (it != m_sorted_cell_keys_.end() && *it == abs_id)
+		? static_cast<int>(it - m_sorted_cell_keys_.begin()) : -1;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,7 +264,15 @@ void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, cons
 	ImGui::Separator();
 
 	toggle(snap, ctx, "Debug Mode", &WorldToggles::debug_mode, "D");
-	toggle(snap, ctx, "Bounding Boxes", &CellManagerToggles::show_bounding_boxes, "B");
+
+	if (snap.world_toggles.debug_mode)   // ← adjust to however the snapshot exposes toggle state
+	{
+		ImGui::Indent();
+		toggle(snap, ctx, "Protozoa Bounding Box", &CellManagerToggles::show_bounding_boxes, "B");
+		toggle(snap, ctx, "Cell Bounding Boxes", &CellManagerToggles::show_cell_bounding_boxes, "");
+		toggle(snap, ctx, "Show Nearby", &CellManagerToggles::show_nearby, "");
+		ImGui::Unindent();
+	}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -132,63 +280,58 @@ void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, cons
 // ─────────────────────────────────────────────────────────────────────────────
 void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa)
 {
-	// fetching cell and spring container information
 	const int cell_count = protozoa.cell_count;
-	const int spring_count = protozoa.spring_count;
+	const int spring_count = static_cast<int>(protozoa.spring_count);
 
-	// No need to show the list if both are empty
 	if (cell_count == 0 && spring_count == 0)
 	{
 		ImGui::TextDisabled("No cells or springs.");
 		return;
 	}
 
-	// Clamp selection indices to valid ranges, and switch selection type if the currently selected type is empty
-	if (cell_count > 0)
-		m_sel_cell_idx_ = std::min(m_sel_cell_idx_, cell_count - 1);
+	if (m_sel_is_spring_ && spring_count == 0) m_sel_is_spring_ = false;
+	if (!m_sel_is_spring_ && cell_count == 0)  m_sel_is_spring_ = true;
 
-	if (spring_count > 0)
-		m_sel_spring_idx_ = std::min(m_sel_spring_idx_, spring_count - 1);
+	ImGui::BeginChild("CS_list", { k_list_w, -1.f }, true);
 
-	// If the currently selected type is empty, switch to the other type (if it's not empty)
-	if (m_sel_is_spring_ && spring_count == 0)
-		m_sel_is_spring_ = false;
-
-	if (!m_sel_is_spring_ && cell_count == 0)
-		m_sel_is_spring_ = true;
-
-	// ── Unified selection list ────────────────────────────────────────────
-	constexpr ImVec2 list_size = { 88.f, -1.f };
-	ImGui::BeginChild("CS_list", list_size, true);
-
-
-	for (int i = 0; i < cell_count; ++i)
+	// Cells: top-left triangle = outer colour, bottom-right = inner colour.
+	for (int k = 0; k < cell_count; ++k)
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, selector_color);
-		ImGui::Text("●");
-		ImGui::PopStyleColor();
-		ImGui::SameLine();
-		char lbl[12]; snprintf(lbl, sizeof(lbl), "C%d", i);
-		if (ImGui::Selectable(lbl, !m_sel_is_spring_ && m_sel_cell_idx_ == i))
+		const int i = m_cell_order_[k];
+		const Cell& c = protozoa.cells[i];
+		char id[16], lbl[24];
+		snprintf(id, sizeof id, "##cell%d", k);
+		snprintf(lbl, sizeof lbl, "Cell %d", k);
+		if (colour_row(id, lbl, c.get_outer_color(), c.get_inner_color(), !m_sel_is_spring_ && m_sel_cell_idx_ == i))
 		{
 			m_sel_cell_idx_ = i;
 			m_sel_is_spring_ = false;
 		}
 	}
 
+	// Springs: relative numbering, single flat colour.
 	if (spring_count > 0)
 	{
 		ImGui::Separator();
-		for (int i = 0; i < static_cast<int>(spring_count); ++i)
+		ImGui::TextDisabled("Springs");
+		for (int k = 0; k < spring_count; ++k)
 		{
-			const Spring& si = protozoa.springs[i];
-			char lbl[32]; snprintf(lbl, sizeof(lbl), "%d->%d##sp%d", si.cell_A_id, si.cell_B_id, i);
-			if (ImGui::Selectable(lbl, m_sel_is_spring_ && m_sel_spring_idx_ == i))
+			const int i = m_spring_order_[k];
+			const Spring& s = protozoa.springs[i];
+
+			char a[8], b[8], id[16], lbl[40];
+			const int ra = relative_cell_index(s.cell_A_id), rb = relative_cell_index(s.cell_B_id);
+			if (ra >= 0) snprintf(a, sizeof a, "%d", ra); else snprintf(a, sizeof a, "?");
+			if (rb >= 0) snprintf(b, sizeof b, "%d", rb); else snprintf(b, sizeof b, "?");
+			snprintf(id, sizeof id, "##spr%d", k);
+			snprintf(lbl, sizeof lbl, "Spring %d: %s-%s", k, a, b);
+
+			const sf::Color col(s.genome.outer_r, s.genome.outer_g, s.genome.outer_b);
+			if (colour_row(id, lbl, col, col, m_sel_is_spring_ && m_sel_spring_idx_ == i))
 			{
 				m_sel_spring_idx_ = i;
 				m_sel_is_spring_ = true;
 			}
-			//if (si.broken) ImGui::PopStyleColor();
 		}
 	}
 
@@ -196,14 +339,9 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 	ImGui::SameLine();
 
 	if (!m_sel_is_spring_ && cell_count > 0)
-	{
-		const Cell& cell = protozoa.cells[m_sel_cell_idx_];
-		const Body& body = protozoa.bodies[m_sel_cell_idx_];
-		draw_cell_detail(ctx, cell, body);
-	}
-
+		draw_cell_detail(ctx, protozoa.cells[m_sel_cell_idx_], protozoa.bodies[m_sel_cell_idx_]);
 	else if (m_sel_is_spring_ && spring_count > 0)
-		draw_spring_detail(ctx, protozoa, protozoa.springs[m_sel_spring_idx_]);
+		draw_spring_detail(ctx, protozoa, protozoa.springs[m_sel_spring_idx_], m_spring_rank_[m_sel_spring_idx_]);
 }
 
 void OrganismTab::draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa)
