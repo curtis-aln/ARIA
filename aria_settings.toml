@@ -51,7 +51,7 @@ infant_time = 500 # time in ticks that a cell is considered an infant and can fo
 
 
 initial_energy                = 70.0
-bite_amount = 30.0 
+bite_amount = 20.0 
 
 integrity_conversion_rate = 0.01
 nutrients_conversion_rate = 0.07
@@ -100,7 +100,7 @@ reproductive_cooldown          = 400
 nutrient_reproductive_threshold = 0.99 # ratio
 
 initial_nutrients             = 20.0
-final_nutrients                = 160.0
+final_nutrients                = 110.0
 nutrient_development_time       = 1000
 
 spawn_immunity = 20

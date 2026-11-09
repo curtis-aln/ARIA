@@ -18,6 +18,8 @@ struct Tendon : Spring
 	float extension_ratio = 0.f;
 
 	uint32_t internal_clock_{};
+	float phase_ = 0.f;
+
 
 	// The spring's genetic information, determined by its two connecting cells
 	TendonGenome genome{};
@@ -45,6 +47,6 @@ private:
 	NutrientFlow pick_nutrient_flow(Cell& cell_a, Cell& cell_b) const;
 	float calc_nutrient_send_amount(const NutrientFlow& flow, float rate) const;
 	void transfer_nutrients(Cell& cell_a, Cell& cell_b);
-	void sync_clocks(Cell& cell_a, Cell& cell_b);
-	float target_extension_fraction(const int internal_clock);
+	void sync_oscillators(Cell& cell_a, Cell& cell_b);
+	[[nodiscard]] float target_extension_fraction();
 };

@@ -37,6 +37,8 @@ public:
 	uint32_t body_id_ = 0;   // Reference to the body 
 	TendonLinks tendon_links_; // The tendons that connect this cell to other cells
 
+	float phase_ = 0.f;
+
 	bool immortal_ = false;  // cell is unaffected by death
 
 	// when a tendon is created between this cell and other, the tendons properties

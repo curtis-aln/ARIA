@@ -470,18 +470,19 @@ int32_t CellManager::create_tendon(const uint32_t cell_a_id, const uint32_t cell
 	if (cell_a->tendon_links_.is_full() || cell_b->tendon_links_.is_full())
 		return -1;
 
-	Tendon* spring = all_tendons_.emplace(true, true);
+	Tendon* tendon = all_tendons_.emplace(true, true);
 
-	if (spring == nullptr)
+	if (tendon == nullptr)
 	{
 		return -1;
 	}
-	spring->reset();
-	spring->cell_A_id = cell_a_id;
-	spring->cell_B_id = cell_b_id;
+	tendon->reset();
+	tendon->cell_A_id = cell_a_id;
+	tendon->cell_B_id = cell_b_id;
+	tendon->phase_ = cell_a->phase_; // a new tendon starts in step with its cells instead of fighting them
 
-	cell_a->tendon_links_.add_connection(spring->id_);
-	cell_b->tendon_links_.add_connection(spring->id_);
+	cell_a->tendon_links_.add_connection(tendon->id_);
+	cell_b->tendon_links_.add_connection(tendon->id_);
 
-	return spring->id_;
+	return tendon->id_;
 }

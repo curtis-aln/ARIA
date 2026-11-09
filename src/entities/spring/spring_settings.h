@@ -15,6 +15,7 @@ struct SpringSettings
 
 	inline static float stress_damage_const;
 
+	inline static float phase_sync_rate = 0.05f; // fraction of the phase gap each coupled pair closes per tick
 	inline static constexpr float spring_work_energy_loss_k = 0.1f;
 
 };

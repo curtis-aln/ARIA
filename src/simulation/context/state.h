@@ -69,7 +69,7 @@ struct CellManagerToggles
 	bool tendon_too_long_breakage = true;
 	bool tendon_too_much_force_breakage = false;
 
-	bool work_done_energy = false;
+	bool work_done_energy = true;
 	bool friction_energy_loss = true;
 	bool old_age_death = true;
 

@@ -8,11 +8,17 @@
 #include <entities/cell/cell_settings.h>
 #include <Utils/random.h>
 
+#include "../../Utils/oscillator.h"
+
+
 void Tendon::reset()
 {
 	Spring::reset();
 	death_chance_ = 0.f;
 	broken = false;
+
+	extension_ratio = 0.f;
+	phase_ = 0.f;
 
 	internal_clock_ = 0;
 
@@ -31,13 +37,26 @@ void Tendon::death_update(Cell& cell_a, Cell& cell_b)
 		break_tendon();
 }
 
+void Tendon::sync_oscillators(Cell& cell_a, Cell& cell_b)
+{
+	phase_ = osc::wrap_two_pi(phase_ + genome.frequency);
+
+	const float rate = phase_sync_rate;
+	if (rate <= 0.f)
+		return;
+
+	osc::couple(cell_a.phase_, cell_b.phase_, rate);
+	osc::couple(phase_, cell_a.phase_, rate);
+	osc::couple(phase_, cell_b.phase_, rate);
+}
+
 void Tendon::update_organics(Cell& cell_a, Cell& cell_b, bool stress_damage, bool work_done_energy)
 {
 	death_update(cell_a, cell_b);
 
 	// min_rest_length is the distance between the two cells when they are just touching
 	internal_clock_++;
-	target_extension_fraction(internal_clock_);
+	target_extension_fraction();
 
 	// a spring that just snapped shouldn't still move nutrients or cost energy this tick
 	if (is_tendon_broken())
@@ -47,7 +66,7 @@ void Tendon::update_organics(Cell& cell_a, Cell& cell_b, bool stress_damage, boo
 		update_integrity(cell_a, cell_b);
 
 	transfer_nutrients(cell_a, cell_b);
-	sync_clocks(cell_a, cell_b);
+	sync_oscillators(cell_a, cell_b);
 
 	if (work_done_energy)
 	{
@@ -130,47 +149,12 @@ void Tendon::transfer_nutrients(Cell& cell_a, Cell& cell_b)
 	*flow.receiver += send_amount * (1.0f - nutrients_transfer_loss);
 }
 
-void Tendon::sync_clocks(Cell& cell_a, Cell& cell_b)
+
+float Tendon::target_extension_fraction()
 {
-	// Slows the leading clock and speeds up the lagging one until they meet in the middle.
-	static constexpr float sync_rate = 0.01f; // fraction of the gap each clock closes per tick
-
-	uint32_t& clock_a = cell_a.internal_clock_;
-	uint32_t& clock_b = cell_b.internal_clock_;
-
-	if (clock_a == clock_b)
-		return;
-
-	// Unsigned subtraction wraps, so the gap stays correct even if a clock has overflowed.
-	// Gaps of 2^31 or more are read as "the other one is behind".
-	const uint32_t d = clock_b - clock_a;
-	const bool a_behind = d < 0x80000000u;
-	const uint32_t gap = a_behind ? d : (0u - d);
-
-	uint32_t& behind = a_behind ? clock_a : clock_b;
-	uint32_t& ahead = a_behind ? clock_b : clock_a;
-
-	// Clocks are integers, so gap * 1% rounds to 0 for small gaps. Move at least 1 tick,
-	// but never more than half the gap, otherwise the two clocks would swap places.
-	const uint32_t step = std::min(std::max(1u, static_cast<uint32_t>(gap * sync_rate)), gap / 2);
-
-	if (step == 0)   // gap == 1: halves can't split it, so the lagging clock takes the last tick
-	{
-		++behind;
-		return;
-	}
-
-	behind += step;
-	ahead -= step;
-}
-
-float Tendon::target_extension_fraction(const int internal_clock)
-{
-	// sin oscillates around vertical_shift with +/- amplitude swing
-	const float sin_value = fast_sin(genome.frequency * internal_clock + genome.offset); // [-1, 1]
-	extension_ratio = genome.vertical_shift + genome.amplitude * sin_value;               // [vs-a, vs+a], unclamped
-	extension_ratio = std::clamp(extension_ratio, 0.f, 1.f);
-	return extension_ratio;
+	const float sin_value = fast_sin(phase_ + genome.offset);          // [-1, 1]
+	extension_ratio = genome.vertical_shift + genome.amplitude * sin_value; // unclamped
+	return std::clamp(extension_ratio, 0.f, 1.f);
 }
 
 float Tendon::get_spring_constant() const

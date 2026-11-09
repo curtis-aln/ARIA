@@ -167,7 +167,7 @@ add_executable(ProjectARIA
     # ── ImPlot (sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/entities/spring/tendon.h" "src/entities/spring/tendon.cpp" "src/Utils/fast_funcs.h")
+ "src/entities/spring/tendon.h" "src/entities/spring/tendon.cpp" "src/Utils/fast_funcs.h" "src/Utils/oscillator.h")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

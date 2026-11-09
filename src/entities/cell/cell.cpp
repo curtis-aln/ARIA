@@ -7,6 +7,8 @@
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <Utils/random.h>
+#include <Utils/oscillator.h>
+
 
 
 
@@ -20,6 +22,8 @@ void Cell::recreate()
 	delta_integrity = 0.f;
 
 	nutrients_ = 0.f;
+
+	phase_ = 0.f;
 
 	// genome
 	generation = 0;
@@ -116,6 +120,8 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	// The mass is an evolutionary paramater that needs to be told to the body
 	child_body->mass_ = child->mass;
 	child_body->set_radius();
+
+	child->phase_ = phase_; // newborn starts in step with its parent
 }
 
 void Cell::turn_off_reproduction()
@@ -138,7 +144,7 @@ void Cell::turn_off_reproduction()
 
 [[nodiscard]] float Cell::calculate_sin_output() const
 {
-	const float sin_value = fast_sin(frequency * internal_clock_ + offset); // [-1, 1]
+	const float sin_value = fast_sin(phase_ + offset); // [-1, 1]
 	const float ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
 	const float clamped = std::clamp(ratio, 0.f, 1.f); // keeping the output between 0 and 1, so that the drag coefficient is always valid
 
@@ -169,6 +175,7 @@ float Cell::drag_coeff() const
 
 void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_death)
 {
+	phase_ = osc::wrap_two_pi(phase_ + frequency);
 	sinwave_current_value_ = calculate_sin_output();
 	cell_calculated_drag_ = drag_coeff();
 
