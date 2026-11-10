@@ -21,7 +21,7 @@ struct CellManagerSettings
 	inline static constexpr int survival_rate_window_size_ = 100;
 
 	// MIS
-	inline static constexpr float delta_min_speed = 0.f; //1.f / 3'000.f;
+	inline static constexpr float delta_min_speed = 0.f;// 1.f / 80'000.f;
 	inline static constexpr int extincion_threshold = 0; // if there are less than this number of protozoas, we consider it an extinction event
 	inline static constexpr int init_spring_immunity_time = 400; // for the start of the sim the springs are immune to damage
 

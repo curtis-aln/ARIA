@@ -121,7 +121,7 @@ struct TendonGeneticConstraints
 	inline static constexpr Range frequency = { -1.f / 120.f, 1.f };
 	inline static constexpr Range offset = { -3.14159f,    3.14159f };
 	inline static constexpr Range vertical_shift = { -1.f,        1.f };
-	inline static constexpr Range spring_const = { 0.f,          3.f };
+	inline static constexpr Range spring_const = { 0.f,          5.f };
 	inline static constexpr Range damping = { 0.f,          1.f };
 	inline static constexpr Range nutrient_transfer_rate = { -1.f,          1.f };
 };
@@ -129,11 +129,11 @@ struct TendonGeneticConstraints
 struct TendonInitialSpawnRanges
 {
 	inline static constexpr Range amplitude = { 0.1f,         0.8f };
-	inline static constexpr Range frequency = { 1.f / 30.f,  1.f / 5.f }; // 1 / 60 = once every 60 frames, 1 / 30 = once every 30 frames
+	inline static constexpr Range frequency = { 1.f / 15.f,  1.f / 5.f }; // 1 / 60 = once every 60 frames, 1 / 30 = once every 30 frames
 	inline static constexpr Range offset = TendonGeneticConstraints::offset;
 	inline static constexpr Range vertical_shift = { 0.3f,          1.f };
 
-	inline static constexpr Range spring_const = { 1.25f, 2.2f };
+	inline static constexpr Range spring_const = { 1.55f, 2.8f };
 	inline static constexpr Range damping = { 0.01f, 0.1f };
 
 	inline static constexpr Range nutrient_transfer_rate = { -0.1f, 0.5f };
@@ -263,7 +263,7 @@ struct CellInitialSpawnRanges
 	inline static constexpr Range mass = { 55.f,          135.f };
 
 	inline static constexpr Range amplitude = { 0.05f,       0.9f };
-	inline static constexpr Range frequency = { 1.f / 60.f,  1.f / 5.f };    // same band as TendonInitialSpawnRanges::frequency
+	inline static constexpr Range frequency = { 1.f / 20.f,  1.f / 5.f };    // same band as TendonInitialSpawnRanges::frequency
 	inline static constexpr Range offset = CellGeneticConstraints::offset;
 	inline static constexpr Range vertical_shift = { 0.3f,        0.7f };
 

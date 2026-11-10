@@ -31,6 +31,6 @@ struct CellSettings
 
 
 	inline static float drag_min = 0.00f; // glide
-	inline static float drag_max = 0.75f;  // grip
+	inline static float drag_max = 0.9f;  // grip
 
 };

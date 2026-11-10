@@ -248,22 +248,32 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 {
 	for (int i = 0; i < cell_count; ++i)
 	{
-		Cell* cell = all_cells_.at(cell_ids[i]);
+		const cell_idx id = cell_ids[i];
 
-		// cell creation chance
+		// create_weak_offspring can move all_cells_, so never keep a Cell* across it
+		const auto fetch = [&]() -> Cell* {
+			return all_cells_.is_obj_active(id) ? all_cells_.at(id) : nullptr;
+			};
+
+		Cell* cell = fetch();
+		if (cell == nullptr)
+			continue;
+
 		if (Random::rand01_float() < cell->add_cell_chance)
 		{
-			create_weak_offspring(cell->id_);
+			create_weak_offspring(id);
+			cell = fetch();           // re-fetch: the container may have moved
+			if (cell == nullptr)
+				continue;
 		}
 
 		if (Random::rand01_float() < cell->add_tendon_chance)
-		{
 			add_tendon_mutation(cell_ids, cell_count, cell);
-		}
 
 		if (Random::rand01_float() < cell->remove_cell_chance)
 		{
 			cell->kill();
+			continue;                 // a dying cell shouldn't also lose a spring
 		}
 
 		if (Random::rand01_float() < cell->remove_tendon_chance)
@@ -273,7 +283,6 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 				continue;
 			const uint32_t idx = Random::rand_range(uint32_t(0), links.size_ - 1);
 			all_tendons_.at(links.connected_tendon_ids_[idx])->break_tendon();
-
 		}
 	}
 }

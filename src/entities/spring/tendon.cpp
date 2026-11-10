@@ -70,7 +70,7 @@ void Tendon::update_organics(Cell& cell_a, Cell& cell_b, bool stress_damage, boo
 
 	if (work_done_energy)
 	{
-		const float energy_cost = -work_done * spring_work_energy_loss_k;
+		const float energy_cost = -work_done;
 		cell_a.change_energy(energy_cost);
 		cell_b.change_energy(energy_cost);
 	}
