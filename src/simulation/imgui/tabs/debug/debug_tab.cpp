@@ -8,6 +8,7 @@
 #include <world/world_settings.h>
 
 #include "../../../settings/settings.h" 
+#include "../../../../Utils/Graphics/post_fx.h"
 
 #include <cstdint>
 #include <SFML/Graphics/Color.hpp>
@@ -181,6 +182,8 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 			ctx.push(cmd);
 		}
 	}
+
+	draw_post_fx_ui();
 
 	ImGui::EndChild();
 }

@@ -29,6 +29,9 @@
 #include <thread>
 
 
+#include "../Utils/Graphics/post_fx.h"
+
+
 class Simulation : SimulationSettings
 {
 	SimulationToggles toggles_{};
@@ -59,6 +62,7 @@ class Simulation : SimulationSettings
 	CustomClock<frame_smoothing> rendering_clock_{ initial_frame_rate_rendering };
 
 	Camera camera_{ &m_window_, 1.f };
+	PostFx m_post_fx_;
 
 	World           m_world_{};
 	ControlPanel    m_control_panel_;

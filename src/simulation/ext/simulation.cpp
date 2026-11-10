@@ -73,6 +73,9 @@ Simulation::Simulation() : m_world_(&m_window_)
 
 	init_imGUI();
 
+	if (!m_post_fx_.init())
+		std::cerr << "[ERROR]: post-process shader failed to load, microscope effects disabled\n";
+
 	// The simulation is designed to run at 30 iterations per second
 	sim_state_.max_frame_rate_updating = SimulationSettings::initial_frame_rate_updating;
 	sim_state_.max_frame_rate_rendering = SimulationSettings::initial_frame_rate_rendering;
@@ -249,7 +252,6 @@ void Simulation::camera_follow_selected_protozoa()
 
 	const sf::Vector2f cam_pos = camera_.m_view_.getCenter();
 	camera_.m_view_.setCenter(cam_pos + (pos - cam_pos) * camera_lerp_factor);
-	camera_.update_window_view();
 }
 
 void Simulation::render()
@@ -265,6 +267,8 @@ void Simulation::render()
 		const sf::Vector2f pos = camera_.get_world_mouse_pos();
 		m_world_.render(snap, pos);
 	}
+
+	m_post_fx_.apply(m_window_, snap.sim_stats.camera_zoom);   // NEW: after the world, before ImGui
 
 	handle_imGUI(snap, dt);
 

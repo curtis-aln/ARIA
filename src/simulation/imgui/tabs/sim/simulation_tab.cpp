@@ -5,6 +5,7 @@
 #include <simulation/context/sim_command.h>
 #include <simulation/context/sim_snapshot.h>
 #include <simulation/context/state.h>
+#include "../../../../Utils/Graphics/post_fx.h"   // adjust the relative path
 
 
 void SimulationTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
