@@ -13,6 +13,9 @@ void CollisionResolver::run_collision_detection()
 // This function runs the collision detection for a single grid cell, and adds any detected collisions to the provided collision_vector
 void CollisionResolver::primitive_detect_collisions_for_grid_cell(const int grid_cell_id, CollisionVector& collision_vector)
 {
+	if (spatial_grid_.cell_capacities[grid_cell_id] == 0)
+		return;
+
 	// Filling the nearby_ids with all the particles in this cell and the neighbouring cells
 	spatial_grid_.find_from_index(grid_cell_id, &tl_nearby_ids_);
 

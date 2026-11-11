@@ -45,7 +45,7 @@ struct SimulationSettings
 
 	inline static bool full_screen;
 	inline static bool vsync;
-	inline static bool set_seed = false;
+	inline static bool set_seed = true;
 
 	inline static float ui_scale_percent;
 

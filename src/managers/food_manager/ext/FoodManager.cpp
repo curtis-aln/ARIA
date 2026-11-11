@@ -63,21 +63,25 @@ void FoodManager::handle_food_death()
 
 void FoodManager::fill_pheromone_grid(int iterations)
 {
-	/* This goes through each food and adds its pheromones to the grid */
+	/* Each food deposits once per `freq` ticks, staggered by id. */
+	if (!toggles_.update_pheromone_grid)
+		return;                                   // old version still looped over every food when this was off
+
 	const int freq = std::max(1, pheromone_update_freq);
 	const int phase = iterations % freq;
-	const bool on = toggles_.update_pheromone_grid;
 
-	for (Food* food : food_vector)
+	const size_t slots = food_vector.raw_object_store_.size();
+	for (size_t id = phase; id < slots; id += freq)
 	{
-		if (on && static_cast<int>(food->id_ % freq) == phase)   // each food deposits once per interval
-		{
-			const sf::Vector2f p = bodies_->at(food->body_id_)->get_pos();
-			pheromone_grid.add_pheromone(p.x, p.y);              // uses deposit_amount
-		}
+		if (!food_vector.active_[id])             // slot is in the free list
+			continue;
+
+		const Food* food = food_vector.at(static_cast<unsigned>(id));
+		const sf::Vector2f p = bodies_->at(food->body_id_)->get_pos();
+		pheromone_grid.add_pheromone(p.x, p.y);   // uses deposit_amount
 	}
 
-	if (on && phase == 0)
+	if (phase == 0)
 		pheromone_grid.step();
 }
 

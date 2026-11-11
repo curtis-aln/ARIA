@@ -208,6 +208,8 @@ void World::bound_body_to_world(Body* body)
 
 	if (world_toggles.central_gravity)
 		body->apply_force(-offset * kCentralGravityCoeff);
+
+	body->impulse_ = 0.f; // TODO potential bug here with impulse
 }
 
 

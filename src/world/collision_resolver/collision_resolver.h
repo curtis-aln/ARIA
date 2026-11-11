@@ -23,10 +23,10 @@ struct ResolutionSettings
 {
 	// 1, 2, 4, 8, 16, 32, 64, 128
 	inline static uint32_t grid_power = 6; // 2^grid_power = number of cells in each dimension
-	inline static const uint8_t cell_max_capacity = 28; // maximum number of particles per cell, must be less than 256, but really shouldnt be any greater than 6
+	inline static const uint8_t cell_max_capacity = 12; // maximum number of particles per cell, must be less than 256
 
-	inline static constexpr float correction_factor = 0.2f; // how much of the overlap is corrected each frame, 0.2 is a good value, 1.0 is too much and causes jittering
-	inline static constexpr float restitution = .2f; // how much of the velocity is retained after a collision, 1.0 is perfectly elastic, 0.0 is perfectly inelastic
+	inline static constexpr float correction_factor = 0.3f; // how much of the overlap is corrected each frame, 0.2 is a good value, 1.0 is too much and causes jittering
+	inline static constexpr float restitution = .5f; // how much of the velocity is retained after a collision, 1.0 is perfectly elastic, 0.0 is perfectly inelastic
 };
 
 // The maximum number of nearby particles that can be detected for a given particle, 
@@ -81,7 +81,6 @@ public:
 		
 		add_particles_to_grid();
 		run_collision_detection();
-		handle_collision_resolutions();
 	}
 
 	void ensure_quick_collision_jobs_built()

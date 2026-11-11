@@ -24,9 +24,9 @@ tick_sim_multiplier = 1
 
 # 5 = 32, 6 = 64, 7 = 128, 8 = 256, 9 = 512, 10 = 1024, 11 = 2048
 # each of these is used to calculate the size of a square spatial grid using the formula: 2^n
-collision_grid_power = 9          # The grid used to handle collisions between all bodies
-food_resolution_cell_power = 9    # the grid used to handle cell food interactions
-birth_cell_power = 8              # The grid used to let newborns connect with eachover
+collision_grid_power = 7          # The grid used to handle collisions between all bodies
+food_resolution_cell_power = 7    # the grid used to handle cell food interactions
+birth_cell_power = 7              # The grid used to let newborns connect with eachover
 food_pheromone_grid_power = 9      # The grid used to handle food pheromone interactions
 
 # Max Capacities for each aswell 

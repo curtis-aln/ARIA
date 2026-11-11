@@ -35,4 +35,6 @@ struct FoodManagerSettings
 
 	// drag
 	inline static constexpr float kDragLinearCoeff = 0.02f; // linear drag coefficient
+
+	inline static constexpr int radius_update_interval = 60; // update radius every N frames
 };

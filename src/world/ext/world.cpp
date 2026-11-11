@@ -176,10 +176,13 @@ void World::copy_render_data_to_snapshot(SimSnapshot& snapshot)
 
 	snapshot.cell_manager_stats.cell_count = cell_manager_.get_cell_count();
 
-	render_data.body_debug_snapshot = FillSnapshot<Body>(dbg_bodies_, "Body", sf::Color::White);
-	render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);
-	render_data.tendon_debug_snapshot = FillSnapshot<Tendon>(dbg_tendons_, "Tendon", sf::Color::White);
-	render_data.cell_debug_snapshot = FillSnapshot<Cell>(dbg_cells_, "Cell", sf::Color::White);
+	if (world_toggles.debug_mode)
+	{
+		render_data.body_debug_snapshot = FillSnapshot<Body>(dbg_bodies_, "Body", sf::Color::White);
+		render_data.food_debug_snapshot = FillSnapshot<Food>(dbg_food_, "Food", sf::Color::White);
+		render_data.tendon_debug_snapshot = FillSnapshot<Tendon>(dbg_tendons_, "Tendon", sf::Color::White);
+		render_data.cell_debug_snapshot = FillSnapshot<Cell>(dbg_cells_, "Cell", sf::Color::White);
+	}
 }
 
 void World::copy_spatial_grids_to_snapshot(SimSnapshot& snapshot)

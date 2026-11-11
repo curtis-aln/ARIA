@@ -1,23 +1,5 @@
 #include "../cell_manager.h"
 
-float CellManager::calculate_average_generation() const
-{
-	// when a cell reproduces it sets its offspring generation to 1 + its current, this can be used to track 
-	// how many generations have passed in the simulation, and can be used to measure the evolutionary progress of the protozoa
-	if (all_cells_.size() == 0) // extinction
-		return 0.f;
-
-	float sum = 0.f;
-	int count = 0;
-
-	for (Cell* cell : all_cells_)
-	{
-		sum += cell->get_generation();
-		count++;
-	}
-
-	return sum / count;
-}
 
 void CellManager::register_birth_stat()
 {
@@ -94,9 +76,6 @@ void CellManager::update_protozoa_tracker()
 void CellManager::update_statistics()
 {
 	statistics_.min_speed += delta_min_speed;
-
-	// Selected cell Logic
-	statistics_.average_generation = calculate_average_generation();
 
 
 	// Peak population

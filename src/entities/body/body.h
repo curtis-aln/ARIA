@@ -95,20 +95,12 @@ public:
 	// coeff: total drag coefficient for this tick (world + cell), quad: speed-squared term
 	void apply_drag(const float coeff, const float quad = 0.06f)
 	{
-		// A body’s drag force scales with its cross-section, which in 2D is proportional to radius_
-		// Its deceleration scales with force divided by mass_
-		// So the fraction of speed lost is coeff * radius_ / mass_
-		// Density is implicit, because mass_ already includes it
-		// quad gives a terminal velocity: at high speed the (1 + quad * speed) factor grows, so loss per tick rises with speed. Pass 0 first to reproduce the old feel.
 		const float speed_sq = velocity_.x * velocity_.x + velocity_.y * velocity_.y;
 		if (speed_sq < 1e-12f || mass_ <= 0.f)
 			return;
 
-		const float speed = std::sqrt(speed_sq);
-
-		// fraction of speed lost this tick: cross-section (radius) / inertia (mass), scaled by speed
+		const float speed = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(speed_sq)));
 		const float loss = coeff * radius_ * (1.f + quad * speed) / mass_;
-
-		velocity_ *= std::max(0.f, 1.f - loss);   // slows to a stop, never reverses
+		velocity_ *= std::max(0.f, 1.f - loss);
 	}
 };

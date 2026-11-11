@@ -216,7 +216,6 @@ private: // only functions this class can access
 	// statistics 
 	void register_death_stat(const float lifetime, const bool had_offspring);
 	void register_birth_stat();
-	float calculate_average_generation() const;
 
 	// updating
 	void update_tendons(bool immune);

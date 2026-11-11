@@ -33,7 +33,8 @@ void Tendon::reset()
 
 void Tendon::death_update(Cell& cell_a, Cell& cell_b)
 {
-	if (Random::rand01_float() < death_chance_ || !cell_a.is_alive() || !cell_b.is_alive())
+
+	if (!cell_a.is_alive() || !cell_b.is_alive() || (death_chance_ > 0.f && Random::rand01_float() < death_chance_))
 		break_tendon();
 }
 

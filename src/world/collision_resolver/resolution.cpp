@@ -44,10 +44,6 @@ void CollisionResolver::resolve_existing_detections()
 
 void CollisionResolver::handle_collision_resolutions()
 {
-	// stops the impulse from accumulating across frames
-	for (Body* body : *collision_bodies_)
-		body->impulse_ = 0.f;
-
 	//debug_collision_duplicates(); // debugging
 
 	for (CollisionVector& collision_vector : collision_indexes_)
