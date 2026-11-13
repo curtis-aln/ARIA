@@ -198,7 +198,7 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 	child_cell->copy_genetics(*parent_cell, child_body);   // assumes this also copies tendon_genome
 	child_cell->mutate(child_body);
 
-	child_body->mass_ = parent_body->mass_;
+	child_body->set_mass(parent_body->get_mass());
 	child_body->set_radius();
 	child_cell->amplitude = 0.01f;
 	child_cell->vertical_shift = 0.05f;
@@ -224,7 +224,7 @@ void CellManager::apply_matter_birth_requests()
 		if (body == nullptr)
 			continue;
 		body->reset();
-		body->mass_ = 0.1f;
+		body->set_mass(0.1f);
 		body->set_radius();
 		body->set_pos(req.position);
 

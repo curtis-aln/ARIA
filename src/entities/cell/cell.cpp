@@ -118,7 +118,7 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	}
 
 	// The mass is an evolutionary paramater that needs to be told to the body
-	child_body->mass_ = child->mass;
+	child_body->set_mass(child->mass);
 	child_body->set_radius();
 
 	child->phase_ = phase_; // newborn starts in step with its parent

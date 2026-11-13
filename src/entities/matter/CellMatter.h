@@ -53,7 +53,7 @@ struct CellMatter : CellMatterSettings
 		time_alive = 0;
 		fade_complete_ = false;
 
-		body->mass_ = Random::rand_range<uint8_t>(min_mass, max_mass);
+		body->set_mass(Random::rand_range<uint8_t>(min_mass, max_mass));
 		body->set_radius();
 
 		body_id_ = body->id_;

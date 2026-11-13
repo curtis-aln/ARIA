@@ -80,7 +80,7 @@ add_executable(ProjectARIA
     src/pch/pch.cpp
 
     # ── Entities
-    src/entities/body/body.cpp
+    
     src/entities/cell/cell.cpp
     src/entities/spring/spring.cpp
 

@@ -296,7 +296,7 @@ void CellManager::update_tendons(bool immune)
 		bool disable_length_breakage = immune || !toggles_.tendon_too_long_breakage;
 		bool disable_force_breakage = immune || !toggles_.tendon_too_much_force_breakage;
 
-		const float ma = body_a->mass_, mb = body_b->mass_;
+		const float ma = body_a->get_mass(), mb = body_b->get_mass();
 		const float reduced_mass = (ma * mb) / (ma + mb);
 
 		const physics_stats stats{
@@ -436,8 +436,8 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 		cell->randomize();
 	}
 
-	body->mass_ = cell->mass;
-	if (cell->mass == 0) body->mass_ = 0.1f;
+	body->set_mass(cell->mass);
+	if (cell->mass == 0) body->set_mass(0.1f);
 
 	body->set_radius();
 

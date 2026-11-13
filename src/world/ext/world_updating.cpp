@@ -27,27 +27,12 @@ void World::update(SimSnapshot& write_snapshot)
 	// Update function
 	if (should_tick_sim())
 	{
+		update_wall_params();
 		auto& dist = cell_manager_.get_generation_distribution();
 		for (int i = 0; i < tick_sim_multiplier; ++i)
 		{
 			tick_sim();
-
-			auto& cm_stats = write_snapshot.cell_manager_stats; // cell manager statistics
-			auto& fm_stats = write_snapshot.food_manager_stats; // food manager statistics
-
-			m_history_.push(
-				cm_stats.cell_count,
-				fm_stats.food_count,
-				dist,
-				cm_stats.average_mutation_rate,
-				cm_stats.average_mutation_range,
-				cm_stats.average_offspring_count,
-				cm_stats.average_lifetime,
-				cm_stats.average_cells_per_protozoa,
-				cm_stats.average_tendon_count,
-				cm_stats.average_energy,
-				cm_stats.cell_matter_count,
-				cm_stats.tendon_count);
+			push_history(write_snapshot, dist);
 		}
 	}
 
@@ -57,6 +42,36 @@ void World::update(SimSnapshot& write_snapshot)
 
 	// We always update the position container, otherwise the simulation jitters when paused// We always update the position container, otherwise the simulation jitters when paused
 	fill_snapshot(write_snapshot);
+}
+
+void World::push_history(SimSnapshot& write_snapshot, const std::vector<float>& dist)
+{
+	auto& cm_stats = write_snapshot.cell_manager_stats; // cell manager statistics
+	auto& fm_stats = write_snapshot.food_manager_stats; // food manager statistics
+
+	m_history_.push(
+		cm_stats.cell_count,
+		fm_stats.food_count,
+		dist,
+		cm_stats.average_mutation_rate,
+		cm_stats.average_mutation_range,
+		cm_stats.average_offspring_count,
+		cm_stats.average_lifetime,
+		cm_stats.average_cells_per_protozoa,
+		cm_stats.average_tendon_count,
+		cm_stats.average_energy,
+		cm_stats.cell_matter_count,
+		cm_stats.tendon_count);
+}
+
+void World::update_wall_params()
+{
+	m_wall_params_.center = world_circular_bounds_.center_;
+	m_wall_params_.world_radius = world_circular_bounds_.bounds_radius;
+	m_wall_params_.repulsion_start = std::max(0.f, m_wall_params_.world_radius - kRepulsionZoneWidth);
+	m_wall_params_.repulsion_start_sq = m_wall_params_.repulsion_start * m_wall_params_.repulsion_start;
+	m_wall_params_.spring_k = kRepulsionCoeff / kRepulsionZoneWidth;
+	m_wall_params_.gravity_k = world_toggles.central_gravity ? kCentralGravityCoeff : 0.f;
 }
 
 bool World::should_tick_sim()
@@ -163,55 +178,55 @@ void World::bound_bodies()
 	thread_pool_.run_and_wait();
 }
 
+
 void World::bound_body_to_world(Body* body)
 {
-	/*  1. Inside the repulsion zone (near the wall): push inward, proportional to depth.
-		2. Past the hard limit (body touching the wall): snap back onto it and reflect velocity.
-		3. Optionally: a very weak pull toward the centre.
+	const WallParams& w = m_wall_params_;
 
-		The sqrt is only needed near the wall, so the common case (body in the interior)
-		is a single squared-distance comparison. */
 	body->update_physics();
 
 	const sf::Vector2f pos = body->get_pos();
-	const sf::Vector2f vel = body->get_vel();
+	const float ox = pos.x - w.center.x;
+	const float oy = pos.y - w.center.y;
+	const float dist_sq = ox * ox + oy * oy;
 
-	const sf::Vector2f offset = pos - world_circular_bounds_.center_;
-	const float        dist_sq = offset.x * offset.x + offset.y * offset.y;
+	// Gravity + soft wall accumulated here, applied to the body once at the end.
+	float fx = -ox * w.gravity_k;
+	float fy = -oy * w.gravity_k;
 
-	const float world_radius = world_circular_bounds_.bounds_radius;
-	const float repulsion_start = std::max(0.f, world_radius - kRepulsionZoneWidth);
-	const float repulsion_start_sq = repulsion_start * repulsion_start;
-
-	if (dist_sq > repulsion_start_sq)
+	if (dist_sq > w.repulsion_start_sq)
 	{
-		const float        dist = std::sqrt(dist_sq);
-		const sf::Vector2f normal = offset / dist;          // outward unit normal
-		const float        limit = world_radius - body->get_radius() * 2.f;
+		const float dist = std::sqrt(dist_sq);   // > 0 here, since dist_sq > repulsion_start_sq >= 0
+		const float inv_dist = 1.f / dist;
+		const float nx = ox * inv_dist;               // outward unit normal
+		const float ny = oy * inv_dist;
+		const float limit = w.world_radius - body->get_radius() * 2.f;
 
 		if (dist > limit)
 		{
-			// Hard wall: reflect only if moving outward, then clamp exactly onto the limit.
-			const float outward_speed = vel.dot(normal);
-			if (outward_speed > 0.f)
-				body->apply_force(- normal * ((1.f + kBounceCoeff) * outward_speed));
-
-			body->set_pos(world_circular_bounds_.center_ + normal * limit);
+			// Hard wall: reflect velocity only if moving outward, then clamp onto the limit.
+			const sf::Vector2f vel = body->get_vel();
+			const float outward = vel.x * nx + vel.y * ny;
+			if (outward > 0.f)
+			{
+				const float j = (1.f + kBounceCoeff) * outward;
+				body->set_vel({ vel.x - nx * j, vel.y - ny * j });
+			}
+			body->set_pos({ w.center.x + nx * limit, w.center.y + ny * limit });
 		}
 		else
 		{
-			// Soft wall: linear spring pushing back toward the centre.
-			const float depth = (dist - repulsion_start) / kRepulsionZoneWidth; // normalised 0..1
-			body->apply_force(-normal * (kRepulsionCoeff * kRepulsionZoneWidth * depth * depth));
+			// Soft wall: force = kRepulsionCoeff * depth^2 * width, which simplifies to spring_k * penetration^2.
+			const float pen = dist - w.repulsion_start;
+			const float mag = w.spring_k * pen * pen;
+			fx -= nx * mag;
+			fy -= ny * mag;
 		}
 	}
 
-	if (world_toggles.central_gravity)
-		body->apply_force(-offset * kCentralGravityCoeff);
-
-	body->impulse_ = 0.f; // TODO potential bug here with impulse
+	body->apply_force({ fx, fy });
+	body->impulse_ = 0.f;
 }
-
 
 void World::debug_sanity_checks()
 {

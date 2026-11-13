@@ -106,19 +106,27 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 // ── Cell detail: "Body" sub-tab — spatial / physical ────────────────────────
 void OrganismTab::draw_cell_detail_body_tab(ImGuiContext& ctx, const Cell& c, const Body& body)
 {
+	// data fetching and calculating
+	sf::Vector2f pos = body.get_pos();
+	sf::Vector2f vel = body.get_vel();
+	float mass = body.get_mass();
+	float radius = body.get_radius();
+	float speed = vel.length();
+
+
 	ImGui::Text("Body id  %u", c.body_id_);
-	ImGui::Text("Pos      (%.0f, %.0f)", body.get_pos().x, body.get_pos().y);
-	ImGui::Text("Speed    %.3f", body.get_vel().length());
+	ImGui::Text("Pos      (%.0f, %.0f)", pos.x, pos.y);
+	ImGui::Text("Speed    %.3f", speed);
 	ImGui::Spacing();
-	ImGui::Text("Mass     %.3f", body.mass_);
-	ImGui::Text("Radius   %.1f", body.get_radius());
+	ImGui::Text("Mass     %.3f", mass);
+	ImGui::Text("Radius   %.1f", radius);
 	ImGui::Spacing();
 	ImGui::Text("Impulse   %.3f", body.impulse_);
 	ImGui::Text("Nearby count %d", body.nearby_ids_size_);
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(-1.f);
-	slider_float_cmd(ctx, "##mass", body.mass_,
+	slider_float_cmd(ctx, "##mass", mass,
 		CellGeneticConstraints::mass.min, CellGeneticConstraints::mass.max,
 		"Mass = %.1f", CommandSection::CellManagerEvent, CommandType::SetRadius);
 }

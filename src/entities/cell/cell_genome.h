@@ -367,7 +367,7 @@ struct CellGenome : GenomeBase, HardConstants
 		const auto& C = CellGeneticConstraints{};
 
 		mass = maybe_mutate_gaussian(mass, C.mass, range, guassian_const);
-		body->mass_ = mass;
+		body->set_mass(mass);
 		body->set_radius();
 
 		amplitude = maybe_mutate_gaussian(amplitude, C.amplitude, range, guassian_const);
@@ -404,7 +404,7 @@ struct CellGenome : GenomeBase, HardConstants
 		offset = parent.offset;
 		vertical_shift = parent.vertical_shift;
 		mass = parent.mass;
-		this_body->mass_ = mass;
+		this_body->set_mass(mass);
 		this_body->set_radius();
 
 		outer_r = parent.outer_r; outer_g = parent.outer_g; outer_b = parent.outer_b;

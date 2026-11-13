@@ -21,6 +21,7 @@
 
 World::World(sf::RenderWindow* window) : m_window_(window)
 {
+	update_wall_params();
 	food_manager_.create_food_pool(food_manager_.initial_food);
 	bound_bodies();
 

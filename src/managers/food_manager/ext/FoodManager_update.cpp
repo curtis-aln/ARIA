@@ -15,7 +15,9 @@ void FoodManager::update_food_item(Food* food)
 	food->update();
 
 	body->apply_force(sf::Vector2f{ food->vibration_x, food->vibration_y });
-	body->mass_ = std::max(food->calculate_food_mass(), 0.1f);
+	
+	float new_mass = std::max(food->calculate_food_mass(), 0.1f);
+	body->set_mass(new_mass);
 
 	if (food->age % radius_update_interval == 0)
 		body->set_radius();

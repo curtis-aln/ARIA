@@ -35,6 +35,19 @@
 #include <Utils/o_vec/o_vector.hpp>
 #include <vector>
 
+
+// instead of recalculating the wall parameters for each body, we can calculate them once per frame and store them in this struct
+struct WallParams
+{
+	sf::Vector2f center;
+	float world_radius;
+	float repulsion_start;
+	float repulsion_start_sq;
+	float spring_k;   // kRepulsionCoeff / kRepulsionZoneWidth
+	float gravity_k;  // kCentralGravityCoeff, or 0 when the toggle is off
+};
+
+
 class World : public WorldSettings
 {
 	unsigned max_entities = CellManagerSettings::max_cells + FoodManagerSettings::max_food;
@@ -50,6 +63,8 @@ class World : public WorldSettings
 	sf::FloatRect world_rect_bounds_{ { 0.f, 0.f },{ bounds_radius * 2.f, bounds_radius * 2.f } };
 
 	WorldStatistics statistics_{}; // Statistics accumulated each tick by the update thread.
+
+	WallParams m_wall_params_{};
 
 	// for the physics updating 
 	// both food and cells query id's from this vector
@@ -171,4 +186,8 @@ private:
 	bool should_tick_sim();
 
 	void bound_bodies_in_range(int begin, int end);
+
+	void push_history(SimSnapshot& write_snapshot, const std::vector<float>& dist);
+
+	void update_wall_params();
 };

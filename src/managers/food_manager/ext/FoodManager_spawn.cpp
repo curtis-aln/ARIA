@@ -102,7 +102,7 @@ FoodBodyPair FoodManager::create_food_body_pair(const sf::Vector2f& position)
 	food->body_id_ = body->id_;
 
 	body->set_pos(position);
-	body->mass_ = 1.f;
+	body->set_mass(1.f);
 
 	return { (int32_t)food->id_, (int32_t)body->id_ };
 }

@@ -13,12 +13,15 @@ void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
     ImGui::Separator();
     const int  p = snap.cell_manager_stats.cell_count;
     const int  f = snap.food_manager_stats.food_count;
+	const int  m = snap.cell_manager_stats.cell_matter_count;
+	const int  s = snap.cell_manager_stats.tendon_count;
+
     const bool risk = p <= 10;
     StatRow::draw("Cells", "%d", p);
     StatRow::draw("Food", "%d", f);
-    StatRow::draw("Matter", "%d", snap.cell_manager_stats.cell_matter_count);
-    StatRow::draw("Springs", "%d", snap.cell_manager_stats.tendon_count);
-    StatRow::draw("Total", "%d", p + f);
+    StatRow::draw("Matter", "%d", m);
+    StatRow::draw("Springs", "%d", s);
+    StatRow::draw("Total", "%d", p + f + m + s);
     StatRow::draw_warn("Ext. risk", risk, "%s", risk ? "YES" : "no");
     StatRow::draw("Peak ever", "%d", snap.cell_manager_stats.peak_protozoa_ever);
 

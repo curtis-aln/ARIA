@@ -120,7 +120,7 @@ public:
 						Body* other_body = collision_bodies_->at(idx);
 
 						// skip empty, dead, or recycled-and-not-yet-initialised bodies
-						if (other_body == nullptr || !other_body->active || other_body->mass_ <= 0.f)
+						if (other_body == nullptr || !other_body->active || other_body->get_mass() <= 0.f)
 							continue;
 
 						body2bodycollisiondetection(obj, other_body, collision_indexes_[t]);
