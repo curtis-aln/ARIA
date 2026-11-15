@@ -22,7 +22,7 @@ inline static constexpr int collision_resolution_interval = 30; // how often to 
 struct ResolutionSettings
 {
 	// 1, 2, 4, 8, 16, 32, 64, 128
-	inline static uint32_t grid_power = 6; // 2^grid_power = number of cells in each dimension
+	inline static uint32_t grid_power = 7; // 2^grid_power = number of cells in each dimension
 	inline static const uint8_t cell_max_capacity = 12; // maximum number of particles per cell, must be less than 256
 
 	inline static constexpr float correction_factor = 0.3f; // how much of the overlap is corrected each frame, 0.2 is a good value, 1.0 is too much and causes jittering

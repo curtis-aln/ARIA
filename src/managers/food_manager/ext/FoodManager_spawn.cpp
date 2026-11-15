@@ -49,31 +49,16 @@ float FoodManager::calculate_spawn_chance() const
 void FoodManager::reproduce_food(Food* parent_food)
 {
 	// This function returns true if the food container is full and the food cannot reproduce, false if it can reproduce and has spawned a new food
-	Body* parent_body = bodies_->at(parent_food->body_id_);
-	sf::Vector2f parent_pos = parent_body->get_pos();
-
+	
 	// Creating a new food body pair and linking them together
-	FoodBodyPair pair = create_food_body_pair(parent_pos);
+	FoodBodyPair pair = create_food_body_pair();
 	if (pair.is_valid() == false)
 		return;
 
-	Food* child_food = food_vector.at(pair.food_id);
-	Body* child_body = bodies_->at(pair.body_id);
-
-	// spawning the food next to another existing food 
-	sf::FloatRect spawn_rect = {
-		{ parent_pos.x - food_spawn_distance, parent_pos.y - food_spawn_distance },
-		{ food_spawn_distance * 2, food_spawn_distance * 2 } };
-
-	// setting the attributes for this new_body
-	child_body->set_pos(Random::rand_pos_in_rect(spawn_rect));
-
-	// small chance of it spawning with a high velocity
-	if (Random::rand01_float() < food_launch_chance)
-		child_body->set_vel(Random::rand_vector(-food_launch_strength, food_launch_strength));
-
-	parent_food->reproduce();
-	return;
+	parent_food->reproduce(
+		bodies_->at(parent_food->body_id_),
+		food_vector.at(pair.food_id),
+		bodies_->at(pair.body_id));
 }
 
 

@@ -15,6 +15,8 @@ struct FoodSettings
 
 	inline static float death_age;
 
+	inline static float food_offspring_spawn_distance;
+
 	inline static uint8_t   outer_transparency = 125;
 	inline static uint8_t   inner_transparency = 100;
 
@@ -23,5 +25,6 @@ struct FoodSettings
 
 	inline static float nutrients_to_mass_scale; // radius = nutrients * this constant
 
+	inline static constexpr int vibration_frequency = 160; // how many iterations between vibrations
 	inline static float vibration_strength;
 };

@@ -92,7 +92,7 @@ void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	if (ImGui::SliderInt("##update_freq", &update_freq, 1, 120, "Update Frequency %d"))
 		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetPheromoneUpdateFrequency, .int_val = update_freq });
 
-	int  render_freq = FoodManagerSettings::pheromone_render_update_freq;
+	int  render_freq = FoodManagerSettings::pheromone_render_freq;
 	if (ImGui::SliderInt("##render_freq", &render_freq, 1, 120, "Render Frequency %d"))
 		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetPheromoneRenderFrequency, .int_val = render_freq });
 

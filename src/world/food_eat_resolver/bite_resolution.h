@@ -32,8 +32,10 @@ struct alignas(64) BiteResolution
 
 	void add(const Bite& b)
 	{
-		assert(size_ < static_cast<int>(bites_.size()) && "BiteResolution capacity exceeded");
-		bites_[size_++] = b;
+		if (size_ < static_cast<int>(bites_.size()))
+		{
+			bites_[size_++] = b;
+		}
 	}
 
 

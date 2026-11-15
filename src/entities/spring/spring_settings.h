@@ -14,6 +14,4 @@ struct SpringSettings
 	inline static float nutrients_transfer_loss;
 
 	inline static float stress_damage_const;
-
-	inline static float phase_sync_rate = 0.05f; // fraction of the phase gap each coupled pair closes per tick
 };

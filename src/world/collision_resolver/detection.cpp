@@ -122,14 +122,23 @@ void CollisionResolver::check_collisions_for_body(
 	Body* body = collision_bodies_->at(collision_body_id);
 	body->nearby_ids_size_ = 0;                       // rebuild the cache each detection pass
 
+	const sf::Vector2f pa = body->get_pos();
+	const float ra = body->get_radius();
+
 	for (int idx = 0; idx < limit; ++idx)
 	{
 		const BodyId id = nearby_ids.buffer[idx];
 		if (id <= collision_body_id) continue;
 
-		body2bodycollisiondetection(body, collision_bodies_->at(id), collision_vector);
+		const Body* other = collision_bodies_->at(id);
+		body2bodycollisiondetection(body, other, collision_vector);
 
-		if (body->nearby_ids_size_ < body->nearby_ids_.size())
+
+		// TODO skin
+
+		const float reach = ra + other->get_radius();// +skin;
+		if ((pa - other->get_pos()).lengthSquared() < reach * reach &&
+			body->nearby_ids_size_ < body->nearby_ids_.size())
 			body->nearby_ids_[body->nearby_ids_size_++] = id;
 	}
 }

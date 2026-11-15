@@ -42,7 +42,7 @@ void Tendon::sync_oscillators(Cell& cell_a, Cell& cell_b)
 {
 	phase_ = osc::wrap_two_pi(phase_ + genome.frequency);
 
-	const float rate = phase_sync_rate;
+	const float rate = genome.phase_sync_rate;
 	if (rate <= 0.f)
 		return;
 
@@ -128,10 +128,7 @@ float Tendon::calc_nutrient_send_amount(const NutrientFlow& flow, const float ra
 	if (space <= 0.0f)
 		return 0.0f;
 
-	// the sender must send enough that, after loss, the receiver doesn't exceed max_nutrients
-	const float max_by_space = space / (1.0f - nutrients_transfer_loss);
-
-	float amount = std::min({ rate, *flow.sender, max_by_space });
+	float amount = std::min({ rate, *flow.sender, space });
 	if (!flow.priority)
 		amount = std::min(amount, diff);   // gradient transfers never overshoot equilibrium
 	return amount;
@@ -147,7 +144,7 @@ void Tendon::transfer_nutrients(Cell& cell_a, Cell& cell_b)
 	const float send_amount = calc_nutrient_send_amount(flow, rate);
 
 	*flow.sender -= send_amount;
-	*flow.receiver += send_amount * (1.0f - nutrients_transfer_loss);
+	*flow.receiver += send_amount;
 }
 
 

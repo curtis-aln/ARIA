@@ -13,14 +13,16 @@ void FoodManager::update_food_item(Food* food)
 {
 	Body* body = bodies_->at(food->body_id_);
 	food->update();
-
-	body->apply_force(sf::Vector2f{ food->vibration_x, food->vibration_y });
-	
-	float new_mass = std::max(food->calculate_food_mass(), 0.1f);
-	body->set_mass(new_mass);
+	food->vibrate_food(body);
 
 	if (food->age % radius_update_interval == 0)
+	{
+		float new_mass = std::max(food->calculate_food_mass(), 0.1f);
+		body->set_mass(new_mass);
 		body->set_radius();
+	}
+
+	food->update_food_nutrients();
 
 	body->apply_drag(kDragLinearCoeff);
 }
@@ -73,7 +75,11 @@ void FoodManager::create_food_pool(unsigned amount, WorldBorder* spawn_area)
 		sf::Vector2f pos = spawn_bounds->rand_pos();
 		FoodBodyPair food_body_pair = create_food_body_pair(pos);
 
+		if (!food_body_pair.is_valid())
+			return;
+
 		Food* food = food_vector.at(food_body_pair.food_id);
+		
 		food->age = Random::rand_range(0, age_variation);
 		food->fully_grown_age = food->age + Food::nutrient_development_time;
 	}

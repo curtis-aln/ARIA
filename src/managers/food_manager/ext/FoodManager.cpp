@@ -102,8 +102,11 @@ void FoodManager::update_position_data(RenderData& food_data, int iterations)
 	// update_position_data: no modulo, no texture copy
 	if (toggles_.render_pheromone_grid)
 	{
-		pheromone_grid.render();                                  // no-op unless step() ran
-		food_data.pheromone_texture = pheromone_grid.get_texture();
+		if (iterations % pheromone_render_freq == 0) // only update the texture every N frames
+		{
+			pheromone_grid.render(); 
+			food_data.pheromone_texture = pheromone_grid.get_texture();
+		}
 	}
 
 	for (Food* food : food_vector)
@@ -225,7 +228,7 @@ void FoodManager::handle_food_manager_event(SimCommand& cmd)
 		break;
 
 	case  CommandType::SetPheromoneRenderFrequency:
-		FoodManagerSettings::pheromone_render_update_freq = cmd.int_val;
+		FoodManagerSettings::pheromone_render_freq = cmd.int_val;
 		break;
 	}
 }

@@ -101,7 +101,7 @@ public:
 
 private:
 	// Private Utility
-	[[nodiscard]] FoodBodyPair create_food_body_pair(const sf::Vector2f& position);
+	[[nodiscard]] FoodBodyPair create_food_body_pair(const sf::Vector2f& position = sf::Vector2f(0.f, 0.f));
 
 	// Updating
 	void  update_food();

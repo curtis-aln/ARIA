@@ -21,7 +21,6 @@ struct FoodManagerSettings
 	inline static float food_random_spawn_chance;
 
 	inline static float spawn_proportionality_constant; // range between [0.001, 0.01]
-	inline static float food_spawn_distance;
 
 	inline static float death_age_chance; // every frame past its death age gives it this chance of dying
 	
@@ -31,7 +30,7 @@ struct FoodManagerSettings
 	inline static float food_launch_chance;
 
 	inline static int pheromone_update_freq = 60;
-	inline static int pheromone_render_update_freq = 30;
+	inline static int pheromone_render_freq = 30;
 
 	// drag
 	inline static constexpr float kDragLinearCoeff = 0.02f; // linear drag coefficient

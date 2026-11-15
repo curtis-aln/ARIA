@@ -124,6 +124,7 @@ struct TendonGeneticConstraints
 	inline static constexpr Range spring_const = { 0.f,          5.f };
 	inline static constexpr Range damping = { 0.f,          1.f };
 	inline static constexpr Range nutrient_transfer_rate = { -1.f,          1.f };
+	inline static constexpr Range phase_sync_rate = { 0.f,          1.f };
 };
 
 struct TendonInitialSpawnRanges
@@ -137,6 +138,8 @@ struct TendonInitialSpawnRanges
 	inline static constexpr Range damping = { 0.01f, 0.1f };
 
 	inline static constexpr Range nutrient_transfer_rate = { -0.1f, 0.5f };
+
+	inline static constexpr Range phase_sync_rate = {0.00, 0.1};
 };
 
 struct TendonGenome : GenomeBase
@@ -144,6 +147,8 @@ struct TendonGenome : GenomeBase
 	float amplitude, frequency, offset, vertical_shift;
 	float nutrient_transfer_rate;
 	float spring_const, damping;
+
+	float phase_sync_rate;
 
 	TendonGenome() { randomize(); };
 
@@ -162,6 +167,7 @@ struct TendonGenome : GenomeBase
 		rand_in_range(damping, Limit::damping);
 
 		rand_in_range(nutrient_transfer_rate, Limit::nutrient_transfer_rate);
+		rand_in_range(phase_sync_rate, Limit::phase_sync_rate);
 	}
 
 	void mutate(float range = 0.f)
@@ -180,6 +186,8 @@ struct TendonGenome : GenomeBase
 		spring_const = maybe_mutate_gaussian(spring_const, C.spring_const, range, guassian_const);
 		damping = maybe_mutate_gaussian(damping, C.damping, range, guassian_const);
 
+		phase_sync_rate = maybe_mutate_gaussian(phase_sync_rate, C.phase_sync_rate, range, guassian_const);
+
 		mutate_meta();
 	}
 
@@ -193,6 +201,7 @@ struct TendonGenome : GenomeBase
 		spring_const = parent.spring_const;
 		damping = parent.damping;
 
+		phase_sync_rate = parent.phase_sync_rate;
 		nutrient_transfer_rate = parent.nutrient_transfer_rate;
 
 		guassian_const = parent.guassian_const;
@@ -226,6 +235,8 @@ struct TendonGenome : GenomeBase
 
 		outer_r = midc(a.outer_r, b.outer_r); outer_g = midc(a.outer_g, b.outer_g); outer_b = midc(a.outer_b, b.outer_b);
 		inner_r = midc(a.inner_r, b.inner_r); inner_g = midc(a.inner_g, b.inner_g); inner_b = midc(a.inner_b, b.inner_b);
+
+		phase_sync_rate = mid(a.phase_sync_rate, b.phase_sync_rate);
 	}
 };
 

@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 This class handles the resolution of cels trying to eat food. it is very optimized and this is the process it follows
 Firstly All the food are appended to a spatial grid, to allow us to access nearby food from the cell positions.
@@ -72,7 +70,7 @@ class FoodEatResolver : private FoodResolutionSettings
 		{
 			const int food_id = food_ids[i];
 			Food* food = food_vector_->at(food_id);
-			if (!food->active || food->nutrients <= 0.f)
+			if (!food || !food->active || food->nutrients <= 0.f)
 				continue;
 
 			Body* food_body = body_vector_->at(food->body_id_);
@@ -176,7 +174,7 @@ public:
 	void resolve(const int iterations)
 	{
 		constexpr int food_resolution_interval = 30; // how often to resolve food bites, in iterations
-		if (iterations % 30 != 0)
+		if (iterations % food_resolution_interval != 0)
 		{
 			resolve_existing_detections();
 			return;

@@ -99,7 +99,6 @@ static void load_food_manager_settings(toml::table& tbl)
 	REQUIRE(FoodManagerSettings::food_random_spawn_per_frame, tbl["food_manager"]["food_random_spawn_per_frame"]);
 	REQUIRE(FoodManagerSettings::food_random_spawn_chance, tbl["food_manager"]["food_random_spawn_chance"]);
 	REQUIRE(FoodManagerSettings::spawn_proportionality_constant, tbl["food_manager"]["spawn_proportionality_constant"]);
-	REQUIRE(FoodManagerSettings::food_spawn_distance, tbl["food_manager"]["food_spawn_distance"]);
 	REQUIRE(FoodManagerSettings::death_age_chance, tbl["food_manager"]["death_age_chance"]);
 	REQUIRE(FoodManagerSettings::fade_start_nutrients, tbl["food_manager"]["fade_start_nutrients"]);
 	REQUIRE(FoodManagerSettings::food_launch_strength, tbl["food_manager"]["food_launch_strength"]);
@@ -118,6 +117,7 @@ static void load_food_settings(toml::table& tbl)
 	REQUIRE(FoodSettings::death_age, tbl["food"]["death_age"]);
 	REQUIRE(FoodSettings::nutrients_to_mass_scale, tbl["food"]["nutrients_to_mass_scale"]);
 	REQUIRE(FoodSettings::vibration_strength, tbl["food"]["vibration_strength"]);
+    REQUIRE(FoodSettings::food_offspring_spawn_distance, tbl["food"]["food_offspring_spawn_distance"]);
 }
 
 void load_settings(const std::string& path)
