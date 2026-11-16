@@ -58,6 +58,8 @@ struct WorldToggles
 	bool  mouse_rem_food = false;
 
 	bool show_influence_radius = false; // whether to show the influence radius of the mouse tool
+
+	bool draw_world_border = true; // whether to render the circular world border
 };
 
 struct CellManagerToggles

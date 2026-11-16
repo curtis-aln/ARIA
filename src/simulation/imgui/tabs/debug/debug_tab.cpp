@@ -32,6 +32,9 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	if (ImGui::Checkbox("show grid", &ctx.cell_toggles.show_newborn_grid))
 		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetCellToggles, .cell_toggles = ctx.cell_toggles });
 
+	if (ImGui::Checkbox("show border", &ctx.world_toggles.draw_world_border))
+		ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .world_toggles = ctx.world_toggles });
+
 
 	ImGui::EndChild();
 

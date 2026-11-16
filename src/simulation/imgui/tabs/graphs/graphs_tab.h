@@ -15,7 +15,7 @@ private:
     
     static constexpr float k_scroll_window_min = 900.f;      // ~15s @ 60fps
     static constexpr float k_scroll_window_max = 1000000.f; 
-    float m_scroll_window_ = 9000.f;                        
+    float m_scroll_window_ = 40000.f;                        
     bool  m_recording_ = false;
     float m_record_start_ = 0.f;
 

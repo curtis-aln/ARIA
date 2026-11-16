@@ -7,7 +7,7 @@ struct PostFxSettings
 {
 	// Depth of field
 	inline static bool  focus_enabled = true;
-	inline static float focus_strength = 1.f;   // 0..2 multiplier on blur
+	inline static float focus_strength = 2.f;   // 0..2 multiplier on blur
 	inline static float focus_radius = 0.25f; // 0..0.9 of centre-to-corner that stays sharp
 	inline static float focus_max_blur_px = 6.f;    // blur radius at the corners, at 1080p
 	inline static bool  focus_tie_zoom = true;   // zoomed in = shallower DoF

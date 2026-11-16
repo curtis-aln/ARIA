@@ -88,7 +88,7 @@ private:
 	void init_world_border_renderer(const WorldBorder& circular_bounds);
 	void init_influence_renderer();
 
-	void render_world_border();
+	void render_world_border(const SimSnapshot& snapshot);
 	void render_pheromone_grid(const SimSnapshot& snapshot);
 	void render_visual_grid(const SimSnapshot& snapshot);
 	void render_spatial_grids(const SimSnapshot& snapshot, const sf::Vector2f mouse_pos);

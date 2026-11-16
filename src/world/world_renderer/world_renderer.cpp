@@ -91,16 +91,17 @@ void WorldRenderer::render(const SimSnapshot& snapshot, const sf::Vector2f mouse
 	
 	render_influence_radii(snapshot);          // renders a circle around the mouse to show its influence radius when adding or removing entities
 
-	render_world_border();                     // renders the circular world border
+	render_world_border(snapshot);             // renders the circular world border
 }
 
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  World, grids, pheromones, mouse
 // ─────────────────────────────────────────────────────────────────────────────
-void WorldRenderer::render_world_border()
+void WorldRenderer::render_world_border(const SimSnapshot& snapshot)
 {
-	m_window_->draw(world_border_renderer_);  // the glowing border ring, now sitting on a solid backdrop
+	if (snapshot.world_toggles.draw_world_border)
+		m_window_->draw(world_border_renderer_);  // the border ring
 }
 
 void WorldRenderer::render_pheromone_grid(const SimSnapshot& snapshot)

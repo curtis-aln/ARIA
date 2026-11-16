@@ -29,8 +29,8 @@ struct FoodManagerSettings
 	inline static float food_launch_strength;
 	inline static float food_launch_chance;
 
-	inline static int pheromone_update_freq = 60;
-	inline static int pheromone_render_freq = 30;
+	inline static int pheromone_update_freq = 5;
+	inline static int pheromone_render_freq = 5;
 
 	// drag
 	inline static constexpr float kDragLinearCoeff = 0.02f; // linear drag coefficient
