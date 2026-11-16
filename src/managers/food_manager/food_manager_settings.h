@@ -33,7 +33,10 @@ struct FoodManagerSettings
 	inline static int pheromone_render_freq = 5;
 
 	// drag
-	inline static constexpr float kDragLinearCoeff = 0.02f; // linear drag coefficient
+	inline static float kDragLinearCoeff = 0.02f; // linear drag coefficient
 
 	inline static constexpr int radius_update_interval = 60; // update radius every N frames
+
+	inline static int vibration_frequency = 160; // how many iterations between vibrations
+	inline static float vibration_strength;
 };

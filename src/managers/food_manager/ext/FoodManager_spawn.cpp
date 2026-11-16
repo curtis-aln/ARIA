@@ -15,9 +15,9 @@ void FoodManager::spawn_random_food()
 	if (!toggles_.spawn_random_food)
 		return;
 
-	for (int i = 0; i < FoodManagerSettings::food_random_spawn_per_frame; ++i)
+	for (int i = 0; i < food_random_spawn_per_frame; ++i)
 	{
-		if (Random::rand01_float() < FoodManagerSettings::food_random_spawn_chance)
+		if (Random::rand01_float() < food_random_spawn_chance)
 			create_food_pool(1, world_bounds_);
 	}
 }
@@ -55,10 +55,14 @@ void FoodManager::reproduce_food(Food* parent_food)
 	if (pair.is_valid() == false)
 		return;
 
+	bool launch_child = toggles_.food_launch_offspring && Random::rand01_float() < food_launch_chance;
+
+
 	parent_food->reproduce(
 		bodies_->at(parent_food->body_id_),
 		food_vector.at(pair.food_id),
-		bodies_->at(pair.body_id));
+		bodies_->at(pair.body_id),
+		launch_child, food_launch_strength);
 }
 
 

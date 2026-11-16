@@ -48,6 +48,89 @@ void FoodTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		ImGui::Unindent();
 	}
 
+	// Food vibration
+	if (ImGui::Checkbox("food vibration", &ctx.food_toggles.food_vibration))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetFoodToggles, .food_toggles = ctx.food_toggles });
+
+	if (ctx.food_toggles.food_vibration)
+	{
+		ImGui::Indent();
+		float vibration_strength = FoodManagerSettings::vibration_strength;
+		if (ImGui::SliderFloat("##vibration_strength", &vibration_strength, 0.f, 400.f, "vibration strength %.1f"))
+			ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetVibrationStrength, .float_val = vibration_strength });
+		
+		int vibration_freq = FoodManagerSettings::vibration_frequency;
+		if (ImGui::SliderInt("##vibration_frequency", &vibration_freq, 1, 250, "vibrate every N %d"))
+			ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetVibrationFrequency, .int_val = vibration_freq });
+		ImGui::Unindent();
+	}
+
+	// Food launch offspring & Launch chance & strength
+	if (ImGui::Checkbox("food launch offspring", &ctx.food_toggles.food_launch_offspring))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetFoodToggles, .food_toggles = ctx.food_toggles });
+
+	if (ctx.food_toggles.food_launch_offspring)
+	{
+		ImGui::Indent();
+		float launch_strength = FoodManagerSettings::food_launch_strength;
+		if (ImGui::SliderFloat("##launch_strength", &launch_strength, 0.f, 2000.f, "launch strength %.1f"))
+			ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetLaunchStrength, .float_val = launch_strength });
+
+		float launch_chance = FoodManagerSettings::food_launch_chance * 100;
+		if (ImGui::SliderFloat("##launch_chance", &launch_chance, 0.f, 100.f, "launch chance %.0f%%"))
+			ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetLaunchChance, .float_val = launch_chance / 100});
+		ImGui::Unindent();
+	}
+
+	// Death age and Death chance per iteration sliders
+	int death_age = FoodSettings::death_age;
+	if (ImGui::SliderInt("##death_age", &death_age, 0, 10000, "death age %d"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetFoodDeathAge, .int_val = death_age });
+
+	float death_chance = FoodManagerSettings::death_age_chance * 100;
+	if (ImGui::SliderFloat("##death_chance", &death_chance, 0.f, 5.f, "death chance %.2f%%"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetFoodDeathChance, .float_val = death_chance / 100 });
+
+	// Max Food Count slider
+	int max_food_count = FoodManagerSettings::max_food;
+	if (ImGui::SliderInt("##max_food_count", &max_food_count, 1, 100000, "max food count %d"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetMaxFoodCount, .int_val = max_food_count });
+
+	// Nutrient Reproductive Threshold slider
+	float nutrient_repro_thresh = FoodSettings::nutrient_reproductive_threshold;
+	if (ImGui::SliderFloat("##nutrient_repro_thresh", &nutrient_repro_thresh, 0.f, 1.f, "nutrient repro thresh %.2f"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetNutrientReproThresh, .float_val = nutrient_repro_thresh });
+
+	// Development Time slider
+	int development_time = FoodSettings::nutrient_development_time;
+	if (ImGui::SliderInt("##development_time", &development_time, 0, 4000, "development time %d"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetDevelopmentTime, .int_val = development_time });
+
+	// Reproductive Cooldown slider
+	int repro_cooldown = FoodSettings::repro_cooldown;
+	if (ImGui::SliderInt("##repro_cooldown", &repro_cooldown, 0, 1000, "reproductive cooldown %d"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetReproCooldown, .int_val = repro_cooldown });
+
+	// Food Spawn Distance slider
+	float food_spawn_dist = FoodSettings::food_offspring_spawn_distance;
+	if (ImGui::SliderFloat("##food_spawn_dist", &food_spawn_dist, 0.f, 500.f, "food spawn distance %.1f"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetFoodSpawnDist, .float_val = food_spawn_dist });
+
+	// Nutrient to Radius slider
+	float nutrients_to_radius = FoodSettings::nutrients_to_mass_scale;
+	if (ImGui::SliderFloat("##nutrients_to_radius", &nutrients_to_radius, 0.f, 4.f, "nutrients to radius %.2f"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetNutrientToRadius, .float_val = nutrients_to_radius });
+
+	// Drag Coefficient slider
+	float drag_coefficient = FoodManagerSettings::kDragLinearCoeff;
+	if (ImGui::SliderFloat("##drag_coefficient", &drag_coefficient, 0.f, 0.1f, "drag coefficient %.3f"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetDragCoefficient, .float_val = drag_coefficient });
+
+	// Initial Nutrients slider
+	float initial_nutrients = FoodSettings::initial_nutrients;
+	if (ImGui::SliderFloat("##initial_nutrients", &initial_nutrients, 0.f, 300.f, "initial nutrients %.2f"))
+		ctx.push({ .section = CommandSection::FoodManagerEvent, .type = CommandType::SetInitialNutrients, .float_val = initial_nutrients });
+
 	ImGui::EndChild();
 	ImGui::SameLine();
 

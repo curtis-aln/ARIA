@@ -207,16 +207,16 @@ void FoodManager::handle_food_manager_event(SimCommand& cmd)
 		FoodManagerSettings::friction = cmd.float_val;
 		break;
 
-	case  CommandType::SetFoodVibrationStrength:
-		FoodSettings::vibration_strength = cmd.float_val;
-		break;
-
 	case CommandType::SetFoodReproductiveCooldown:
 		FoodSettings::repro_cooldown = static_cast<size_t>(cmd.float_val);
 		break;
 
 	case  CommandType::SetFoodDeathAge:
 		FoodSettings::death_age = cmd.float_val;
+		break;
+
+	case  CommandType::SetFoodDeathChance:
+		FoodManagerSettings::death_age_chance = cmd.float_val;
 		break;
 
 	case  CommandType::SetFoodReproductiveThreshold:
@@ -229,6 +229,54 @@ void FoodManager::handle_food_manager_event(SimCommand& cmd)
 
 	case  CommandType::SetPheromoneRenderFrequency:
 		FoodManagerSettings::pheromone_render_freq = cmd.int_val;
+		break;
+
+	case CommandType::SetVibrationStrength:
+		FoodManagerSettings::vibration_strength = cmd.float_val;
+		break;
+
+	case CommandType::SetVibrationFrequency:
+		FoodManagerSettings::vibration_frequency = cmd.int_val;
+		break;
+
+	case CommandType::SetLaunchStrength:
+		FoodManagerSettings::food_launch_strength = cmd.float_val;
+		break;
+
+	case CommandType::SetLaunchChance:
+		FoodManagerSettings::food_launch_chance = cmd.float_val;
+		break;
+
+	case CommandType::SetMaxFoodCount:
+		FoodManagerSettings::max_food = cmd.int_val;
+		break;
+
+	case CommandType::SetNutrientReproThresh:
+		FoodSettings::nutrient_reproductive_threshold = cmd.float_val;
+		break;
+
+	case CommandType::SetDevelopmentTime:
+		FoodSettings::nutrient_development_time = cmd.int_val;
+		break;
+
+	case CommandType::SetReproCooldown:
+		FoodSettings::repro_cooldown = cmd.int_val;
+		break;
+
+	case CommandType::SetFoodSpawnDist:
+		FoodSettings::food_offspring_spawn_distance = cmd.float_val;
+		break;
+
+	case CommandType::SetNutrientToRadius:
+		FoodSettings::nutrients_to_mass_scale = cmd.float_val;
+		break;
+
+	case CommandType::SetDragCoefficient:
+		FoodManagerSettings::kDragLinearCoeff = cmd.float_val;
+		break;
+
+	case CommandType::SetInitialNutrients:
+		FoodSettings::initial_nutrients = cmd.float_val;
 		break;
 	}
 }

@@ -103,6 +103,9 @@ static void load_food_manager_settings(toml::table& tbl)
 	REQUIRE(FoodManagerSettings::fade_start_nutrients, tbl["food_manager"]["fade_start_nutrients"]);
 	REQUIRE(FoodManagerSettings::food_launch_strength, tbl["food_manager"]["food_launch_strength"]);
 	REQUIRE(FoodManagerSettings::food_launch_chance, tbl["food_manager"]["food_launch_chance"]);
+
+    REQUIRE(FoodManagerSettings::vibration_strength, tbl["food_manager"]["vibration_strength"]);
+    REQUIRE(FoodManagerSettings::vibration_frequency, tbl["food_manager"]["vibration_frequency"]);
 }
 
 static void load_food_settings(toml::table& tbl)
@@ -113,10 +116,8 @@ static void load_food_settings(toml::table& tbl)
 	REQUIRE(FoodSettings::final_nutrients, tbl["food"]["final_nutrients"]);
 	REQUIRE(FoodSettings::nutrient_development_time, tbl["food"]["nutrient_development_time"]);
 	REQUIRE(FoodSettings::spawn_immunity, tbl["food"]["spawn_immunity"]);
-	REQUIRE(FoodSettings::vibrate_freq, tbl["food"]["vibrate_freq"]);
 	REQUIRE(FoodSettings::death_age, tbl["food"]["death_age"]);
 	REQUIRE(FoodSettings::nutrients_to_mass_scale, tbl["food"]["nutrients_to_mass_scale"]);
-	REQUIRE(FoodSettings::vibration_strength, tbl["food"]["vibration_strength"]);
     REQUIRE(FoodSettings::food_offspring_spawn_distance, tbl["food"]["food_offspring_spawn_distance"]);
 }
 

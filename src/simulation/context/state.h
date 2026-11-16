@@ -99,6 +99,10 @@ struct FoodToggles
 
 	bool update_pheromone_grid = false;
 	bool render_pheromone_grid = false;
+
+	bool food_vibration = true;
+
+	bool food_launch_offspring = true;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

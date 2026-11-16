@@ -111,10 +111,26 @@ enum class CommandType
 	SetMaxNutrients,
 	SetFoodNutrientsDevelopmentTime,
 	SetFoodFriction,
-	SetFoodVibrationStrength,
 	SetFoodReproductiveCooldown,
 	SetFoodDeathAge,
+	SetFoodDeathChance,
 	SetFoodReproductiveThreshold,
+
+	SetVibrationStrength,
+	SetVibrationFrequency,
+
+	SetLaunchStrength,
+	SetLaunchChance,
+
+	SetMaxFoodCount,
+	SetNutrientReproThresh,
+	SetDevelopmentTime,
+	SetReproCooldown,
+	SetFoodSpawnDist,
+	SetNutrientToRadius,
+
+	SetDragCoefficient,
+	SetInitialNutrients,
 };
 
 // Parameters for the MutateProtozoa command

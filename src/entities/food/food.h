@@ -78,7 +78,7 @@ struct Food : FoodSettings
 		return is_fully_grown && has_sufficient_nutrients && is_cooldown_over && !is_dying;
 	}
 
-	void reproduce(Body* this_body, Food* child, Body* child_body)
+	void reproduce(Body* this_body, Food* child, Body* child_body, bool launch_child=false, float launch_strength = 0.f)
 	{
 		const sf::Vector2f parent_pos = this_body->get_pos();
 
@@ -88,8 +88,8 @@ struct Food : FoodSettings
 		child_body->set_pos(Random::rand_pos_in_rect(spawn_rect));
 
 		// To spread, the child can sometimes be launched with a random velocity
-		if (Random::rand01_float() < FoodManagerSettings::food_launch_chance)
-			child_body->set_vel(Random::rand_vector(-FoodManagerSettings::food_launch_strength, FoodManagerSettings::food_launch_strength));
+		if (launch_child)
+			child_body->set_vel(Random::rand_vector(-launch_strength, launch_strength));
 
 
 		time_since_last_reproduced = 0;
@@ -120,17 +120,17 @@ struct Food : FoodSettings
 		}
 	}
 
-	void vibrate_food(Body* body)
+	void vibrate_food(Body* body, int freq, float strength)
 	{
-		if ((int)age % vibration_frequency != 0)
+		if ((int)age % freq != 0)
 			return;
 
 		const uint32_t bits = FastRandom::next_bits();
 
 		// 11 bits each for x and y, mapped to [-1, 1]
 		constexpr float inv = 2.f / 2047.f;
-		vibration_x = (static_cast<int32_t>((bits >> 11) & 0x7FF) * inv - 1.f) * vibration_strength;
-		vibration_y = (static_cast<int32_t>(bits & 0x7FF) * inv - 1.f) * vibration_strength;
+		vibration_x = (static_cast<int32_t>((bits >> 11) & 0x7FF) * inv - 1.f) * strength;
+		vibration_y = (static_cast<int32_t>(bits & 0x7FF) * inv - 1.f) * strength;
 
 		body->apply_force(sf::Vector2f{ vibration_x, vibration_y });
 	}

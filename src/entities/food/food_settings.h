@@ -24,7 +24,4 @@ struct FoodSettings
 	inline static sf::Vector3i food_lightest_color = { 80, 255, 100 };
 
 	inline static float nutrients_to_mass_scale; // radius = nutrients * this constant
-
-	inline static constexpr int vibration_frequency = 160; // how many iterations between vibrations
-	inline static float vibration_strength;
 };

@@ -13,7 +13,9 @@ void FoodManager::update_food_item(Food* food)
 {
 	Body* body = bodies_->at(food->body_id_);
 	food->update();
-	food->vibrate_food(body);
+
+	if (toggles_.food_vibration)
+		food->vibrate_food(body, vibration_frequency, vibration_strength);
 
 	if (food->age % radius_update_interval == 0)
 	{
