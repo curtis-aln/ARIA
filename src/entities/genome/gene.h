@@ -38,6 +38,8 @@ struct Gene
 			randomize();
 	}
 
+	const Range& limits() const { return phenotype_range_; }
+
 	// processes
 	void mutate()
 	{
@@ -77,6 +79,12 @@ struct Gene
 		mutation_strength_ = (mutation_strength_ + other.mutation_strength_) * 0.5f;
 	}
 
+	float distance(const Gene& other) const
+	{
+		float d = std::fabs(gene_val_ - other.gene_val_);
+		return wrap_ ? std::min(d, 1.f - d) : d;
+	}
+
 	void randomize()
 	{
 		gene_val_ = initial_range_.rand();
@@ -86,6 +94,13 @@ struct Gene
 	float phenotype() const
 	{
 		return phenotype_range_.min + gene_val_ * (phenotype_range_.max - phenotype_range_.min);
+	}
+
+	void set_phenotype(float p)
+	{
+		const float span = phenotype_range_.max - phenotype_range_.min;
+		const float t = span != 0.f ? (p - phenotype_range_.min) / span : 0.f;
+		gene_val_ = wrap_ ? wrap01(t) : std::clamp(t, 0.f, 1.f);   // out-of-range values clamp to the limits
 	}
 
 private:

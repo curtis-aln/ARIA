@@ -1,6 +1,6 @@
 #include "../world.h"
 
-#include "../../entities/cell/cell_genome.h"
+#include "../../entities/genome/cell_genome.h"
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
 #include <entities/food/food.h>

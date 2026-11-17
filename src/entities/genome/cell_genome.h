@@ -1,11 +1,12 @@
 #pragma once
 
 #include "genome_base.h"
+#include "../body/body.h"
 
 
 inline constexpr size_t CellExtraGenes = 17;
 
-class CellGenome : public GenomeBase<CellExtraGenes>, public HardConstants
+class CellGenome : public GenomeBase<CellExtraGenes>
 {
 public:
 	enum CellGene : size_t

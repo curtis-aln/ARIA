@@ -26,7 +26,7 @@ void Cell::recreate()
 	phase_ = 0.f;
 
 	// genome
-	generation = 0;
+	reset_generation();
 
 	// stats
 	internal_clock_ = 0;
@@ -102,24 +102,23 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 
 
 	// a fraction of the energy of the parent is given to the child
-	const float give = std::clamp(offspring_energy_to_give, 0.1f, 0.9f);
+	const float give = std::clamp(get<OffspringEnergyToGive>(), 0.1f, 0.9f);
 	const float total_energy = energy;
 	energy = total_energy * (1.f - give);
 	child->energy = total_energy * give;
 
 	// Finally the genetics, we copy the cell and tendon genetics and only mutate them if permissable
-	child->copy_genetics(*this, child_body);
-	child->tendon_genome.copy_genetics(tendon_genome);
+	child->copy(*this);
+	child->tendon_genome.copy(tendon_genome);
 
 	if (mutate)
 	{
-		child->mutate(child_body);
+		child->mutate();
 		child->tendon_genome.mutate();
 	}
 
 	// The mass is an evolutionary paramater that needs to be told to the body
-	child_body->set_mass(child->mass);
-	child_body->set_radius();
+	child->apply_to_body(child_body);
 
 	child->phase_ = phase_; // newborn starts in step with its parent
 }
@@ -144,8 +143,8 @@ void Cell::turn_off_reproduction()
 
 [[nodiscard]] float Cell::calculate_sin_output() const
 {
-	const float sin_value = fast_sin(phase_ + offset); // [-1, 1]
-	const float ratio = vertical_shift + amplitude * sin_value;     // [vs-a, vs+a]
+	const float sin_value = fast_sin(phase_ + get<Offset>()); // [-1, 1]
+	const float ratio = get<VerticalShift>() + get<Amplitude>() * sin_value;     // [vs-a, vs+a]
 	const float clamped = std::clamp(ratio, 0.f, 1.f); // keeping the output between 0 and 1, so that the drag coefficient is always valid
 
 	return clamped;
@@ -155,7 +154,7 @@ bool Cell::should_try_connect_to_others() const
 {
 	bool is_newborn = internal_clock_ < infant_time;
 	bool is_check_frame = internal_clock_ % infant_check_interval == 0;
-	bool is_first_gen = get_generation() == 0;
+	bool is_first_gen = generation() == 0;
 	bool can_have_more_connections = new_connections_made < TendonLinks::max_connections;
 
 	return is_newborn && is_check_frame && !is_first_gen && can_have_more_connections && seek_newborn_links_;
@@ -175,7 +174,7 @@ float Cell::drag_coeff() const
 
 void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_death)
 {
-	phase_ = osc::wrap_two_pi(phase_ + frequency);
+	phase_ = osc::wrap_two_pi(phase_ + get<Frequency>());
 	sinwave_current_value_ = calculate_sin_output();
 	cell_calculated_drag_ = drag_coeff();
 

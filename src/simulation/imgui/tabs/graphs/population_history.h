@@ -17,8 +17,7 @@ struct PopulationEvent
 // ── Misc per-frame averages ───────────────────────────────────────────────────
 struct MiscSeries
 {
-    std::vector<float> mut_rate = {};
-    std::vector<float> mut_range = {};
+    std::vector<float> mut_strength = {};
     std::vector<float> avg_offspring = {};
     std::vector<float> avg_lifetime = {};
     std::vector<float> avg_cells = {};
@@ -26,12 +25,12 @@ struct MiscSeries
     std::vector<float> avg_energy = {};
 
 
-    void push(float mutation_rate, float mutation_range, float avg_offspring_count,
+
+    void push(float mutation_strength, float avg_offspring_count,
         float avg_lifetime_frames, float avg_cell_count, float avg_spring_count,
         float avg_energy_level)
     {
-        mut_rate.push_back(mutation_rate);
-        mut_range.push_back(mutation_range);
+        mut_strength.push_back(mutation_strength);
         avg_offspring.push_back(avg_offspring_count);
         avg_lifetime.push_back(avg_lifetime_frames);
         avg_cells.push_back(avg_cell_count);
@@ -47,11 +46,11 @@ struct MiscSeries
                 if (v.size() >= n) v.erase(v.begin(), v.begin() + static_cast<ptrdiff_t>(n));
                 else               v.clear();
             };
-        drop(mut_rate); drop(mut_range); drop(avg_offspring);
+        drop(mut_strength); drop(avg_offspring);
         drop(avg_lifetime); drop(avg_cells); drop(avg_springs); drop(avg_energy);
     }
 
-    size_t size() const { return mut_rate.size(); }
+    size_t size() const { return mut_strength.size(); }
 };
 
 // ── Main history ring ─────────────────────────────────────────────────────────
@@ -92,7 +91,7 @@ struct PopulationHistory
     // drift out of index-alignment with each other or with `time`.
     // Returns true if a sample was actually recorded this call.
     bool push(int protozoa_count, int food_count, const std::vector<float>& generations,
-        float mutation_rate, float mutation_range, float avg_offspring,
+        float mutation_strength, float avg_offspring,
         float avg_lifetime, float avg_cells, float avg_springs, float avg_energy,
         float total_cell_matter, float total_springs)
     {
@@ -129,7 +128,7 @@ struct PopulationHistory
 
         cell_matter.push_back(total_cell_matter);
         springs.push_back(total_springs);
-        misc.push(mutation_rate, mutation_range, avg_offspring, avg_lifetime,
+        misc.push(mutation_strength, avg_offspring, avg_lifetime,
             avg_cells, avg_springs, avg_energy);
 
         if (!on_cooldown && delta > k_spike_delta)
@@ -196,7 +195,7 @@ struct PopulationHistory
     {
         std::ofstream f(path);
         f << "frame,protozoa,food,total,avg_gen,cell_matter,springs,"
-            "mut_rate,mut_range,avg_offspring,avg_lifetime,"
+            "mut_strength,mut_range,avg_offspring,avg_lifetime,"
             "avg_cells,avg_springs,avg_energy\n";
         // ...
         
@@ -207,7 +206,7 @@ struct PopulationHistory
             f << time[i] << ',' << protozoa[i] << ',' << food[i] << ','
                 << total[i] << ',' << avg_gen[i] << ',' << cell_matter[i] << ',' << springs[i];
             if (i < misc_n)
-                f << ',' << misc.mut_rate[i] << ',' << misc.mut_range[i]
+                f << ',' << misc.mut_strength[i] << ','
                 << ',' << misc.avg_offspring[i] << ',' << misc.avg_lifetime[i]
                 << ',' << misc.avg_cells[i] << ',' << misc.avg_springs[i]
                 << ',' << misc.avg_energy[i];

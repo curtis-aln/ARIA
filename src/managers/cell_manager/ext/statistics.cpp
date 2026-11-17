@@ -42,7 +42,7 @@ const std::vector<float>& CellManager::get_generation_distribution()
 	distribution_.clear();
 
 	for (const Cell* cell : all_cells_)
-		distribution_.push_back(static_cast<float>(cell->get_generation()));
+		distribution_.push_back(static_cast<float>(cell->generation()));
 
 	return distribution_;
 }
@@ -87,30 +87,32 @@ void CellManager::update_statistics()
 
 	// resetting averages
 	statistics_.average_offspring_count = 0.f;
-	statistics_.average_mutation_rate = 0.f;
-	statistics_.average_mutation_range = 0.f;
+	statistics_.average_mutation_strength = 0.f;
 	statistics_.average_energy = 0.f;
 	statistics_.average_generation = 0.f;
 
 	// collecting data
 	for (Cell* cell : all_cells_)
 	{
-		statistics_.average_mutation_rate += cell->guassian_const;
-		statistics_.average_mutation_range += cell->mutation_range;
+		statistics_.average_mutation_strength +=
+			cell->mean_mutation_strength(CellGenome::Mass, CellGenome::CellGeneEnd);
 		statistics_.average_offspring_count += cell->offspring_count;
 		statistics_.average_energy += cell->get_energy();
-		statistics_.average_generation += cell->get_generation();
+		statistics_.average_generation += cell->generation();
 
-		statistics_.highest_generation_ever = std::max(cell->get_generation(), statistics_.highest_generation_ever);
+		statistics_.highest_generation_ever = std::max(cell->generation(), statistics_.highest_generation_ever);
 		statistics_.most_offspring_ever = std::max(static_cast<int>(cell->offspring_count), statistics_.most_offspring_ever);
 	}
 
 	// calculating averages
-	statistics_.average_offspring_count /= count;
-	statistics_.average_mutation_rate /= count;
-	statistics_.average_mutation_range /= count;
-	statistics_.average_energy /= count;
-	statistics_.average_generation /= count;
+	if (count > 0)
+	{
+		const float inv = 1.f / static_cast<float>(count);
+		statistics_.average_offspring_count *= inv;
+		statistics_.average_mutation_strength *= inv;
+		statistics_.average_energy *= inv;
+		statistics_.average_generation *= inv;
+	}
 
 
 

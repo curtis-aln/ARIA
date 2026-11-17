@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
-#include <entities/cell/cell_genome.h>
+#include <entities/genome/cell_genome.h>
 #include <entities/cell/cell_settings.h>
 #include <imgui.h>
 #include <SFML/System/Vector2.hpp>
@@ -13,9 +13,16 @@
 
 void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body& body)
 {
-	const int period = safe_time_period(c.frequency, k_max_wave_buf);
+	using G = CellGenome;
+
+	const float frequency = c.get<G::Frequency>();
+	const float amplitude = c.get<G::Amplitude>();
+	const float vertical_shift = c.get<G::VerticalShift>();
+	const float offset = c.get<G::Offset>();
+
+	const int period = safe_time_period(frequency, k_max_wave_buf);
 	float wave_min, wave_max;
-	wave_range(c.amplitude, c.vertical_shift, 0.f, 1.f, wave_min, wave_max);
+	wave_range(amplitude, vertical_shift, 0.f, 1.f, wave_min, wave_max);
 
 	const float current_friction = c.calculate_sin_output();
 
@@ -41,13 +48,18 @@ void OrganismTab::draw_cell_detail(ImGuiContext& ctx, const Cell& c, const Body&
 	ImGui::SameLine();
 
 	// ── Sin wave ───────────────────────────────────────────────────────────
+	const Range amp_lim = c.limits<G::Amplitude>();
+	const Range freq_lim = c.limits<G::Frequency>();
+	const Range offset_lim = c.limits<G::Offset>();
+	const Range shift_lim = c.limits<G::VerticalShift>();
+
 	draw_wave_panel(ctx, "CL_wave",
 		"Friction  amplitude * sin(frequency * t + phase) + shift",
 		static_cast<double>(c.internal_clock_), c.body_id_, "Friction", current_friction, friction_wave_col,
-		{ c.amplitude,      CellGeneticConstraints::amplitude.min,      CellGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetAmplitude },
-		{ c.frequency,      CellGeneticConstraints::frequency.min,      CellGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetFrequency },
-		{ c.offset,         CellGeneticConstraints::offset.min,         CellGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetOffset },
-		{ c.vertical_shift, CellGeneticConstraints::vertical_shift.min, CellGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetVerticalShift });
+		{ amplitude,      amp_lim.min,    amp_lim.max,    "Amplitude = %.3f", CommandType::SetAmplitude },
+		{ frequency,      freq_lim.min,   freq_lim.max,   "Frequency = %.5f", CommandType::SetFrequency },
+		{ offset,         offset_lim.min, offset_lim.max, "Phase     = %.3f", CommandType::SetOffset },
+		{ vertical_shift, shift_lim.min,  shift_lim.max,  "Shift     = %.3f", CommandType::SetVerticalShift });
 }
 
 // ── Cell detail: "Cell" sub-tab — biology / genetics ────────────────────────
@@ -57,11 +69,11 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 	if (c.immortal_)
 		ImGui::TextColored({ 0.3f, 0.8f, 0.3f, 1.f }, "Immortal");
 
-	ImGui::Text("Absolute id %u  Gen %u", c.id_, c.get_generation());
+	ImGui::Text("Absolute id %u  Gen %u", c.id_, c.generation());
 	ImGui::Text("age %u fr", c.internal_clock_);
 	ImGui::Text("Period   %d fr", period);
 	ImGui::Text("Fric     min %.3f  max %.3f", wave_min, wave_max);
-	ImGui::Text("Mut R    %.4f  Rng %.4f", c.guassian_const, c.mutation_range);
+	ImGui::Text("Mut Strength    %.4f", c.mean_mutation_strength());
 	ImGui::Text("Ate      %u  (%u fr ago)", static_cast<unsigned>(c.total_food_eaten_), static_cast<unsigned>(c.time_since_last_ate_));
 	ImGui::Text("Offspring so far: %d", static_cast<int>(c.offspring_count));
 
@@ -126,7 +138,9 @@ void OrganismTab::draw_cell_detail_body_tab(ImGuiContext& ctx, const Cell& c, co
 
 	ImGui::Spacing();
 	ImGui::SetNextItemWidth(-1.f);
+	const Range& mass_lim = c.limits<CellGenome::Mass>();
+
 	slider_float_cmd(ctx, "##mass", mass,
-		CellGeneticConstraints::mass.min, CellGeneticConstraints::mass.max,
+		mass_lim.min, mass_lim.max,
 		"Mass = %.1f", CommandSection::CellManagerEvent, CommandType::SetRadius);
 }

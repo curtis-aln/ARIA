@@ -149,7 +149,7 @@ bool CellManager::can_protozoa_reproduce(const cell_idx start_id, FixedSpan<cell
 		if (current_cell.should_reproduce())
 			++ready;                                   // was: return blocked("cell not ready")
 
-		quorum_sum += current_cell.quorum_fraction;
+		quorum_sum += current_cell.get<CellGenome::QuorumFraction>();
 
 		const TendonLinks& links = current_cell.tendon_links_;
 		for (uint32_t link = 0; link < links.size_; ++link)
@@ -259,7 +259,7 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 		if (cell == nullptr)
 			continue;
 
-		if (Random::rand01_float() < cell->add_cell_chance)
+		if (Random::rand01_float() < cell->get<CellGenome::AddCellChance>())
 		{
 			create_weak_offspring(id);
 			cell = fetch();           // re-fetch: the container may have moved
@@ -267,16 +267,16 @@ void CellManager::apply_structural_mutations(std::array<cell_idx, max_protozoa_c
 				continue;
 		}
 
-		if (Random::rand01_float() < cell->add_tendon_chance)
+		if (Random::rand01_float() < cell->get<CellGenome::AddTendonChance>())
 			add_tendon_mutation(cell_ids, cell_count, cell);
 
-		if (Random::rand01_float() < cell->remove_cell_chance)
+		if (Random::rand01_float() < cell->get<CellGenome::RemoveCellChance>())
 		{
 			cell->kill();
 			continue;                 // a dying cell shouldn't also lose a spring
 		}
 
-		if (Random::rand01_float() < cell->remove_tendon_chance)
+		if (Random::rand01_float() < cell->get<CellGenome::RemoveTendonChance>())
 		{
 			auto& links = cell->tendon_links_;
 			if (links.size_ == 0)

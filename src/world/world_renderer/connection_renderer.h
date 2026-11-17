@@ -35,7 +35,7 @@ struct Connection
 	sf::Vector2f pos_a;
 	sf::Vector2f pos_b;
 
-	uint8_t col_r, col_g, col_b;
+	sf::Color col;
 
 	float min_dist;
 	float max_dist;
@@ -132,12 +132,13 @@ private:
 		const float t = distance_ratio(dist, conn.min_dist, conn.max_dist);
 		const float thickness = ConnectionSettings::min_thickness +
 			(ConnectionSettings::max_thickness - ConnectionSettings::min_thickness) * (1.f - t);
-		sf::Color color = { conn.col_r, conn.col_g, conn.col_b, 155 };
 		//const sf::Color color = lerp_color(ConnectionSettings::min_color, ConnectionSettings::max_color, conn.tension);
 		sf::Vector2f normal{ 0.f, 0.f };
 		if (dist > 0.0001f)
 			normal = { -diff.y / dist, diff.x / dist };
-		return { thickness, color, normal };
+		sf::Color col = conn.col;
+		
+		return { thickness, conn.col, normal };
 	}
 
 	void build_body(const Connection& conn, const RenderInfo& info, size_t& vertex_index)

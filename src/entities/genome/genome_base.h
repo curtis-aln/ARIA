@@ -26,6 +26,12 @@ inline Gene make_gene(const GeneDef& d)
 	return Gene{ d.limits, initial, d.wrap, true };
 }
 
+namespace GenomeBaseSettings
+{
+	inline constexpr uint8_t outer_transparency = 150;
+	inline constexpr uint8_t inner_transparency = 125;
+}
+
 template <size_t ExtraGenes = 0>
 class GenomeBase
 {
@@ -51,6 +57,8 @@ public:
 		}
 		increment_generation();
 	}
+
+	void reset_generation() { generation_ = 0; }
 
 	void increment_generation() { ++generation_; }
 
@@ -92,6 +100,78 @@ public:
 		return phenotypes_[I];
 	}
 
+	template <size_t I>
+	void set(float phenotype_value)
+	{
+		static_assert(I < gene_count, "gene index out of range");
+		genes_[I].set_phenotype(phenotype_value);
+		compile_phenotypes();
+	}
+
+	// Several at once, rebuilds the cache only once
+	void set_phenotypes(std::initializer_list<std::pair<size_t, float>> values)
+	{
+		for (const auto& [index, value] : values)
+		{
+			assert(index < gene_count);
+			genes_[index].set_phenotype(value);
+		}
+		compile_phenotypes();
+	}
+
+	Range limits(size_t i) const
+	{
+		assert(i < gene_count);
+		return genes_[i].limits();
+	}
+
+	template <size_t I>
+	Range limits() const
+	{
+		static_assert(I < gene_count, "gene index out of range");
+		return genes_[I].limits();
+	}
+
+	float gene_value(size_t i) const
+	{
+		assert(i < gene_count);
+		return genes_[i].gene_val_;
+	}
+
+	float gene_mutation_strength(size_t i) const
+	{
+		assert(i < gene_count);
+		return genes_[i].mutation_strength_;
+	}
+
+	// Average sigma across all genes: how fast this genome is currently evolving
+	float mean_mutation_strength() const
+	{
+		float sum = 0.f;
+		for (const auto& g : genes_)
+			sum += g.mutation_strength_;
+		return sum / static_cast<float>(gene_count);
+	}
+
+	// Same, but only over a gene index range [first, last), e.g. skip the colour genes
+	float mean_mutation_strength(size_t first, size_t last) const
+	{
+		assert(first < last && last <= gene_count);
+		float sum = 0.f;
+		for (size_t i = first; i < last; ++i)
+			sum += genes_[i].mutation_strength_;
+		return sum / static_cast<float>(last - first);
+	}
+
+	// Mean per-gene distance to another genome, 0 = identical. Useful for diversity or relatedness
+	float distance(const GenomeBase& other) const
+	{
+		float sum = 0.f;
+		for (size_t i = 0; i < gene_count; ++i)
+			sum += genes_[i].distance(other.genes_[i]);
+		return sum / static_cast<float>(gene_count);
+	}
+
 protected:
 	// Derived classes pass in the genes they add on top of the shared colour genes
 	explicit GenomeBase(const std::array<Gene, ExtraGenes>& extra_genes = {})
@@ -113,10 +193,10 @@ protected:
 
 		outer_color_ = sf::Color(static_cast<uint8_t>(phenotypes_[OuterR]),
 			static_cast<uint8_t>(phenotypes_[OuterG]),
-			static_cast<uint8_t>(phenotypes_[OuterB]));
+			static_cast<uint8_t>(phenotypes_[OuterB]), GenomeBaseSettings::outer_transparency);
 		inner_color_ = sf::Color(static_cast<uint8_t>(phenotypes_[InnerR]),
 			static_cast<uint8_t>(phenotypes_[InnerG]),
-			static_cast<uint8_t>(phenotypes_[InnerB]));
+			static_cast<uint8_t>(phenotypes_[InnerB]), GenomeBaseSettings::inner_transparency);
 	}
 
 	// The genes are stored in a fixed-size array, with the first SharedCount genes reserved for shared traits (like color) and the rest for extra traits defined by derived classes.

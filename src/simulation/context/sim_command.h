@@ -136,8 +136,7 @@ enum class CommandType
 // Parameters for the MutateProtozoa command
 struct MutateParams
 {
-	float mut_rate = 0.3f;
-	float mut_range = 0.3f;
+	float mut_strength = 0.3f;
 };
 
 // Only one of these is meaningful per command — think of it like a union but without the hassle

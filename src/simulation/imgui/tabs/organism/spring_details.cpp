@@ -4,9 +4,25 @@
 
 void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p, const Tendon& s, const int spring_rel)
 {
-    const int period = safe_time_period(s.genome.frequency, k_max_wave_buf);
+    using G = TendonGenome;
+	const float freq = s.genome.get<G::Frequency>();
+	const float amp = s.genome.get<G::Amplitude>();
+	const float shift = s.genome.get<G::VerticalShift>();
+	const float offset = s.genome.get<G::Offset>();
+
+    const float spring_const = s.genome.get<G::SpringConst>();
+    const float damping = s.genome.get<G::Damping>();
+
+    const Range amp_lim = s.genome.limits<G::Amplitude>();
+    const Range freq_lim = s.genome.limits<G::Frequency>();
+    const Range offset_lim = s.genome.limits<G::Offset>();
+    const Range shift_lim = s.genome.limits<G::VerticalShift>();
+    const Range spring_lim = s.genome.limits<G::SpringConst>();
+    const Range damp_lim = s.genome.limits<G::Damping>();
+
+    const int period = safe_time_period(freq, k_max_wave_buf);
     float ratio_min, ratio_max;
-    wave_range(s.genome.amplitude, s.genome.vertical_shift, 0.f, 1.f, ratio_min, ratio_max);
+    wave_range(amp, shift, 0.f, 1.f, ratio_min, ratio_max);
     const float break_len = s.spring_break_length_factor * s.maximum_extension;
 
     ImGui::BeginChild("SL_stat", spring_cell_box_size, true);
@@ -30,7 +46,7 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::Text("Stretch:  %.2f", s.current_length - s.rest_length);
     ImGui::Text("Period        %d frames", period);
     ImGui::Text("Rest range    %.1f - %.1f", ratio_min * s.maximum_extension, ratio_max * s.maximum_extension);
-    ImGui::Text("Mutation R    %.4f  Rng %.4f", s.genome.guassian_const, s.genome.mutation_range);
+    ImGui::Text("Mutation Strength    %.4f", s.genome.mean_mutation_strength());
 
     ImGui::Spacing();
     ImGui::TextDisabled("Forces");
@@ -58,13 +74,13 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
     ImGui::Spacing();
     ImGui::TextDisabled("Physical");
     ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd(ctx, "##sk", s.genome.spring_const,
-        0.f, TendonGeneticConstraints::spring_const.max,
+    slider_float_cmd(ctx, "##sk", spring_const,
+        spring_lim.min, spring_lim.max,
         "Tendon constant = %.3f", CommandSection::CellManagerEvent, CommandType::SetTendonConst);
 
     ImGui::SetNextItemWidth(-1.f);
-    slider_float_cmd(ctx, "##sd", s.genome.damping,
-        0.f, TendonGeneticConstraints::damping.max,
+    slider_float_cmd(ctx, "##sd", damping,
+        damp_lim.min, damp_lim.max,
         "Damping         = %.3f", CommandSection::CellManagerEvent, CommandType::SetDampingConst);
 
     ImGui::EndChild();
@@ -75,8 +91,8 @@ void OrganismTab::draw_spring_detail(ImGuiContext& ctx, const OrganismTracker& p
         "Extension  amplitude * sin(frequency * t + phase) + shift  [0, 1]",
         static_cast<double>(s.internal_clock_), s.id_, "Extension",
         std::clamp(s.extension_ratio, 0.f, 1.f), extension_wave_col,
-        { s.genome.amplitude,      0.f,                                         TendonGeneticConstraints::amplitude.max,      "Amplitude = %.3f", CommandType::SetTendonAmplitude },
-        { s.genome.frequency,      TendonGeneticConstraints::frequency.min,     TendonGeneticConstraints::frequency.max,      "Frequency = %.5f", CommandType::SetTendonFrequency },
-        { s.genome.offset,         TendonGeneticConstraints::offset.min,        TendonGeneticConstraints::offset.max,         "Phase     = %.3f", CommandType::SetTendonOffset },
-        { s.genome.vertical_shift, TendonGeneticConstraints::vertical_shift.min, TendonGeneticConstraints::vertical_shift.max, "Shift     = %.3f", CommandType::SetTendonVerticalShift });
+        { amp,    amp_lim.min,    amp_lim.max,    "Amplitude = %.3f", CommandType::SetTendonAmplitude },
+        { freq,   freq_lim.min,   freq_lim.max,   "Frequency = %.5f", CommandType::SetTendonFrequency },
+        { offset, offset_lim.min, offset_lim.max, "Phase     = %.3f", CommandType::SetTendonOffset },
+        { shift,  shift_lim.min,  shift_lim.max,  "Shift     = %.3f", CommandType::SetTendonVerticalShift });
 }

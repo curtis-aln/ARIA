@@ -302,7 +302,7 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 		char id[16], lbl[24];
 		snprintf(id, sizeof id, "##cell%d", k);
 		snprintf(lbl, sizeof lbl, "Cell %d", k);
-		if (colour_row(id, lbl, c.get_outer_color(), c.get_inner_color(), !m_sel_is_spring_ && m_sel_cell_idx_ == i))
+		if (colour_row(id, lbl, c.outer_color(), c.inner_color(), !m_sel_is_spring_ && m_sel_cell_idx_ == i))
 		{
 			m_sel_cell_idx_ = i;
 			m_sel_is_spring_ = false;
@@ -326,7 +326,7 @@ void OrganismTab::draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& 
 			snprintf(id, sizeof id, "##spr%d", k);
 			snprintf(lbl, sizeof lbl, "Spring %d: %s-%s", k, a, b);
 
-			const sf::Color col(s.genome.outer_r, s.genome.outer_g, s.genome.outer_b);
+			const sf::Color col = s.genome.outer_color();
 			if (colour_row(id, lbl, col, col, m_sel_is_spring_ && m_sel_spring_idx_ == i))
 			{
 				m_sel_spring_idx_ = i;
@@ -355,14 +355,13 @@ void OrganismTab::draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& 
 	constexpr float ch = -1.f;
 
 	ImGui::Separator();
-	static float tun_rate = 0.2f, tun_range = 0.2f;
-	ImGui::SetNextItemWidth(-1.f); ImGui::SliderFloat("##tr", &tun_rate, 0.f, 1.f, "Rate  = %.3f");
-	ImGui::SetNextItemWidth(-1.f); ImGui::SliderFloat("##trng", &tun_range, 0.f, 1.f, "Range = %.3f");
+	static float tun_strength = 0.2f;
+	ImGui::SetNextItemWidth(-1.f); ImGui::SliderFloat("##tr", &tun_strength, 0.f, 1.f, "Strength = %.3f");
 	ImGui::Spacing();
 	if (ImGui::Button("Apply Mutation", { -1.f, 0.f }))
 	{
 		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::MutateProtozoa };
-		cmd.mutate = { .mut_rate = tun_rate, .mut_range = tun_range };
+		cmd.mutate = { .mut_strength = tun_strength };
 		ctx.push(cmd);
 	}
 

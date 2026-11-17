@@ -19,7 +19,7 @@ namespace GraphsUi
 
     // ── Generations / misc colours ────────────────────────────────────────
     inline constexpr ImVec4 kGen = { 0.40f, 0.85f, 0.95f, 1.f };
-    inline constexpr ImVec4 kMutRate = { 1.00f, 0.50f, 0.20f, 1.f };
+    inline constexpr ImVec4 kMutStrength = { 1.00f, 0.50f, 0.20f, 1.f };
     inline constexpr ImVec4 kMutRange = { 1.00f, 0.80f, 0.20f, 1.f };
     inline constexpr ImVec4 kOffspring = { 0.40f, 1.00f, 0.60f, 1.f };
     inline constexpr ImVec4 kLifetime = { 0.60f, 0.40f, 1.00f, 1.f };

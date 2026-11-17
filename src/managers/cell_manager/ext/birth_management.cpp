@@ -116,7 +116,7 @@ void CellManager::normal_reproduce(const BirthRequest& req)
 	// connecting the parent and childS
 	create_temporary_tendon_connection(parent_cell->id_, offspring_cell->id_);
 	// small random chance that this offspring has its own cell addition
-	if (Random::rand01_float() < offspring_cell->add_cell_chance)
+	if (Random::rand01_float() < offspring_cell->get<CellGenome::AddCellChance>())
 	{
 		create_weak_offspring(offspring_cell->id_);
 	}
@@ -139,13 +139,15 @@ void CellManager::create_temporary_tendon_connection(const cell_idx parent_id, c
 
 	tendon->death_chance_ = tendon_death_chance;
 
-	tendon->genome.frequency = 0.f;      // no oscillation
-	tendon->genome.amplitude = 0.f;      // no oscillation -> vertical_shift alone sets rest_length
-	tendon->genome.vertical_shift = 0.2f;
-	tendon->genome.spring_const = temporary_tendon_const;
-	tendon->genome.damping = temporary_tendon_damping;
-
-	tendon->genome.nutrient_transfer_rate = temporary_tendon_nutrient_rate;
+	using G = TendonGenome;
+	tendon->genome.set_phenotypes({
+		{ G::Frequency,            0.f },                              // no oscillation
+		{ G::Amplitude,            0.f },                              // no oscillation -> vertical_shift alone sets rest_length
+		{ G::VerticalShift,        0.2f },
+		{ G::SpringConst,          temporary_tendon_const },
+		{ G::Damping,              temporary_tendon_damping },
+		{ G::NutrientTransferRate, temporary_tendon_nutrient_rate },
+	});
 }
 
 
@@ -195,13 +197,12 @@ void CellManager::create_weak_offspring(uint32_t parent_id)
 	child_body->set_pos(child_body->get_pos() + Random::rand_vector(10.f, 50.f));
 
 	// setting the child cell properties
-	child_cell->copy_genetics(*parent_cell, child_body);   // assumes this also copies tendon_genome
-	child_cell->mutate(child_body);
+	child_cell->copy(*parent_cell);   // assumes this also copies tendon_genome
+	child_cell->mutate();
+	child_cell->apply_to_body(child_body);
 
-	child_body->set_mass(parent_body->get_mass());
-	child_body->set_radius();
-	child_cell->amplitude = 0.01f;
-	child_cell->vertical_shift = 0.05f;
+	child_cell->set<CellGenome::Amplitude>(0.01f);
+	child_cell->set<CellGenome::VerticalShift>(0.05f);
 
 	int32_t tendon_id = create_tendon(parent_id, pair.cell_id);
 	if (tendon_id < 0) // potential error here

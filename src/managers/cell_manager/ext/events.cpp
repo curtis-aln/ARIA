@@ -263,7 +263,8 @@ void CellManager::mutate_selected_protozoa()
 	{
 		Cell* cell = all_cells_.at(fake_cell.id_);
 		Body* body = bodies_->at(cell->body_id_);
-		cell->mutate(body);
+		cell->mutate();
+		cell->apply_to_body(body);
 	}
 }
 
@@ -312,10 +313,10 @@ void CellManager::force_reproduce_selected_protozoa()
 	for (Cell& fake_cell : protozoa_tracker_.cells)
 	{
 		Cell* cell = all_cells_.at(fake_cell.id_);
-		cell->nutrients_ = std::max(cell->nutrients_, cell->birth_nutrients_thresh * CellSettings::max_nutrients);
+		cell->nutrients_ = std::max(cell->nutrients_, cell->get<CellGenome::BirthNutrientsThresh>() * CellSettings::max_nutrients);
 
-		cell->set_energy(std::max(cell->get_energy(), cell->birth_energy_thresh * CellSettings::max_energy));
-		cell->set_integrity(std::max(cell->get_integrity(), cell->birth_integrity_thresh * CellSettings::max_integrity));
+		cell->set_energy(std::max(cell->get_energy(), cell->get<CellGenome::BirthEnergyThresh>() * CellSettings::max_energy));
+		cell->set_integrity(std::max(cell->get_integrity(), cell->get<CellGenome::BirthIntegrityThresh>() * CellSettings::max_integrity));
 
 		cell->repro_timer_ = std::max(cell->repro_timer_, uint16_t(cell->repro_cooldown));
 		cell->force_reproduce();
@@ -352,7 +353,7 @@ void CellManager::clone_selected_protozoa()
 		Cell* new_cell = all_cells_.at(cpair.cell_id);
 		Body* new_body = bodies_->at(cpair.body_id);
 
-		new_cell->copy_genetics(cell, new_body);
+		new_cell->copy(cell);
 		new_body->copy(parent_body);
 		new_body->set_pos(Random::rand_position_in_circle(child_spawn_pos, child_spawn_rad));
 
@@ -380,6 +381,6 @@ void CellManager::clone_selected_protozoa()
 
 		Tendon* new_spring = all_tendons_.at(spring_id);
 
-		new_spring->genome.copy_genetics(spring.genome);
+		new_spring->genome.copy(spring.genome);
 	}
 }

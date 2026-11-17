@@ -11,7 +11,7 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
     const PopulationHistory& h = snap.history;
     const MiscSeries& ms = h.misc;
 
-    chip("Mut rate", &m_show_mut_rate_, kMutRate);        ImGui::SameLine();
+    chip("Mut rate", &m_show_mut_rate_, kMutStrength);        ImGui::SameLine();
     chip("Mut range", &m_show_mut_range_, kMutRange);     ImGui::SameLine();
     chip("Offspring", &m_show_offspring_, kOffspring);    ImGui::SameLine();
     chip("Lifetime", &m_show_lifetime_, kLifetime);       ImGui::SameLine();
@@ -57,8 +57,7 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
                 ImPlot::PlotLine(name, t, ys.data() + begin, n);
             };
 
-        if (m_show_mut_rate_)    plot(ImAxis_Y1, "Mut rate", ms.mut_rate, kMutRate);
-        if (m_show_mut_range_)   plot(ImAxis_Y1, "Mut range", ms.mut_range, kMutRange);
+        if (m_show_mut_rate_)    plot(ImAxis_Y1, "Mut Strength", ms.mut_strength, kMutStrength);
         if (m_show_offspring_)   plot(ImAxis_Y2, "Offspring", ms.avg_offspring, kOffspring);
         if (m_show_lifetime_)    plot(ImAxis_Y2, "Lifetime", ms.avg_lifetime, kLifetime);
         if (m_show_avg_cells_)   plot(ImAxis_Y2, "Avg cells", ms.avg_cells, kAvgCells);
@@ -78,8 +77,7 @@ void GraphsTab::draw_misc_tab(const SimSnapshot& snap)
 
             ImGui::BeginTooltip();
             ImGui::TextDisabled("Frame %.0f", h.time[i]);
-            if (m_show_mut_rate_)    row("Mut rate", kMutRate, ms.mut_rate[i], 4);
-            if (m_show_mut_range_)   row("Mut range", kMutRange, ms.mut_range[i], 4);
+            if (m_show_mut_rate_)    row("Mut Strength", kMutStrength, ms.mut_strength[i], 4);
             if (m_show_offspring_)   row("Offspring", kOffspring, ms.avg_offspring[i], 2);
             if (m_show_lifetime_)    row("Lifetime", kLifetime, ms.avg_lifetime[i], 1);
             if (m_show_avg_cells_)   row("Avg cells", kAvgCells, ms.avg_cells[i], 2);

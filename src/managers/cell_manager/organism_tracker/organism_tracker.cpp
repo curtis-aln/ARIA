@@ -210,7 +210,7 @@ void OrganismTracker::update_energy()
         total_nutrients += cell.nutrients_;
         frames_alive += cell.internal_clock_;
         total_food_eaten += cell.total_food_eaten_;
-        average_generation += cell.get_generation();
+        average_generation += cell.generation();
         offspring_count += cell.offspring_count;
         time_since_last_reproduced += cell.repro_timer_;
 
@@ -219,7 +219,7 @@ void OrganismTracker::update_energy()
 
     for (const Tendon& spring : springs)
         spring_total_work_done += spring.work_done;
-
+    
     if (cell_count == 0)
     {
         average_energy = max_energy = max_nutrients = ready_to_reproduce_percentage = 0.f;

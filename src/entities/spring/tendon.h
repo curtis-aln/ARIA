@@ -37,7 +37,7 @@ struct Tendon : Spring
 	void update_organics(Cell& cell_a, Cell& cell_b, bool stress_damage, bool work_done_energy);
 	void update_integrity(Cell& cell_a, Cell& cell_b);
 
-	void create_offspring(Tendon& offspring) { offspring.genome.copy_genetics(genome); }
+	void create_offspring(Tendon& offspring) { offspring.genome.copy(genome); }
 
 private:
 	// takes in the nutrients of cell a and cell b and transfers between them,

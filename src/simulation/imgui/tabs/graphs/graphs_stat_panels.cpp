@@ -42,8 +42,7 @@ void GraphsTab::draw_stat_panels(const SimSnapshot& snap)
     StatRow::draw("Highest gen ever", "%d", snap.cell_manager_stats.highest_generation_ever);
     StatRow::draw("Most offspring", "%d", snap.cell_manager_stats.most_offspring_ever);
     StatRow::draw("Frames / gen", "%.0f", snap.world_stats.frames_per_generation);
-    StatRow::draw("Avg mut rate", "%.4f", snap.cell_manager_stats.average_mutation_rate);
-    StatRow::draw("Avg mut range", "%.4f", snap.cell_manager_stats.average_mutation_range);
+    StatRow::draw("Avg mut strength", "%.4f", snap.cell_manager_stats.average_mutation_strength);
 
     // ── Morphology ────────────────────────────────────────────────────────────
     ImGui::TextDisabled("Morphology");

@@ -172,8 +172,7 @@ struct CellManagerStatistics
 	float average_generation = 0.f;
 	float average_cells_per_protozoa = 0.f;
 	float average_offspring_count = 0.f;
-	float average_mutation_rate = 0.f;
-	float average_mutation_range = 0.f;
+	float average_mutation_strength = 0.f;
 	float average_energy = 0.f;
 	float average_tendon_count = 0.f;
 	float energy_efficiency = 0.f;

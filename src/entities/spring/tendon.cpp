@@ -21,14 +21,6 @@ void Tendon::reset()
 	phase_ = 0.f;
 
 	internal_clock_ = 0;
-
-	genome.frequency = 0.f;
-	genome.offset = 0.f;
-	genome.vertical_shift = 1.f;
-	genome.amplitude = 0.f;
-	genome.spring_const = 0.f;
-	genome.damping = 0.f;
-	genome.nutrient_transfer_rate = 0.f;
 }
 
 void Tendon::death_update(Cell& cell_a, Cell& cell_b)
@@ -40,9 +32,9 @@ void Tendon::death_update(Cell& cell_a, Cell& cell_b)
 
 void Tendon::sync_oscillators(Cell& cell_a, Cell& cell_b)
 {
-	phase_ = osc::wrap_two_pi(phase_ + genome.frequency);
+	phase_ = osc::wrap_two_pi(phase_ + genome.get<TendonGenome::Frequency>());
 
-	const float rate = genome.phase_sync_rate;
+	const float rate = genome.get<TendonGenome::PhaseSyncRate>();
 	if (rate <= 0.f)
 		return;
 
@@ -136,7 +128,7 @@ float Tendon::calc_nutrient_send_amount(const NutrientFlow& flow, const float ra
 
 void Tendon::transfer_nutrients(Cell& cell_a, Cell& cell_b)
 {
-	const float rate = std::max(genome.nutrient_transfer_rate, 0.0f);
+	const float rate = std::max(genome.get<TendonGenome::NutrientTransferRate>(), 0.0f);
 	if (rate <= 0.0f)
 		return;
 
@@ -150,13 +142,13 @@ void Tendon::transfer_nutrients(Cell& cell_a, Cell& cell_b)
 
 float Tendon::target_extension_fraction()
 {
-	const float sin_value = fast_sin(phase_ + genome.offset);          // [-1, 1]
-	extension_ratio = genome.vertical_shift + genome.amplitude * sin_value; // unclamped
+	const float sin_value = fast_sin(phase_ + genome.get<TendonGenome::Offset>());          // [-1, 1]
+	extension_ratio = genome.get<TendonGenome::VerticalShift>() + genome.get<TendonGenome::Amplitude>() * sin_value; // unclamped
 	return std::clamp(extension_ratio, 0.f, 1.f);
 }
 
 float Tendon::get_spring_constant() const
 {
 	const float growth = std::clamp(static_cast<float>(internal_clock_) / fully_developed_age, 0.f, 1.f);
-	return genome.spring_const * growth;
+	return genome.get<TendonGenome::SpringConst>() * growth;
 }

@@ -5,7 +5,10 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "cell_genome.h"
+#include "../genome/cell_genome.h"
+#include "../genome/tendon_genome.h"
+
+
 #include "cell_settings.h"
 #include "entities/body/body.h"
 #include <array>
@@ -103,9 +106,6 @@ public:
 
 	[[nodiscard]] bool should_reproduce() const { return reproduce_; }
 
-	[[nodiscard]] sf::Color get_outer_color() const { return { outer_r, outer_g, outer_b, outer_transparency }; }
-	[[nodiscard]] sf::Color get_inner_color() const { return { inner_r, inner_g, inner_b, inner_transparency }; }
-
 	[[nodiscard]] sf::Vector2f get_pos_nearby(const Body* body, const float range) const;
 	[[nodiscard]] float calculate_sin_output() const;
 
@@ -139,21 +139,21 @@ public:
 	void turn_off_reproduction();
 
 	// reproductive
-	bool check_sufficient_energy() const { return energy >= (birth_energy_thresh * max_energy); }
-	bool check_sufficient_integrity() const { return integrity >= (birth_integrity_thresh * max_integrity); }
-	bool check_sufficient_nutrients() const { return nutrients_ >= (birth_nutrients_thresh * max_nutrients); }
+	bool check_sufficient_energy() const { return energy >= (get<BirthEnergyThresh>() * max_energy); }
+	bool check_sufficient_integrity() const { return integrity >= (get<BirthIntegrityThresh>() * max_integrity); }
+	bool check_sufficient_nutrients() const { return nutrients_ >= (get<BirthNutrientsThresh>() * max_nutrients); }
 	bool check_repro_cooldown() const { return repro_timer_ >= repro_cooldown; }
 
 	// ------------ Reproduction diagnostics (for debug UI) ------------
 	// [0,1] progress toward each requirement; 1.0 == threshold met
-	[[nodiscard]] float energy_progress()    const { return max_energy > 0.f ? std::clamp(energy / (birth_energy_thresh * max_energy), 0.f, 1.f) : 1.f; }
-	[[nodiscard]] float integrity_progress() const { return max_integrity > 0.f ? std::clamp(integrity / (birth_integrity_thresh * max_integrity), 0.f, 1.f) : 1.f; }
-	[[nodiscard]] float nutrients_progress() const { return max_nutrients > 0.f ? std::clamp(nutrients_ / (birth_nutrients_thresh * max_nutrients), 0.f, 1.f) : 1.f; }
+	[[nodiscard]] float energy_progress()    const { return max_energy > 0.f ? std::clamp(energy / (get<BirthEnergyThresh>() * max_energy), 0.f, 1.f) : 1.f; }
+	[[nodiscard]] float integrity_progress() const { return max_integrity > 0.f ? std::clamp(integrity / (get<BirthIntegrityThresh>() * max_integrity), 0.f, 1.f) : 1.f; }
+	[[nodiscard]] float nutrients_progress() const { return max_nutrients > 0.f ? std::clamp(nutrients_ / (get<BirthNutrientsThresh>() * max_nutrients), 0.f, 1.f) : 1.f; }
 	[[nodiscard]] float cooldown_progress()  const { return repro_cooldown > 0 ? std::clamp(static_cast<float>(repro_timer_) / static_cast<float>(repro_cooldown), 0.f, 1.f) : 1.f; }
 
-	[[nodiscard]] float energy_threshold()    const { return birth_energy_thresh * max_energy; }
-	[[nodiscard]] float integrity_threshold() const { return birth_integrity_thresh * max_integrity; }
-	[[nodiscard]] float nutrients_threshold() const { return birth_nutrients_thresh * max_nutrients; }
+	[[nodiscard]] float energy_threshold()    const { return get<BirthEnergyThresh>() * max_energy; }
+	[[nodiscard]] float integrity_threshold() const { return get<BirthIntegrityThresh>() * max_integrity; }
+	[[nodiscard]] float nutrients_threshold() const { return get<BirthNutrientsThresh>() * max_nutrients; }
 
 private:
 	// ------------ Organics sub-steps, run in this order by update_organics ------------

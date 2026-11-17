@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <SFML/System/Vector2.hpp>
 
-#include <entities/cell/cell_genome.h>
+#include <entities/genome/tendon_genome.h>
 #include "spring_settings.h"
 #include "../../Utils/fast_funcs.h"
 

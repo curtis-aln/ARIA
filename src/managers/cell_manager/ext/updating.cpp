@@ -32,7 +32,7 @@ void CellManager::add_new_cells_to_grid()
 	for (Cell* cell : all_cells_)
 	{
 		bool is_newborn = cell->internal_clock_ < CellSettings::infant_time;
-		bool is_first_gen = cell->get_generation() == 0; // we dont want the initial cells during the sim start to all tangle
+		bool is_first_gen = cell->generation() == 0; // we dont want the initial cells during the sim start to all tangle
 		if (!is_newborn || is_first_gen)
 			continue;
 
@@ -167,8 +167,8 @@ void CellManager::add_cells_to_render_data(RenderData& rend_data, const sf::Floa
 		if (show_only_newborns && cell->should_try_connect_to_others())
 			continue;
 
-		rend_data.outer_colors.push_back(cell->get_outer_color());
-		rend_data.inner_colors.push_back(cell->get_inner_color());
+		rend_data.outer_colors.push_back(cell->outer_color());
+		rend_data.inner_colors.push_back(cell->inner_color());
 		rend_data.positions.push_back(pos);
 		rend_data.velocities.push_back(vel);
 		rend_data.radii.push_back(body->get_radius());
@@ -213,7 +213,7 @@ void CellManager::add_tendons_to_render_data(RenderData& rend_data, const sf::Fl
 		rend_data.tendon_connections.push_back({
 			pos_a,
 			pos_b,
-			tendon->genome.outer_r, tendon->genome.outer_g, tendon->genome.outer_b,
+			tendon->genome.outer_color(),
 			min_dist,
 			min_dist * 3.f,
 			tendon->stress });
@@ -267,7 +267,9 @@ void CellManager::try_connect_newborn_cell(Cell* cell)
 
 		sf::Vector2f dir = pos - bodies_->at(other_cell->body_id_)->get_pos();
 		float dist_sq = dir.lengthSquared();
-		if (dist_sq < cell->newborn_search_radius * cell->newborn_search_radius)
+		float search_rad = cell->get <CellGenome::NewbornSearchRadius>();
+
+		if (dist_sq < search_rad * search_rad)
 		{
 			connection_requests.push_back(ConnectionRequest{ (int32_t)cell->id_, (int32_t)other_cell->id_ });
 			cell->register_connection(other_cell_id);
@@ -302,7 +304,7 @@ void CellManager::update_tendons(bool immune)
 		const physics_stats stats{
 			.extension_fraction = tendon->extension_ratio,
 			.spring_constant = tendon->get_spring_constant(),
-			.damping = tendon->genome.damping,
+			.damping = tendon->genome.get<TendonGenome::Damping>(),
 			.min_rest_length = (body_a->get_radius() + body_b->get_radius()) * 1.02f, // 2% margin so rest state isn't sitting on the collision boundary
 			.reduced_mass = reduced_mass };
 
@@ -435,9 +437,7 @@ CellBodyPair CellManager::create_cell(sf::Vector2f position, bool random_genetic
 	{
 		cell->randomize();
 	}
-
-	body->set_mass(cell->mass);
-	if (cell->mass == 0) body->set_mass(0.1f);
+	cell->apply_to_body(body);
 
 	body->set_radius();
 

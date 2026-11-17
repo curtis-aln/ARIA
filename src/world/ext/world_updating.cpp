@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <entities/body/body.h>
 #include <entities/cell/cell.h>
-#include <entities/cell/cell_genome.h>
+#include <entities/genome/cell_genome.h>
 #include <entities/food/food.h>
 #include <iostream>
 #include <ostream>
@@ -53,8 +53,7 @@ void World::push_history(SimSnapshot& write_snapshot, const std::vector<float>& 
 		cm_stats.cell_count,
 		fm_stats.food_count,
 		dist,
-		cm_stats.average_mutation_rate,
-		cm_stats.average_mutation_range,
+		cm_stats.average_mutation_strength,
 		cm_stats.average_offspring_count,
 		cm_stats.average_lifetime,
 		cm_stats.average_cells_per_protozoa,
@@ -274,8 +273,7 @@ sf::FloatRect World::calulcate_visible_range()
 		{ bottom_right.x - top_left.x, bottom_right.y - top_left.y } };
 
 	// Adjust for cell maximim radius to ensure cells partially in view are included
-	const float max_mass = CellGeneticConstraints::mass.max;
-	const float max_rad = Body::mass_to_radius(max_mass);
+	const float max_rad = 150;
 	visible_bounds.position.x -= max_rad;
 	visible_bounds.position.y -= max_rad;
 	visible_bounds.size.x += max_rad * 2.f;
