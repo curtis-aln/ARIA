@@ -90,6 +90,36 @@ struct ITab
             ctx.push({ .section = CommandSection::SimulationEvent, .type = CommandType::SetSimToggles, .sim_toggles = *updated });
     }
 
+    // Wrapped tooltip for the last item drawn
+    static void tip(const char* text)
+    {
+        if (!ImGui::IsItemHovered())
+            return;
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 24.f);
+        ImGui::TextUnformatted(text);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+
+    // Slider that mirrors a value from the sim and pushes `type` only when the user moves it
+    bool synced_slider(ImGuiContext& ctx, const char* id, float& value, const float synced,
+        const float lo, const float hi, const char* fmt,
+        const CommandSection section, const CommandType type, const char* tooltip,
+        const ImGuiSliderFlags flags = 0)
+    {
+        value = synced;
+        ImGui::SetNextItemWidth(-1.f);
+        const bool changed = ImGui::SliderFloat(id, &value, lo, hi, fmt, flags);
+        if (changed)
+        {
+            SimCommand cmd{ .section = section, .type = type, .float_val = value };
+            ctx.push(cmd);
+        }
+        tip(tooltip);
+        return changed;
+    }
+
     // Draws a single button that is visually "pressed" when current_value == option_value,
     // and on click pushes a SimCommand carrying option_value in the given SimCommand field.
     // ValueT must match the type of `field` (int, float, bool, or a scoped enum stored as int).

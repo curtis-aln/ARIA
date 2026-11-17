@@ -82,9 +82,9 @@ food_visibility_ramp_frames  = 90.0
 food_max_alpha                = 200.0
 
 food_random_spawn_per_frame = 1
-food_random_spawn_chance = 0.08
+food_random_spawn_chance = 0.18
 
-spawn_proportionality_constant = 0.005
+spawn_proportionality_constant = 0.0022
 
 death_age_chance               = 0.01
 

@@ -96,12 +96,13 @@ public:
 		radius_ = mass_ > 0.f ? std::max(body_curve::radius_min, radius_ + dm * body_curve::slope) : 0.f;
 	}
 
-	[[nodiscard]] sf::Vector2f get_pos() const { return position_; }
-	[[nodiscard]] sf::Vector2f get_vel() const { return velocity_; }
-	[[nodiscard]] sf::Vector2f get_acc() const { return acceleration_; }
-	[[nodiscard]] float get_mass() const { return mass_; }
-	[[nodiscard]] float inv_mass() const { return inv_mass_; }
-	[[nodiscard]] float get_radius() const { return radius_; }
+	[[nodiscard]] const sf::Vector2f& get_pos() const { return position_; }
+	[[nodiscard]] const sf::Vector2f& get_vel() const { return velocity_; }
+	[[nodiscard]] const sf::Vector2f& get_acc() const { return acceleration_; }
+	[[nodiscard]] const float get_mass() const { return mass_; }
+	[[nodiscard]] const float inv_mass() const { return inv_mass_; }
+	[[nodiscard]] const	float get_radius() const { return radius_; }
+
 
 	void translate(const sf::Vector2f& d) { position_ += d; }
 	void set_pos(const sf::Vector2f& pos) { position_ = pos; }

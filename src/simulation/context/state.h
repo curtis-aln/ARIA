@@ -75,6 +75,8 @@ struct CellManagerToggles
 	bool friction_energy_loss = true;
 	bool old_age_death = true;
 
+	bool min_speed_tax = false;
+
 	// newborns
 	bool show_only_newborns = false;
 	bool show_newborn_grid = false;

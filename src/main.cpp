@@ -18,7 +18,7 @@ extern "C"
 
 int main()
 {
-	//code_stats::print();
+	code_stats::print();
 
 #ifdef _WIN32
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);

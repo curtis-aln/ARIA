@@ -50,6 +50,7 @@ enum class CommandType
 	ClearAllProtozoa,       // clears all protozoa from the simulation
 
 	SetMinSpeed,               // set the minimum speed of protozoa
+	SetDeltaMinSpeed,          // set the delta minimum speed of protozoa
 
 	SetRadius,              // set radius of selected cell
 	SetAmplitude,           // set amplitude of selected cell

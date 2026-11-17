@@ -50,7 +50,7 @@ void CellManager::collect_cell_death_requests()
 
 void CellManager::speed_tax_cell(Cell* cell)
 {
-	if (cell->immortal_ || statistics_.min_speed <= 0.f)
+	if (cell->immortal_ || !toggles_.min_speed_tax)
 		return;
 
 	sf::Vector2f velocity = bodies_->at(cell->body_id_)->get_vel();

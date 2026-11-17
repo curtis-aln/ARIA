@@ -26,28 +26,38 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	ImGui::TextDisabled("Rendering");
 	ImGui::Separator();
 
-	if (ImGui::Checkbox("show only newborns", &ctx.cell_toggles.show_only_newborns))
-		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetCellToggles, .cell_toggles = ctx.cell_toggles });
-
-	if (ImGui::Checkbox("show grid", &ctx.cell_toggles.show_newborn_grid))
-		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetCellToggles, .cell_toggles = ctx.cell_toggles });
-
-	if (ImGui::Checkbox("show border", &ctx.world_toggles.draw_world_border))
-		ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldToggles, .world_toggles = ctx.world_toggles });
-
-
 	ImGui::EndChild();
 
 	ImGui::BeginChild("Reproduction", { cw, ch }, true);
 
 	ImGui::SetNextItemWidth(-1.f);
-	float min_speed = snap.cell_manager_stats.min_speed; // sync with sim state
-	if (ImGui::SliderFloat("##min_speed", &min_speed, 0.f, 10.f, "Min Speed %.3f"))
+
+	// Min speed
+	bool use_min_speed = ctx.cell_toggles.min_speed_tax;
+	toggle(snap, ctx, "min speed tax", &CellManagerToggles::min_speed_tax);
+
+	if (use_min_speed)
 	{
-		SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetMinSpeed, .float_val = min_speed };
-		ctx.push(cmd);
+		ImGui::Indent();
+		float min_speed = snap.cell_manager_stats.min_speed; // sync with sim state
+		if (ImGui::SliderFloat("##min_speed", &min_speed, 0.f, 10.f, "Min Speed %.4f"))
+		{
+			SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetMinSpeed, .float_val = min_speed };
+			ctx.push(cmd);
+		}
+		
+		float m_delta_min_speed_ = CellManagerSettings::delta_min_speed;
+		float micro = m_delta_min_speed_ * 1e6f;
+		ImGui::SetNextItemWidth(-1.f);
+		if (ImGui::SliderFloat("##delta_min_speed", &micro, 0.f, 100.f, "Delta Min Speed %.1f e-6"))
+		{
+			m_delta_min_speed_ = micro * 1e-6f;
+			SimCommand cmd{ .section = CommandSection::CellManagerEvent, .type = CommandType::SetDeltaMinSpeed, .float_val = m_delta_min_speed_ };
+			ctx.push(cmd);
+		}
+		ImGui::Unindent();
 	}
-	ImGui::Text("delta min speed (DMS): %.3f", CellManagerSettings::delta_min_speed);
+
 	ImGui::Spacing();
 	ImGui::Separator();
 	toggle(snap, ctx, "Impulse Damage", &CellManagerToggles::collision_integrity_damage_);
@@ -66,9 +76,45 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 		ImGui::Unindent();
 	}
 
+	const auto& cms = snap.cell_manager_stats;
+	constexpr auto sec = CommandSection::CellManagerEvent;
+
+	bool stress_integrity_damage = ctx.cell_toggles.tendon_stress_integrity_damage;
 	toggle(snap, ctx, "spring stress integrity damage", &CellManagerToggles::tendon_stress_integrity_damage);
+	if (stress_integrity_damage)
+	{
+		ImGui::Indent();
+		float damage_thresh = SpringSettings::spring_damage_threshold;
+		synced_slider(ctx, "##Damage Threshold", damage_thresh, cms.tendon_damage_threshold,
+			0.f, 1000.f, "Damage Threshold %.2f", sec, CommandType::SetTendonDamageThreshold,
+			"Tension above which a spring starts to take damage.");
+		ImGui::Unindent();
+	}
+	
+	bool too_long_breakage = ctx.cell_toggles.tendon_too_long_breakage;
 	toggle(snap, ctx, "spring too long breakage", &CellManagerToggles::tendon_too_long_breakage);
+	if (too_long_breakage)
+	{
+		ImGui::Indent();
+		float break_thresh = SpringSettings::spring_break_length_factor;
+		synced_slider(ctx, "##breaking Length ratio", break_thresh, cms.tendon_breaking_length,
+			0.f, 2.f, "breaking Length %.2f", sec, CommandType::SetTendonBreakingLength,
+			"How far a spring can stretch, relative to its rest length, before it snaps.");
+		ImGui::Unindent();
+	}
+
+
+	bool too_much_force_breakage = ctx.cell_toggles.tendon_too_much_force_breakage;
 	toggle(snap, ctx, "spring too much force breakage", &CellManagerToggles::tendon_too_much_force_breakage);
+	if (too_much_force_breakage)
+	{
+		ImGui::Indent();
+		float break_force = SpringSettings::spring_break_force;
+		synced_slider(ctx, "##breaking Force", break_force, cms.tendon_breaking_force,
+			0.f, 1000.f, "breaking Force %.2f", sec, CommandType::SetTendonBreakingForce,
+			"How much force a spring can withstand before it snaps.");
+		ImGui::Unindent();
+	}
 
 	toggle(snap, ctx, "old age death", &CellManagerToggles::old_age_death);
 	if (ctx.cell_toggles.old_age_death)
@@ -90,19 +136,8 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	int lifetime = CellMatterSettings::max_time_to_live;
 	if (ImGui::SliderInt("##cell_matter_lifetime", &lifetime, 0, 120000, "cell matter lifetime %d"))
 		ctx.push({ .section = CommandSection::CellManagerEvent, .type = CommandType::SetCellMatterLifetime, .int_val = lifetime });
-
-	// Setting the amount of Sub-iterations the program does
-	int sub_iterations = WorldSettings::tick_sim_multiplier;
-	if (ImGui::SliderInt("##sub_iterations", &sub_iterations, 1, 100, "update sub-iterations %d"))
-		ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetSubIterations, .int_val = sub_iterations });
-
-	// rendering the background grid
-	toggle(snap, ctx, "background grid", &WorldToggles::draw_background_grid);
-
-	// rendering cell food and cell matter toggles
-	toggle(snap, ctx, "render cells", &WorldToggles::render_cells);
-	toggle(snap, ctx, "render food", &WorldToggles::render_food);
-	toggle(snap, ctx, "render cell matter", &WorldToggles::render_cells_matter);
+	
+	
 
 	ImGui::Spacing();
 	toggle(snap, ctx, "easy reproduction", &CellManagerToggles::easy_reproduction);
@@ -120,14 +155,6 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	ImGui::Separator();
 
-	// slider for changing the world size
-	if (ImGui::SliderFloat("##world_radius", &WorldSettings::bounds_radius, 1000, max_bounds_radius, "world radius %.0f"))
-		ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::SetWorldRadius, .float_val = WorldSettings::bounds_radius });
-
-	// toggle for central gravity
-	toggle(snap, ctx, "central gravity", &WorldToggles::central_gravity);
-
-
 	ImGui::EndChild();
 	ImGui::SameLine();
 
@@ -136,55 +163,6 @@ void DebugTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	ImGui::TextDisabled("Background");
 	ImGui::Separator();
 
-	const auto& presets = SimulationSettings::bg_presets;
-	static int selected_preset = SimulationSettings::bg_preset_index;
-	static float top_col[3] = {
-		SimulationSettings::bg_colors[0].r / 255.f,
-		SimulationSettings::bg_colors[0].g / 255.f,
-		SimulationSettings::bg_colors[0].b / 255.f };
-	static float bot_col[3] = {
-		SimulationSettings::bg_colors[1].r / 255.f,
-		SimulationSettings::bg_colors[1].g / 255.f,
-		SimulationSettings::bg_colors[1].b / 255.f };
-
-	if (ImGui::BeginCombo("##bg_preset", presets[selected_preset].name.c_str()))
-	{
-		for (int i = 0; i < static_cast<int>(presets.size()); ++i)
-		{
-			const bool is_selected = (selected_preset == i);
-			if (ImGui::Selectable(presets[i].name.c_str(), is_selected))
-			{
-				selected_preset = i;
-				if (presets[i].name != "Custom")
-					ctx.push({ .section = CommandSection::SimulationEvent, .type = CommandType::SetBackgroundPreset, .int_val = i });
-			}
-			if (is_selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		ImGui::EndCombo();
-	}
-
-	if (presets[selected_preset].name == "Custom")
-	{
-		ImGui::Spacing();
-		bool changed = false;
-		changed |= ImGui::ColorEdit3("Top", top_col);
-		changed |= ImGui::ColorEdit3("Bottom", bot_col);
-
-		if (changed)
-		{
-			SimCommand cmd{ .section = CommandSection::SimulationEvent, .type = CommandType::SetCustomBackground };
-			cmd.color_val_a = sf::Color(
-				static_cast<uint8_t>(top_col[0] * 255.f),
-				static_cast<uint8_t>(top_col[1] * 255.f),
-				static_cast<uint8_t>(top_col[2] * 255.f));
-			cmd.color_val_b = sf::Color(
-				static_cast<uint8_t>(bot_col[0] * 255.f),
-				static_cast<uint8_t>(bot_col[1] * 255.f),
-				static_cast<uint8_t>(bot_col[2] * 255.f));
-			ctx.push(cmd);
-		}
-	}
 
 	draw_post_fx_ui();
 

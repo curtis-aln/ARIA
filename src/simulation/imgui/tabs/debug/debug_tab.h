@@ -11,6 +11,4 @@ public:
 	const char* label() const override { return "Debug"; }
 	void        draw(const SimSnapshot& snap, ImGuiContext& ctx)   override;
 
-
-	int max_bounds_radius = WorldSettings::bounds_radius;
 };

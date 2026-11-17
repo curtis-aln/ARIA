@@ -242,13 +242,16 @@ void CellManager::handle_cell_manager_event(SimCommand& cmd)
 
 	case CommandType::SetTendonConst:
 		//if (selected_protozoa)
-		//{
 		   // m_world_.selected_protozoa_->get_springs()[cmd.cell_spring_idx].spring_const = cmd.float_val;
 		//}
 		break;
 
 	case  CommandType::SetEasyNaturalBirthRatio:
 		CellManagerSettings::easy_natural_birth_ratio = cmd.float_val;
+		break;
+
+	case CommandType::SetDeltaMinSpeed:
+		CellManagerSettings::delta_min_speed = cmd.float_val;
 		break;
 
 	}

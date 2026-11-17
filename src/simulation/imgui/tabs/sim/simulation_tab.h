@@ -1,5 +1,7 @@
 #pragma once
 #include "../i_tab.h"
+#include <world/world_settings.h>
+
 
 class SimulationTab : public ITab
 {
@@ -15,7 +17,7 @@ private:
     float       m_speed_ = 1.f;
 
 
-    int   m_mouse_mode_ = 0;      // 0 = Add, 1 = Remove
+    int   m_mouse_mode_ = -1; 
     bool  m_cells_       = true;
     bool  m_food_        = false;
     bool  m_remove_cells_    = true;
@@ -27,7 +29,6 @@ private:
 
     float m_spring_breaking_force_ = SpringSettings::spring_break_force;
     float m_spring_breaking_length_ = SpringSettings::spring_break_length_factor;
-    float m_spring_damage_threshold_ = SpringSettings::spring_damage_threshold;
     float m_spring_work_const_ = SpringSettings::spring_work_const;
 
     int   m_camera_lock_ = 0;
@@ -38,4 +39,14 @@ private:
     bool  m_blackhole_ = false;
     float m_bh_strength_ = 500.f;
     float m_bh_radius_ = 1000.f;
+
+    int max_bounds_radius = WorldSettings::bounds_radius;
+
+    void draw_playback_panel(const SimSnapshot& snap, ImGuiContext& ctx, float w, float h);
+    void draw_mouse_panel(const SimSnapshot& snap, ImGuiContext& ctx, float w, float h);
+    void draw_mouse_mode_buttons(ImGuiContext& ctx);
+    void draw_mouse_options(const SimSnapshot& snap, ImGuiContext& ctx);
+    void draw_background_options(const SimSnapshot& snap, ImGuiContext& ctx);
+    void draw_toggles(const SimSnapshot& snap, ImGuiContext& ctx, const float w, const float h);
+    void draw_view_panel(const SimSnapshot& snap, ImGuiContext& ctx, float w, float h);
 };
