@@ -8,17 +8,12 @@
 - add the ability to spawn a saved organism
 - add the ability to fill the world with a saved organism (with mutations optional) or the protozoa, food line graph
 
-#### Food To Do
-- Ability to change the food reproductive settings in IMGUI
-- Ability to change the food update settings in IMGUI
-- A food tab in IMGUI which shows all the food settings and statistics
 
 #### Simulation AutoReset
 - if off, create a popup that says "All organisms have died, reset simulation?" with yes and no options, if yes is selected reset the simulation, 
   if no is selected pause the simulation and display a message that says "Simulation paused, press play to continue"
 - ability to change autoreset on extinction
 - add all settings to a json file and have the program read from it on starrtup, then add a "save settings" button to write the current settings back to the file. 
-- Reset Simulation Button with controls for world size, initial protozoa count, food spawn rate, and mutation rate/range
 
 ##### world TODO
 - Add radiation zones which mutates an organism based on their proximity to the center of the zone, the closer they are the higher the mutation rate and range, but also the higher the energy cost for existing in that zone
@@ -30,12 +25,9 @@
 
 ##### Simulation TODO
 - Add ambient music with mild bubble sound effects
-- std::cout debug prints in production code - Add a constexpr bool DEBUG_LOGGING = false flag in settings and gate all std::cout behind it, or use a proper logger.
 
 ##### Rendering TODO
-- Add a focus blur effect using shaders so cells on the edges of the screen are blurred, and cells in the center are clear
 - Add a subtle bloom effect to the simulation, so that the cells and food glow slightly
-- Let cells add their nutrients to a floor grid but the cells shouldnt be able to use it yet, solely for visual effect
 - background should be a blurred gradient rather than a solid color
 - There should be a second SFML grid which is dimmer and moves a lot slower than the main grid, to give the illusion of depth
 - Add a layered background like you saw in that video
@@ -54,25 +46,10 @@ all_protozoa_ - has a constant size, so when there is 100 protozoa it can hold t
 #### Today
 - Add cell, add spring, remove cell, remove spring do not work
 - add the ability to pinch, pin, and throw organisms around 
-- Feed energy / feed nutrients doesnt work
-- No way to select between feed to one cell or whole organism
 
 - No way to see how many cells or food are in the circle
-- Background Grid doesnt Fade out- Avg cells and Avg springs isnt calculated
-- Energy ratio is not calculated
 - Highlighted cells and Highlighted food isnt live
-- World Resize doesnt work
-- The whole Tagged system doesnt work
 - you cant change the spring constant or damping of springs which are selected
 - you cant change any of the spring values when selected
 - Apply mutation does not work and you cannot choose between a cell and a whole organism
 - you should be able to deselect the mouse right click effects, and when you select it should show the radius by defualt
-
-- We dont need to have o_vector debug information running every single frame, or even when its not on screen
-- Food should be repelled from Cells
-
-
-/ 104k
-
-
-- half nutrient transfer rate

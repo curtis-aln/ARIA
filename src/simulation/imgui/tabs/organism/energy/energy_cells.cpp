@@ -29,8 +29,8 @@ namespace
 
 	EnState classify(const Cell& c)
 	{
-		const float e = c.get_energy() / CellSettings::max_energy;
-		const float i = c.get_integrity() / CellSettings::max_integrity;
+		const float e = c.get_energy() / c.max_energy;
+		const float i = c.get_integrity() / c.max_integrity;
 		if (e < k_starve_frac)  return EnState::Starving;
 		if (i < k_damaged_frac) return EnState::Damaged;
 		if (c.should_reproduce()) return EnState::Ready;
@@ -47,9 +47,9 @@ namespace
 		ImGui::BeginTooltip();
 		ImGui::TextColored(si.col, "C%d  %s", i, si.full);
 		ImGui::Separator();
-		ImGui::Text("Energy     %.2f / %.0f   (repro %.0f)", c.get_energy(), CellSettings::max_energy, static_cast<float>(c.energy_threshold()));
-		ImGui::Text("Nutrients  %.2f / %.0f   (repro %.0f)", c.nutrients_, CellSettings::max_nutrients, static_cast<float>(c.nutrients_threshold()));
-		ImGui::Text("Integrity  %.2f / %.0f   (repro %.0f)", c.get_integrity(), CellSettings::max_integrity, static_cast<float>(c.integrity_threshold()));
+		ImGui::Text("Energy     %.2f / %.0f   (repro %.0f)", c.get_energy(), c.max_energy, static_cast<float>(c.energy_threshold()));
+		ImGui::Text("Nutrients  %.2f / %.0f   (repro %.0f)", c.nutrients_, c.max_nutrients, static_cast<float>(c.nutrients_threshold()));
+		ImGui::Text("Integrity  %.2f / %.0f   (repro %.0f)", c.get_integrity(), c.max_integrity, static_cast<float>(c.integrity_threshold()));
 		ImGui::Text("Ate %u  (%llu fr ago)", static_cast<unsigned>(c.total_food_eaten_), static_cast<unsigned long long>(c.time_since_last_ate_));
 		ImGui::Text("dE %+.3f   dI %+.3f", c.delta_energy, c.delta_integrity);
 		ImGui::TextDisabled("click to select");
@@ -91,12 +91,12 @@ namespace
 					dl->AddLine({ bx0 + bw * thr, y - 1.f }, { bx0 + bw * thr, y + 6.f }, u32({ 1.f, 1.f, 1.f, 0.8f }), 1.f);
 			};
 
-		const float fe = safe_frac(c.get_energy(), CellSettings::max_energy);
-		bar(0, fe, safe_frac(static_cast<float>(c.energy_threshold()), CellSettings::max_energy), fraction_color(fe));
-		bar(1, safe_frac(c.nutrients_, CellSettings::max_nutrients),
-			safe_frac(static_cast<float>(c.nutrients_threshold()), CellSettings::max_nutrients), k_en_col_nutrients);
-		bar(2, safe_frac(c.get_integrity(), CellSettings::max_integrity),
-			safe_frac(static_cast<float>(c.integrity_threshold()), CellSettings::max_integrity), k_en_col_integrity);
+		const float fe = safe_frac(c.get_energy(), c.max_energy);
+		bar(0, fe, safe_frac(static_cast<float>(c.energy_threshold()), c.max_energy), fraction_color(fe));
+		bar(1, safe_frac(c.nutrients_, c.max_nutrients),
+			safe_frac(static_cast<float>(c.nutrients_threshold()), c.max_nutrients), k_en_col_nutrients);
+		bar(2, safe_frac(c.get_integrity(), c.max_integrity),
+			safe_frac(static_cast<float>(c.integrity_threshold()), c.max_integrity), k_en_col_integrity);
 
 		if (hovered) cell_tooltip(i, c, s);
 		return clicked;
@@ -116,17 +116,17 @@ namespace
 		ImVec4 col;
 		if (metric == 0)
 		{
-			const float f = safe_frac(c.get_energy(), CellSettings::max_energy);
+			const float f = safe_frac(c.get_energy(), c.max_energy);
 			col = fraction_color(f);
 		}
 		else if (metric == 1)
 		{
-			const float f = safe_frac(c.nutrients_, CellSettings::max_nutrients);
+			const float f = safe_frac(c.nutrients_, c.max_nutrients);
 			col = { k_en_col_nutrients.x, k_en_col_nutrients.y, k_en_col_nutrients.z, 0.15f + 0.85f * f };
 		}
 		else
 		{
-			const float f = safe_frac(c.get_integrity(), CellSettings::max_integrity);
+			const float f = safe_frac(c.get_integrity(), c.max_integrity);
 			col = { k_en_col_integrity.x, k_en_col_integrity.y, k_en_col_integrity.z, 0.15f + 0.85f * f };
 		}
 

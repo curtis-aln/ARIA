@@ -166,9 +166,6 @@ void OrganismTab::draw_energy_constants()
 
 	section("Limits (per cell)");
 	row("Initial energy", CellSettings::initial_energy, 1);
-	row("Max energy", CellSettings::max_energy, 1);
-	row("Max integrity", CellSettings::max_integrity, 1);
-	row("Max nutrients", CellSettings::max_nutrients, 1);
 
 	ImGui::EndTable();
 }

@@ -268,7 +268,7 @@ private:
 				Food* food = food_vector_->at(b.food_id);
 				const float take = std::min({ CellSettings::bite_amount,
 											  food->nutrients,
-											  CellSettings::max_nutrients - b.cell->nutrients_ });
+											  b.cell->max_nutrients - b.cell->nutrients_ });
 				if (take <= 0.f)
 					continue;
 

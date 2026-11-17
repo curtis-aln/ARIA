@@ -42,14 +42,14 @@ namespace
 			st.net_dE += c.delta_energy;
 			st.net_dI += c.delta_integrity;
 
-			const float ef = safe_frac(c.get_energy(), CellSettings::max_energy);
+			const float ef = safe_frac(c.get_energy(), c.max_energy);
 			emin = std::min(emin, ef);
 			emax = std::max(emax, ef);
 			esum += ef;
 		}
 
 		st.total_integrity = tot_i;
-		st.max_integrity = CellSettings::max_integrity * static_cast<float>(n);
+		st.max_integrity = 100.f * static_cast<float>(n); // TODO
 
 		st.frac[0] = safe_frac(t.total_energy, t.max_energy);
 		st.frac[1] = safe_frac(t.total_nutrients, t.max_nutrients);

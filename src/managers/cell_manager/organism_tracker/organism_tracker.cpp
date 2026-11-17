@@ -229,9 +229,9 @@ void OrganismTracker::update_energy()
     const float count = static_cast<float>(cell_count);
 
     average_generation /= count;
-    max_energy = count * CellSettings::max_energy;
+    max_energy = count * 0; // TODO
     max_nutrients = max_energy;
-    average_energy = total_energy / count;
+    average_energy = 0.f;
     frames_alive /= count;
     ready_to_reproduce_percentage = 100.f * static_cast<float>(cells_ready_to_reproduce) / count; // was integer division
 

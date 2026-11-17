@@ -27,6 +27,10 @@ struct Cell : public CellGenome, CellSettings
 {
 	bool seek_newborn_links_ = false;
 
+	float max_nutrients;
+	float max_integrity;
+	float max_energy;
+
 private:
 	bool reproduce_ = false; // signals to the protozoa manager that this cell needs an offspring index set
 	bool dead_ = false;      // signals that the cell is in its decaying state
@@ -102,7 +106,6 @@ public:
 
 	// ------------ Data accessors ------------
 	[[nodiscard]] bool is_alive() const { return !dead_; }
-	[[nodiscard]] bool can_die() const { return energy <= 0; }
 
 	[[nodiscard]] bool should_reproduce() const { return reproduce_; }
 
@@ -136,6 +139,7 @@ public:
 	static bool consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f& food_pos, const float combined_rad);
 
 	void recreate();
+	void set_max_energy_nut_integrity();
 	void turn_off_reproduction();
 
 	// reproductive

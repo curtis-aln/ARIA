@@ -116,7 +116,7 @@ float Tendon::calc_nutrient_send_amount(const NutrientFlow& flow, const float ra
 	if (diff <= 0.0f && !flow.priority)
 		return 0.0f;
 
-	const float space = CellSettings::max_nutrients - *flow.receiver;
+	const float space = 100.f - *flow.receiver; // TODO
 	if (space <= 0.0f)
 		return 0.0f;
 

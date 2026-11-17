@@ -316,10 +316,10 @@ void CellManager::force_reproduce_selected_protozoa()
 	for (Cell& fake_cell : protozoa_tracker_.cells)
 	{
 		Cell* cell = all_cells_.at(fake_cell.id_);
-		cell->nutrients_ = std::max(cell->nutrients_, cell->get<CellGenome::BirthNutrientsThresh>() * CellSettings::max_nutrients);
+		cell->nutrients_ = std::max(cell->nutrients_, cell->get<CellGenome::BirthNutrientsThresh>() * cell->max_nutrients);
 
-		cell->set_energy(std::max(cell->get_energy(), cell->get<CellGenome::BirthEnergyThresh>() * CellSettings::max_energy));
-		cell->set_integrity(std::max(cell->get_integrity(), cell->get<CellGenome::BirthIntegrityThresh>() * CellSettings::max_integrity));
+		cell->set_energy(std::max(cell->get_energy(), cell->get<CellGenome::BirthEnergyThresh>() * cell->max_energy));
+		cell->set_integrity(std::max(cell->get_integrity(), cell->get<CellGenome::BirthIntegrityThresh>() * cell->max_integrity));
 
 		cell->repro_timer_ = std::max(cell->repro_timer_, uint16_t(cell->repro_cooldown));
 		cell->force_reproduce();

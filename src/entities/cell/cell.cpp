@@ -22,7 +22,6 @@ void Cell::recreate()
 	delta_integrity = 0.f;
 
 	nutrients_ = 0.f;
-
 	phase_ = 0.f;
 
 	// genome
@@ -52,6 +51,13 @@ void Cell::recreate()
 	seek_newborn_links_ = false;
 
 	tendon_links_.clear_connections();
+}
+
+void Cell::set_max_energy_nut_integrity()
+{
+	max_nutrients = get<Mass>() * mass_to_max_nutrients;
+	max_integrity = get<Mass>() * mass_to_max_integrity;
+	max_energy = get<Mass>() * mass_to_max_energy;
 }
 
 bool Cell::eat(const float nutrients)
@@ -121,6 +127,8 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 	child->apply_to_body(child_body);
 
 	child->phase_ = phase_; // newborn starts in step with its parent
+
+	child->set_max_energy_nut_integrity();
 }
 
 void Cell::turn_off_reproduction()
@@ -174,6 +182,8 @@ float Cell::drag_coeff() const
 
 void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_death)
 {
+	set_max_energy_nut_integrity();
+
 	phase_ = osc::wrap_two_pi(phase_ + get<Frequency>());
 	sinwave_current_value_ = calculate_sin_output();
 	cell_calculated_drag_ = drag_coeff();
@@ -187,8 +197,7 @@ void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_
 
 	process_nutrients();
 
-	if (check_death())
-		return; // dead cells don't repair or reproduce
+	check_death();
 
 	repair_integrity();
 	update_reproduction_flag();
@@ -234,10 +243,13 @@ bool Cell::check_death()
 
 	if (energy <= 0.f) // if the cell has no energy, it dies
 	{
+		static constexpr float integrity_to_energy_conversion = 3.f; // how much integrity is lost for every 1 energy lost
+
+		integrity -= abs(energy * integrity_to_energy_conversion);
 		energy = 0.f;
-		kill();
 	}
-	else if (integrity <= 0.f) // if the cell has no integrity, it dies
+	
+	if (integrity <= 0.f) // if the cell has no integrity, it dies
 	{
 		integrity = 0.f;
 		kill();

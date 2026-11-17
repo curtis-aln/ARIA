@@ -273,15 +273,15 @@ namespace
 			if (std::abs(v) < 1e-6f) std::snprintf(out, n, "static, no oscillation");
 			else                     std::snprintf(out, n, "period %.1f frames%s", k_two_pi / std::abs(v), v < 0.f ? " (reversed)" : "");
 			return true;
-		case GeneDerive::EnergyAbs:
-			std::snprintf(out, n, "= %.1f energy (max %.0f)", v * CellSettings::max_energy, CellSettings::max_energy);
-			return true;
-		case GeneDerive::IntegrityAbs:
-			std::snprintf(out, n, "= %.1f integrity (max %.0f)", v * CellSettings::max_integrity, CellSettings::max_integrity);
-			return true;
-		case GeneDerive::NutrientsAbs:
-			std::snprintf(out, n, "= %.1f nutrients (max %.0f)", v * CellSettings::max_nutrients, CellSettings::max_nutrients);
-			return true;
+		//case GeneDerive::EnergyAbs:
+		//	std::snprintf(out, n, "= %.1f energy (max %.0f)", v * CellSettings::max_energy, CellSettings::max_energy);
+		//	return true;
+		//case GeneDerive::IntegrityAbs:
+		//	std::snprintf(out, n, "= %.1f integrity (max %.0f)", v * CellSettings::max_integrity, CellSettings::max_integrity);
+		//	return true;
+		//case GeneDerive::NutrientsAbs:
+		//	std::snprintf(out, n, "= %.1f nutrients (max %.0f)", v * CellSettings::max_nutrients, CellSettings::max_nutrients); // TODO
+		//	return true;
 		case GeneDerive::Percent:
 			std::snprintf(out, n, "= %.1f%%", v * 100.f);
 			return true;

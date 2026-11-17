@@ -71,9 +71,6 @@ void OrganismTab::draw_cell_detail_cell_tab(const Cell& c, const int period,
 
 	ImGui::Text("Absolute id %u  Gen %u", c.id_, c.generation());
 	ImGui::Text("age %u fr", c.internal_clock_);
-	ImGui::Text("Period   %d fr", period);
-	ImGui::Text("Fric     min %.3f  max %.3f", wave_min, wave_max);
-	ImGui::Text("Mut Strength    %.4f", c.mean_mutation_strength());
 	ImGui::Text("Ate      %u  (%u fr ago)", static_cast<unsigned>(c.total_food_eaten_), static_cast<unsigned>(c.time_since_last_ate_));
 	ImGui::Text("Offspring so far: %d", static_cast<int>(c.offspring_count));
 
