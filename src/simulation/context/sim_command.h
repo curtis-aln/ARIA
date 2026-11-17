@@ -91,6 +91,9 @@ enum class CommandType
 
 	SetCellMatterLifetime,        // set the lifetime of cell matter
 
+	SetTendonGene,
+	SetCellGene,
+
 	// FOOD MANAGER EVENT  ──────────────────────────────────────────────────
 	SetFoodToggles,
 	ClearAllFood, // clears all food from the simulation

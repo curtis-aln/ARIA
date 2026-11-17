@@ -13,6 +13,25 @@
 #include <limits>
 #include <vector>
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Genes tab: view state (everything else is read from the snapshot each frame)
+// ─────────────────────────────────────────────────────────────────────────────
+enum class GnMetric : uint8_t { Value, Gene, Sigma };
+
+struct GenesTabState
+{
+	GnMetric metric = GnMetric::Value;
+	bool     sort_by_spread = false;
+	bool     hide_converged = false;
+	bool     show_flags = true;
+	char     filter[32] = {};
+	uint32_t closed_groups = 0;       // bit per GeneGroup, 1 = folded
+	bool     initialised = false;
+	bool     sel_is_tendon = false;   // which genome kind the inspector shows
+	int      sel_gene = 0;
+	int      wave_window = 240;       // frames shown in the wave overlay (slider range 60..600)
+};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Energy tab: palette
@@ -147,6 +166,9 @@ private:
 	int   cell_selection_mode = 0;
 	float m_feed_amount_ = 50.f;
 
+	// -- Genome state
+	GenesTabState m_genes_;
+
 	// ── Energy tab state ──────────────────────────────────────────────────
 	EnergyHistory m_energy_hist_;
 	long long     m_hist_last_clock_ = -1;   // last cells[0].internal_clock_ seen
@@ -170,6 +192,8 @@ private:
 	static void draw_no_selection();
 	void draw_cells_springs_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
 	void draw_mutation_controls(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
+
+	void draw_genes_tab(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa);
 
 	void draw_wave_panel(ImGuiContext& ctx, const char* child_id, const char* description,
 		double now, int idx, const char* value_label, float actual_value, ImVec4 col,

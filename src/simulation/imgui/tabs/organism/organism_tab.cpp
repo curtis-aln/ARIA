@@ -107,6 +107,7 @@ void OrganismTab::draw(const SimSnapshot& snap, ImGuiContext& ctx)
 	}
 	if (ImGui::BeginTabItem("Energy")) { draw_energy_tab(ctx, snap); ImGui::EndTabItem(); }
 	if (ImGui::BeginTabItem("Brain")) { Brain();                    ImGui::EndTabItem(); }
+	if (ImGui::BeginTabItem("Genes")) { draw_genes_tab(snap, ctx, protozoa); ImGui::EndTabItem(); }
 	ImGui::PopStyleVar();
 
 	ImGui::EndTabBar();

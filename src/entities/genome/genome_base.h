@@ -132,6 +132,20 @@ public:
 		return genes_[I].limits();
 	}
 
+	// Generation-0 spawn range of a gene, normalised 0..1
+	Range gene_initial_range(size_t i) const
+	{
+		assert(i < gene_count);
+		return genes_[i].initial_range_;
+	}
+
+	// True if the gene wraps around at 0/1 (angles)
+	bool gene_wraps(size_t i) const
+	{
+		assert(i < gene_count);
+		return genes_[i].wrap_;
+	}
+
 	float gene_value(size_t i) const
 	{
 		assert(i < gene_count);
