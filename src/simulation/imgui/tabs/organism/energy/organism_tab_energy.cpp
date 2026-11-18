@@ -1,4 +1,4 @@
-// Energy tab — history recording, composer (layout), and gauges card.
+// Energy tab: history recording, card layout, and the organism gauges card.
 #include "energy_ui_common.h"
 #include <algorithm>
 #include <cfloat>
@@ -9,142 +9,282 @@ using namespace en_ui;
 
 namespace
 {
-	// Drawn glyphs (the default font has no arrow characters): up / down triangle, or a flat dash.
-	void draw_trend(ImDrawList* dl, ImVec2 c, float slope_per_tick)
+	// ── Gauge slots ──────────────────────────────────────────────────────────
+	// One slot per gauge. The same index is used for EnergyStats' per-gauge arrays and for
+	// EnergyHistory::Series, so the order here must match the history enum.
+	enum GaugeSlot { SlotEnergy = 0, SlotNutrients = 1, SlotIntegrity = 2, SlotCount = 3 };
+
+	static_assert(static_cast<int>(EnergyHistory::Energy) == SlotEnergy
+		&& static_cast<int>(EnergyHistory::Nutrients) == SlotNutrients
+		&& static_cast<int>(EnergyHistory::Integrity) == SlotIntegrity,
+		"GaugeSlot order must match EnergyHistory::Series");
+
+	// ── Trend glyph ──────────────────────────────────────────────────────────
+	// Drawn by hand because the default font has no arrow characters:
+	// green up-triangle (rising), red down-triangle (falling), or a flat dash (steady).
+	void draw_trend_glyph(ImDrawList* draw_list, const ImVec2 center, const float slope_per_tick)
 	{
-		const float per100 = slope_per_tick * 100.f;
-		constexpr float s = 5.f;
-		if (per100 > k_trend_eps)
-			dl->AddTriangleFilled({ c.x, c.y - s }, { c.x - s, c.y + s }, { c.x + s, c.y + s }, u32(k_en_col_good));
-		else if (per100 < -k_trend_eps)
-			dl->AddTriangleFilled({ c.x - s, c.y - s }, { c.x + s, c.y - s }, { c.x, c.y + s }, u32(k_en_col_bad));
+		const float slope_per_100_ticks = slope_per_tick * 100.f;
+		constexpr float half = 5.f;
+
+		if (slope_per_100_ticks > k_trend_eps)
+			draw_list->AddTriangleFilled({ center.x, center.y - half }, { center.x - half, center.y + half },
+				{ center.x + half, center.y + half }, u32(k_en_col_good));
+		else if (slope_per_100_ticks < -k_trend_eps)
+			draw_list->AddTriangleFilled({ center.x - half, center.y - half }, { center.x + half, center.y - half },
+				{ center.x, center.y + half }, u32(k_en_col_bad));
 		else
-			dl->AddRectFilled({ c.x - s, c.y - 1.f }, { c.x + s, c.y + 1.f }, u32(k_en_col_dim));
+			draw_list->AddRectFilled({ center.x - half, center.y - 1.f }, { center.x + half, center.y + 1.f },
+				u32(k_en_col_dim));
 	}
 
-	// Everything the cards need that can be derived from one tracker snapshot.
-	EnergyStats instant_stats(const OrganismTracker& t)
+	// ── Instant stats ────────────────────────────────────────────────────────
+	// Everything the cards need that can be derived from a single tracker snapshot
+	// (no history involved, so trend slopes are filled in separately by the caller).
+	EnergyStats compute_instant_stats(const OrganismTracker& tracker)
 	{
-		EnergyStats st{};
-		const int n = t.cell_count;
-		st.n = n;
-		if (n <= 0) return st;
+		EnergyStats stats{};
+		const int cell_count = tracker.cell_count;
+		stats.cell_count = cell_count;
+		if (cell_count <= 0)
+			return stats;
 
-		float thr_e = 0.f, thr_n = 0.f, thr_i = 0.f, tot_i = 0.f;
-		float emin = FLT_MAX, emax = 0.f, esum = 0.f;
-		for (int k = 0; k < n; ++k)
+		// Organism-wide sums, in absolute units
+		float total_integrity = 0.f;
+		float max_integrity = 0.f;            // sum of every cell's own integrity cap
+		float energy_threshold_sum = 0.f;     // reproduction thresholds, absolute
+		float nutrient_threshold_sum = 0.f;
+		float integrity_threshold_sum = 0.f;
+
+		// Spread of per-cell energy fill (0..1)
+		float lowest_energy_fill = FLT_MAX;
+		float highest_energy_fill = 0.f;
+		float energy_fill_sum = 0.f;
+
+		for (int i = 0; i < cell_count; ++i)
 		{
-			const Cell& c = t.cells[k];
-			tot_i += c.get_integrity();
-			thr_e += static_cast<float>(c.energy_threshold());
-			thr_n += static_cast<float>(c.nutrients_threshold());
-			thr_i += static_cast<float>(c.integrity_threshold());
-			st.net_dE += c.delta_energy;
-			st.net_dI += c.delta_integrity;
+			const Cell& cell = tracker.cells[i];
 
-			const float ef = safe_frac(c.get_energy(), c.max_energy);
-			emin = std::min(emin, ef);
-			emax = std::max(emax, ef);
-			esum += ef;
+			total_integrity += cell.get_integrity();
+			max_integrity += cell.max_integrity;   // rename to your accessor
+
+			energy_threshold_sum += static_cast<float>(cell.energy_threshold());
+			nutrient_threshold_sum += static_cast<float>(cell.nutrients_threshold());
+			integrity_threshold_sum += static_cast<float>(cell.integrity_threshold());
+
+			stats.net_energy_delta += cell.delta_energy;
+			stats.net_integrity_delta += cell.delta_integrity;
+
+			const float energy_fill = safe_frac(cell.get_energy(), cell.max_energy);
+			lowest_energy_fill = std::min(lowest_energy_fill, energy_fill);
+			highest_energy_fill = std::max(highest_energy_fill, energy_fill);
+			energy_fill_sum += energy_fill;
 		}
 
-		st.total_integrity = tot_i;
-		st.max_integrity = 100.f * static_cast<float>(n); // TODO
+		stats.total_integrity = total_integrity;
+		stats.max_integrity = max_integrity;
 
-		st.frac[0] = safe_frac(t.total_energy, t.max_energy);
-		st.frac[1] = safe_frac(t.total_nutrients, t.max_nutrients);
-		st.frac[2] = safe_frac(tot_i, st.max_integrity);
-		st.thr[0] = safe_frac(thr_e, t.max_energy);
-		st.thr[1] = safe_frac(thr_n, t.max_nutrients);
-		st.thr[2] = safe_frac(thr_i, st.max_integrity);
+		// How full the organism is, per gauge
+		stats.fill_fraction[SlotEnergy] = safe_frac(tracker.total_energy, tracker.max_energy);
+		stats.fill_fraction[SlotNutrients] = safe_frac(tracker.total_nutrients, tracker.max_nutrients);
+		stats.fill_fraction[SlotIntegrity] = safe_frac(total_integrity, max_integrity);
 
-		st.cell_min = emin;
-		st.cell_max = emax;
-		st.cell_mean = esum / static_cast<float>(n);
-		return st;
+		// Where reproduction kicks in, as a fraction of each gauge's capacity
+		stats.repro_threshold_fraction[SlotEnergy] = safe_frac(energy_threshold_sum, tracker.max_energy);
+		stats.repro_threshold_fraction[SlotNutrients] = safe_frac(nutrient_threshold_sum, tracker.max_nutrients);
+		stats.repro_threshold_fraction[SlotIntegrity] = safe_frac(integrity_threshold_sum, max_integrity);
+
+		stats.cell_energy_min = lowest_energy_fill;
+		stats.cell_energy_max = highest_energy_fill;
+		stats.cell_energy_mean = energy_fill_sum / static_cast<float>(cell_count);
+		return stats;
+	}
+
+	// ── Card layout ──────────────────────────────────────────────────────────
+	struct EnergyLayout
+	{
+		bool  show_constants;   // the Constants card only appears when there is room for it
+		float history_w;        // width of the flexible History card
+		float cells_w;          // width of the flexible Cells card
+	};
+
+	// Row order: Gauges | History (flex) | Budget | Cells (flex) | Feed | Constants (if wide enough).
+	// Fixed-width cards take what they need, and the two flexible cards split whatever is left.
+	EnergyLayout plan_energy_layout(const float total_w, const float item_spacing)
+	{
+		constexpr float fixed_core_w = k_en_gauges_w + k_en_budget_w + k_en_feed_w;
+
+		EnergyLayout layout{};
+		layout.show_constants = total_w >= fixed_core_w + k_en_consts_w + k_en_history_min_w
+			+ k_en_cells_min_w + item_spacing * 5.f;
+
+		const int   card_count = layout.show_constants ? 6 : 5;
+		const float fixed_w = fixed_core_w + (layout.show_constants ? k_en_consts_w : 0.f);
+		const float flexible_w = std::max(total_w - fixed_w - item_spacing * static_cast<float>(card_count - 1),
+			k_en_history_min_w + k_en_cells_min_w);
+
+		layout.history_w = std::floor(flexible_w * k_en_history_share);
+		layout.cells_w = flexible_w - layout.history_w;
+		return layout;
+	}
+
+	// ── Gauge drawing ────────────────────────────────────────────────────────
+	// What one gauge column needs in order to draw itself and its tooltip.
+	struct GaugeView
+	{
+		const char* label;            // "NRG" / "NUT" / "INT"
+		float       value;            // organism total, absolute units
+		float       capacity;         // organism capacity, absolute units
+		float       fill;             // value / capacity, 0..1
+		float       threshold;        // reproduction threshold as a fraction of capacity (0 = none)
+		float       slope_per_tick;   // recent trend, in fill fraction per tick
+		ImVec4      color;
+	};
+
+	// Shared pixel geometry for every gauge column.
+	struct GaugeGeometry
+	{
+		float column_w;        // width of one gauge column
+		float trend_row_h;     // height of the trend glyph row above the bar
+		float bar_h;
+		float bar_w;
+		float label_block_h;   // name line + percent line below the bar
+		float text_h;          // one line of text
+	};
+
+	void draw_gauge_column(ImDrawList* draw_list, const int id, const GaugeView& gauge,
+		const GaugeGeometry& geo, const float column_x, const float top_y)
+	{
+		const float center_x = column_x + geo.column_w * 0.5f;
+		const float bar_top = top_y + geo.trend_row_h;
+		const float bar_bottom = bar_top + geo.bar_h;
+		const ImVec2 bar_min = { center_x - geo.bar_w * 0.5f, bar_top };
+		const ImVec2 bar_max = { center_x + geo.bar_w * 0.5f, bar_bottom };
+
+		draw_trend_glyph(draw_list, { center_x, top_y + geo.trend_row_h * 0.5f }, gauge.slope_per_tick);
+
+		// Bar: empty track, filled portion, outline
+		draw_list->AddRectFilled(bar_min, bar_max, u32({ 1.f, 1.f, 1.f, 0.06f }), 3.f);
+		const float fill_h = geo.bar_h * gauge.fill;
+		if (fill_h > 0.5f)
+			draw_list->AddRectFilled({ bar_min.x, bar_bottom - fill_h }, bar_max, u32(gauge.color), 3.f);
+		draw_list->AddRect(bar_min, bar_max, u32(k_en_col_card_border), 3.f);
+
+		// Reproduction threshold tick, drawn slightly wider than the bar
+		if (gauge.threshold > 0.f)
+		{
+			const float tick_y = bar_bottom - gauge.threshold * geo.bar_h;
+			draw_list->AddLine({ bar_min.x - 3.f, tick_y }, { bar_max.x + 3.f, tick_y }, u32({ 1.f, 1.f, 1.f, 0.9f }), 1.5f);
+		}
+
+		// Labels under the bar: name, then percent full
+		const ImVec2 label_size = ImGui::CalcTextSize(gauge.label);
+		draw_list->AddText({ center_x - label_size.x * 0.5f, bar_bottom + 3.f }, u32(k_en_col_dim), gauge.label);
+
+		char percent_text[16];
+		std::snprintf(percent_text, sizeof percent_text, "%.0f%%", gauge.fill * 100.f);
+		const ImVec2 percent_size = ImGui::CalcTextSize(percent_text);
+		draw_list->AddText({ center_x - percent_size.x * 0.5f, bar_bottom + 3.f + geo.text_h },
+			u32({ 0.92f, 0.93f, 0.96f, 1.f }), percent_text);
+
+		// Hover area covers the whole column (trend glyph, bar, labels)
+		ImGui::SetCursorScreenPos({ column_x, top_y });
+		ImGui::PushID(id);
+		ImGui::InvisibleButton("##gauge", { geo.column_w, geo.trend_row_h + geo.bar_h + geo.label_block_h });
+		ImGui::PopID();
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted(gauge.label);
+			ImGui::Text("%.1f / %.0f  (%.0f%%)", gauge.value, gauge.capacity, gauge.fill * 100.f);
+			if (gauge.threshold > 0.f)
+				ImGui::Text("repro threshold: %.1f  (%.0f%%)", gauge.threshold * gauge.capacity, gauge.threshold * 100.f);
+			ImGui::Text("trend: %+.2f / 100 fr", gauge.slope_per_tick * 100.f * gauge.capacity);
+			ImGui::EndTooltip();
+		}
 	}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  History recording — called every frame from OrganismTab::draw()
+//  History recording, called every frame from OrganismTab::draw()
 //
-//  x axis is a monotonic UI-side tick built from cells[0].internal_clock_ deltas,
+//  The x axis is a monotonic UI-side tick built from cells[0].internal_clock_ deltas,
 //  so a paused sim adds nothing and removing cell 0 doesn't reset the graph.
 //  Swap in a real sim tick from SimSnapshot if it has one.
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::record_energy_history(const SimSnapshot& snap)
+void OrganismTab::record_energy_history(const SimSnapshot& snapshot)
 {
-	const OrganismTracker& t = snap.protozoa_tracker;
+	const OrganismTracker& tracker = snapshot.protozoa_tracker;
 
-	if (t.selected_id != m_last_id_)
+	// A different organism was selected: start a fresh graph
+	if (tracker.selected_id != m_history_organism_id_)
 	{
-		m_energy_hist_.clear();
-		m_hist_last_clock_ = -1;
-		m_hist_tick_ = 0.f;
-		m_last_id_ = t.selected_id;
+		m_energy_history_.clear();
+		m_history_last_clock_ = -1;
+		m_history_tick_ = 0.f;
+		m_history_organism_id_ = tracker.selected_id;
 	}
-	if (t.cell_count <= 0) return;
+	if (tracker.cell_count <= 0)
+		return;
 
-	const long long clock = static_cast<long long>(t.cells[0].internal_clock_);
-	if (m_hist_last_clock_ >= 0)
+	const long long clock = static_cast<long long>(tracker.cells[0].internal_clock_);
+	if (m_history_last_clock_ >= 0)
 	{
-		if (clock == m_hist_last_clock_) return;                 // paused / no new tick
-		const long long delta = clock - m_hist_last_clock_;
-		m_hist_tick_ += delta > 0 ? static_cast<float>(delta) : 1.f;   // clock went backwards: cell list changed
-	}
-	m_hist_last_clock_ = clock;
+		if (clock == m_history_last_clock_)
+			return;                                   // paused, no new tick
 
-	const EnergyStats st = instant_stats(t);
-	EnergyHistory::Sample s{};
-	s.tick = m_hist_tick_;
-	s.v[EnergyHistory::Energy] = st.frac[0];
-	s.v[EnergyHistory::Nutrients] = st.frac[1];
-	s.v[EnergyHistory::Integrity] = st.frac[2];
-	s.v[EnergyHistory::CellMin] = st.cell_min;
-	s.v[EnergyHistory::CellMean] = st.cell_mean;
-	s.v[EnergyHistory::CellMax] = st.cell_max;
-	m_energy_hist_.push(s);
+		const long long clock_delta = clock - m_history_last_clock_;
+		// A negative delta means the cell list changed under us; count it as one tick
+		m_history_tick_ += clock_delta > 0 ? static_cast<float>(clock_delta) : 1.f;
+	}
+	m_history_last_clock_ = clock;
+
+	const EnergyStats stats = compute_instant_stats(tracker);
+	EnergyHistory::Sample sample{};
+	sample.tick = m_history_tick_;
+	sample.v[EnergyHistory::Energy] = stats.fill_fraction[SlotEnergy];
+	sample.v[EnergyHistory::Nutrients] = stats.fill_fraction[SlotNutrients];
+	sample.v[EnergyHistory::Integrity] = stats.fill_fraction[SlotIntegrity];
+	sample.v[EnergyHistory::CellMin] = stats.cell_energy_min;
+	sample.v[EnergyHistory::CellMean] = stats.cell_energy_mean;
+	sample.v[EnergyHistory::CellMax] = stats.cell_energy_max;
+	m_energy_history_.push(sample);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Energy tab — composer
+//  Energy tab composer
 //
 //  One row of full-height cards:
 //    Gauges | History (flex) | Budget | Cells (flex) | Feed | Constants (if wide enough)
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap)
+void OrganismTab::draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snapshot)
 {
-	const OrganismTracker& t = snap.protozoa_tracker;
-	if (t.cell_count <= 0) { ImGui::TextDisabled("No cells."); return; }
+	const OrganismTracker& tracker = snapshot.protozoa_tracker;
+	if (tracker.cell_count <= 0)
+	{
+		ImGui::TextDisabled("No cells.");
+		return;
+	}
 
-	EnergyStats st = instant_stats(t);
-	for (int k = 0; k < 3; ++k)
-		st.slope[k] = m_energy_hist_.slope(static_cast<EnergyHistory::Series>(k), k_trend_window);
+	// Instant stats from this frame's snapshot, plus recent trends from the recorded history
+	EnergyStats stats = compute_instant_stats(tracker);
+	for (int slot = 0; slot < SlotCount; ++slot)
+		stats.slope_per_tick[slot] = m_energy_history_.slope(static_cast<EnergyHistory::Series>(slot), k_trend_window);
 
-	// ── Width allocation ──────────────────────────────────────────────────
-	const float sp = ImGui::GetStyle().ItemSpacing.x;
-	const float total_w = ImGui::GetContentRegionAvail().x;
-	constexpr float fixed3 = k_en_gauges_w + k_en_budget_w + k_en_feed_w;
+	const EnergyLayout layout = plan_energy_layout(ImGui::GetContentRegionAvail().x, ImGui::GetStyle().ItemSpacing.x);
 
-	const bool show_consts = total_w >= fixed3 + k_en_consts_w + k_en_history_min_w + k_en_cells_min_w + sp * 5.f;
-	const int  card_count = show_consts ? 6 : 5;
-	const float fixed = fixed3 + (show_consts ? k_en_consts_w : 0.f);
-	const float flex = std::max(total_w - fixed - sp * static_cast<float>(card_count - 1),
-		k_en_history_min_w + k_en_cells_min_w);
-	const float hist_w = std::floor(flex * k_en_history_share);
-	const float cells_w = flex - hist_w;
-
-	draw_energy_gauges(st, t);
+	draw_energy_gauges(stats, tracker);
 	ImGui::SameLine();
-	draw_energy_history(st, hist_w);
+	draw_energy_history(stats, layout.history_w);
 	ImGui::SameLine();
-	draw_energy_budget(st, t, !show_consts);
+	draw_energy_budget(stats, tracker, !layout.show_constants);   // budget goes compact when Constants is hidden
 	ImGui::SameLine();
-	draw_energy_cells(t, cells_w);
+	draw_energy_cells(tracker, layout.cells_w);
 	ImGui::SameLine();
-	draw_energy_feed(ctx, st, t);
+	draw_energy_feed(ctx, stats, tracker);
 
-	if (show_consts)
+	if (layout.show_constants)
 	{
 		ImGui::SameLine();
 		if (begin_card("EN_consts", k_en_consts_w))
@@ -158,75 +298,44 @@ void OrganismTab::draw_energy_tab(ImGuiContext& ctx, const SimSnapshot& snap)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Gauges — three tall bars with reproduction-threshold ticks and trend arrows
+//  Gauges card: three tall bars with reproduction-threshold ticks and trend arrows
 // ─────────────────────────────────────────────────────────────────────────────
-void OrganismTab::draw_energy_gauges(const EnergyStats& st, const OrganismTracker& t)
+void OrganismTab::draw_energy_gauges(const EnergyStats& stats, const OrganismTracker& tracker)
 {
 	if (begin_card("EN_gauges", k_en_gauges_w))
 	{
-		ImGui::TextDisabled("Organism  %d cells", st.n);
+		ImGui::TextDisabled("Organism  %d cells", stats.cell_count);
 		ImGui::Separator();
 
-		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		const ImVec2 origin = ImGui::GetCursorScreenPos();
-		const ImVec2 avail = ImGui::GetContentRegionAvail();
+		const ImVec2 available = ImGui::GetContentRegionAvail();
 
-		const float col_w = std::floor(avail.x / 3.f);
-		const float top_h = 16.f;
-		const float line_h = ImGui::GetTextLineHeight();
-		const float bot_h = line_h * 2.f + 6.f;
-		const float bar_h = std::max(avail.y - top_h - bot_h, 10.f);
-		const float bar_w = std::min(col_w - 10.f, 34.f);
+		// Bars fill whatever height is left after the trend row and the label block
+		GaugeGeometry geo{};
+		geo.column_w = std::floor(available.x / static_cast<float>(SlotCount));
+		geo.trend_row_h = 16.f;
+		geo.text_h = ImGui::GetTextLineHeight();
+		geo.label_block_h = geo.text_h * 2.f + 6.f;
+		geo.bar_h = std::max(available.y - geo.trend_row_h - geo.label_block_h, 10.f);
+		geo.bar_w = std::min(geo.column_w - 10.f, 34.f);
 
-		static const char* names[3] = { "NRG", "NUT", "INT" };
-		const float raws[3] = { t.total_energy, t.total_nutrients, st.total_integrity };
-		const float maxs[3] = { t.max_energy, t.max_nutrients, st.max_integrity };
-		const ImVec4 cols[3] = { fraction_color(st.frac[0]), k_en_col_nutrients, k_en_col_integrity };
+		const GaugeView gauges[SlotCount] = {
+			{ "NRG", tracker.total_energy,    tracker.max_energy,    stats.fill_fraction[SlotEnergy],
+			  stats.repro_threshold_fraction[SlotEnergy],    stats.slope_per_tick[SlotEnergy],
+			  fraction_color(stats.fill_fraction[SlotEnergy]) },
+			{ "NUT", tracker.total_nutrients, tracker.max_nutrients, stats.fill_fraction[SlotNutrients],
+			  stats.repro_threshold_fraction[SlotNutrients], stats.slope_per_tick[SlotNutrients],
+			  k_en_col_nutrients },
+			{ "INT", stats.total_integrity,   stats.max_integrity,   stats.fill_fraction[SlotIntegrity],
+			  stats.repro_threshold_fraction[SlotIntegrity], stats.slope_per_tick[SlotIntegrity],
+			  k_en_col_integrity },
+		};
 
-		for (int k = 0; k < 3; ++k)
+		for (int slot = 0; slot < SlotCount; ++slot)
 		{
-			const float x0 = origin.x + col_w * static_cast<float>(k);
-			const float cx = x0 + col_w * 0.5f;
-			const float bar_top = origin.y + top_h;
-			const float bar_bot = bar_top + bar_h;
-			const ImVec2 b0 = { cx - bar_w * 0.5f, bar_top };
-			const ImVec2 b1 = { cx + bar_w * 0.5f, bar_bot };
-
-			draw_trend(dl, { cx, origin.y + top_h * 0.5f }, st.slope[k]);
-
-			dl->AddRectFilled(b0, b1, u32({ 1.f, 1.f, 1.f, 0.06f }), 3.f);
-			const float fh = bar_h * st.frac[k];
-			if (fh > 0.5f)
-				dl->AddRectFilled({ b0.x, bar_bot - fh }, b1, u32(cols[k]), 3.f);
-			dl->AddRect(b0, b1, u32(k_en_col_card_border), 3.f);
-
-			if (st.thr[k] > 0.f)
-			{
-				const float y = bar_bot - st.thr[k] * bar_h;
-				dl->AddLine({ b0.x - 3.f, y }, { b1.x + 3.f, y }, u32({ 1.f, 1.f, 1.f, 0.9f }), 1.5f);
-			}
-
-			const ImVec2 ns = ImGui::CalcTextSize(names[k]);
-			dl->AddText({ cx - ns.x * 0.5f, bar_bot + 3.f }, u32(k_en_col_dim), names[k]);
-			char pct[16];
-			std::snprintf(pct, sizeof pct, "%.0f%%", st.frac[k] * 100.f);
-			const ImVec2 ps = ImGui::CalcTextSize(pct);
-			dl->AddText({ cx - ps.x * 0.5f, bar_bot + 3.f + line_h }, u32({ 0.92f, 0.93f, 0.96f, 1.f }), pct);
-
-			ImGui::SetCursorScreenPos({ x0, origin.y });
-			ImGui::PushID(k);
-			ImGui::InvisibleButton("##gauge", { col_w, top_h + bar_h + bot_h });
-			ImGui::PopID();
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::BeginTooltip();
-				ImGui::TextUnformatted(names[k]);
-				ImGui::Text("%.1f / %.0f  (%.0f%%)", raws[k], maxs[k], st.frac[k] * 100.f);
-				if (st.thr[k] > 0.f)
-					ImGui::Text("repro threshold: %.1f  (%.0f%%)", st.thr[k] * maxs[k], st.thr[k] * 100.f);
-				ImGui::Text("trend: %+.2f / 100 fr", st.slope[k] * 100.f * maxs[k]);
-				ImGui::EndTooltip();
-			}
+			const float column_x = origin.x + geo.column_w * static_cast<float>(slot);
+			draw_gauge_column(draw_list, slot, gauges[slot], geo, column_x, origin.y);
 		}
 	}
 	ImGui::EndChild();

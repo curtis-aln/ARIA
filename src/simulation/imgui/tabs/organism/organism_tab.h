@@ -96,13 +96,13 @@ static constexpr uint32_t k_no_key = 0xFFFFFFFFu;
 // Fractions are relative to the organism maximum (0..1).
 struct EnergyStats
 {
-	int   n = 0;
-	float frac[3] = {};     // energy, nutrients, integrity
-	float thr[3] = {};     // reproduction threshold as a fraction of organism max
-	float slope[3] = {};     // measured change per tick (fraction), from EnergyHistory
+	int   cell_count = 0;
+	float fill_fraction[3] = {};     // energy, nutrients, integrity
+	float repro_threshold_fraction[3] = {};     // reproduction threshold as a fraction of organism max
+	float slope_per_tick[3] = {};     // measured change per tick (fraction), from EnergyHistory
 	float total_integrity = 0.f, max_integrity = 0.f;
-	float net_dE = 0.f, net_dI = 0.f;                    // sum of per-cell delta_energy / delta_integrity
-	float cell_min = 0.f, cell_mean = 0.f, cell_max = 0.f; // per-cell energy fractions
+	float net_energy_delta = 0.f, net_integrity_delta = 0.f;                    // sum of per-cell delta_energy / delta_integrity
+	float cell_energy_min = 0.f, cell_energy_mean = 0.f, cell_energy_max = 0.f; // per-cell energy fractions
 };
 
 inline static constexpr ImVec4 friction_wave_col = { 1.00f, 0.65f, 0.25f, 1.f };
@@ -143,7 +143,7 @@ private:
 	// ── Selection ─────────────────────────────────────────────────────────
 	// Selection is stored by ID (the *_key_ fields). The *_idx_ fields are tracker
 	// indices that rebuild_ordering() re-resolves from the keys at the start of every frame.
-	int      m_last_id_ = -1;                // energy-history organism tracking (record_energy_history)
+	int      m_history_organism_id_ = -1;                // energy-history organism tracking (record_energy_history)
 	int      m_sel_org_id_ = -1;             // organism the keys below belong to
 	int      m_sel_cell_idx_ = 0;
 	int      m_sel_spring_idx_ = 0;
@@ -170,9 +170,9 @@ private:
 	GenesTabState m_genes_;
 
 	// ── Energy tab state ──────────────────────────────────────────────────
-	EnergyHistory m_energy_hist_;
-	long long     m_hist_last_clock_ = -1;   // last cells[0].internal_clock_ seen
-	float         m_hist_tick_ = 0.f;        // monotonic tick counter built from clock deltas
+	EnergyHistory m_energy_history_;
+	long long     m_history_last_clock_ = -1;   // last cells[0].internal_clock_ seen
+	float         m_history_tick_ = 0.f;        // monotonic tick counter built from clock deltas
 	int   m_energy_window_ = 1;              // index into k_energy_windows
 	bool  m_show_series_[4] = { true, true, true, true };   // NRG, NUT, INT, per-cell band
 	int   m_cell_sort_ = 0;                  // 0 index, 1 energy (low), 2 integrity (low), 3 food (high)
