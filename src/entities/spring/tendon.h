@@ -42,7 +42,7 @@ struct Tendon : Spring
 private:
 	// takes in the nutrients of cell a and cell b and transfers between them,
 	// respecting max_nutrients caps and applying a fixed % loss per transfer
-	struct NutrientFlow { float* sender = nullptr; float* receiver = nullptr; bool priority = false; };
+	struct NutrientFlow { float* sender; float* receiver; bool priority; float sender_max; float receiver_max; };
 
 	NutrientFlow pick_nutrient_flow(Cell& cell_a, Cell& cell_b) const;
 	float calc_nutrient_send_amount(const NutrientFlow& flow, float rate) const;

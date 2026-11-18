@@ -80,9 +80,13 @@ namespace
 		return (it != g.cell_keys.end() && *it == abs_id) ? static_cast<int>(it - g.cell_keys.begin()) : -1;
 	}
 
+	// Per-entity absolute caps used to turn a 0..1 gene into real units (springs have none)
+	struct Maxes { float energy = 0.f, integrity = 0.f, nutrients = 0.f; };
+
 	// ── Kind adaptors: everything that differs between cells and springs ─────
 	struct CellKind
 	{
+
 		using Genome = CellGenome;
 		static constexpr bool        is_tendon = false;
 		static constexpr char        prefix = 'C';
@@ -97,6 +101,13 @@ namespace
 		static float phase(const OrganismTracker& t, const int i) { return t.cells[i].phase_; }
 		static sf::Color outer(const OrganismTracker& t, const int i) { return t.cells[i].outer_color(); }
 		static sf::Color inner(const OrganismTracker& t, const int i) { return t.cells[i].inner_color(); }
+
+		static Maxes maxes(const OrganismTracker& t, const int i)
+		{
+			const Cell& c = t.cells[i];
+			return { c.max_energy, c.max_integrity, c.max_nutrients };   // rename to your accessors
+		}
+
 
 		static const std::vector<int>& order(const GnCtx& g) { return g.cell_order; }
 		static const std::vector<int>& rank(const GnCtx& g) { return g.cell_rank; }
@@ -130,6 +141,8 @@ namespace
 		static float phase(const OrganismTracker& t, const int i) { return t.springs[i].phase_; }
 		static sf::Color outer(const OrganismTracker& t, const int i) { return t.springs[i].genome.outer_color(); }
 		static sf::Color inner(const OrganismTracker& t, const int i) { return t.springs[i].genome.inner_color(); }
+
+		static Maxes maxes(const OrganismTracker&, const int) { return {}; }
 
 		static const std::vector<int>& order(const GnCtx& g) { return g.spring_order; }
 		static const std::vector<int>& rank(const GnCtx& g) { return g.spring_rank; }
@@ -265,7 +278,7 @@ namespace
 	}
 
 	// Plain-language meaning of a value, e.g. period in frames or an absolute energy threshold
-	bool derived_text(const GeneInfo& info, const float v, char* out, const size_t n)
+	bool derived_text(const GeneInfo& info, const float v, const Maxes& mx, char* out, const size_t n)
 	{
 		switch (info.derive)
 		{
@@ -273,15 +286,16 @@ namespace
 			if (std::abs(v) < 1e-6f) std::snprintf(out, n, "static, no oscillation");
 			else                     std::snprintf(out, n, "period %.1f frames%s", k_two_pi / std::abs(v), v < 0.f ? " (reversed)" : "");
 			return true;
-		//case GeneDerive::EnergyAbs:
-		//	std::snprintf(out, n, "= %.1f energy (max %.0f)", v * CellSettings::max_energy, CellSettings::max_energy);
-		//	return true;
-		//case GeneDerive::IntegrityAbs:
-		//	std::snprintf(out, n, "= %.1f integrity (max %.0f)", v * CellSettings::max_integrity, CellSettings::max_integrity);
-		//	return true;
-		//case GeneDerive::NutrientsAbs:
-		//	std::snprintf(out, n, "= %.1f nutrients (max %.0f)", v * CellSettings::max_nutrients, CellSettings::max_nutrients); // TODO
-		//	return true;
+		case GeneDerive::EnergyAbs:
+			std::snprintf(out, n, "= %.1f energy (max %.0f)", v * mx.energy, mx.energy);
+			return true;
+		case GeneDerive::IntegrityAbs:
+			std::snprintf(out, n, "= %.1f integrity (max %.0f)", v * mx.integrity, mx.integrity);
+			return true;
+		case GeneDerive::NutrientsAbs:
+			std::snprintf(out, n, "= %.1f nutrients (max %.0f)", v * mx.nutrients, mx.nutrients);
+			return true;
+			// Percent / Degrees / EffectiveGive unchanged
 		case GeneDerive::Percent:
 			std::snprintf(out, n, "= %.1f%%", v * 100.f);
 			return true;
@@ -412,7 +426,7 @@ namespace
 		ImGui::TextColored(k_accent, "%s  -  %s %d", info.name, K::noun, k);
 		ImGui::Text("Value  %.5f", s.pheno);
 		char d[64];
-		if (derived_text(info, s.pheno, d, sizeof d))
+		if (derived_text(info, s.pheno, K::maxes(g.t, idx), d, sizeof d))
 			ImGui::TextColored(k_derived, "       %s", d);
 		ImGui::Text("Gene   %.4f    Sigma %.4f", s.norm, s.sigma);
 		ImGui::TextDisabled("Limits %.4g .. %.4g", lim.min, lim.max);
@@ -637,6 +651,8 @@ namespace
 					dl->AddRectFilled(p0, p1, IM_COL32(255, 255, 255, 18));
 
 				draw_chip(dl, { p0.x + 4.f, p0.y + (k_row_h - 11.f) * 0.5f }, 11.f, K::outer(t, idx), K::inner(t, idx));
+
+
 
 				char lbl[8];
 				std::snprintf(lbl, sizeof lbl, "%c%d", K::prefix, k);
@@ -982,7 +998,7 @@ namespace
 		ImGui::TextDisabled("gene %.3f   sigma %.4f", s.norm, s.sigma);
 
 		char d[64];
-		if (derived_text(info, s.pheno, d, sizeof d))
+		if (derived_text(info, s.pheno, K::maxes(t, target), d, sizeof d))
 			ImGui::TextColored(k_derived, "%s", d);
 
 		ImGui::TextDisabled("Limits %.4g .. %.4g   Spawn %.4g .. %.4g",

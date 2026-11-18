@@ -90,8 +90,12 @@ Tendon::NutrientFlow Tendon::pick_nutrient_flow(Cell& cell_a, Cell& cell_b) cons
 {
 	float& nutrients_a = cell_a.nutrients_;
 	float& nutrients_b = cell_b.nutrients_;
+	const float max_a = cell_a.max_nutrients;
+	const float max_b = cell_b.max_nutrients;
 
-	const bool b_higher = nutrients_b > nutrients_a;
+	// compare fill fractions (cross-multiplied, no division)
+	const bool b_higher = nutrients_b * max_a > nutrients_a * max_b;
+
 	float* gradient_sender = b_higher ? &nutrients_b : &nutrients_a;
 	float* gradient_receiver = b_higher ? &nutrients_a : &nutrients_b;
 
@@ -100,29 +104,36 @@ Tendon::NutrientFlow Tendon::pick_nutrient_flow(Cell& cell_a, Cell& cell_b) cons
 	const bool b_reproduced = !cell_b.check_repro_cooldown();
 
 	if (a_reproduced == b_reproduced)
-		return { gradient_sender, gradient_receiver, false };
+		return { gradient_sender, gradient_receiver, false, b_higher ? max_b : max_a, b_higher ? max_a : max_b };
 
 	float* desired_sender = a_reproduced ? &nutrients_a : &nutrients_b;
 	float* desired_receiver = a_reproduced ? &nutrients_b : &nutrients_a;
 
-	// priority = we're overriding the gradient, so the diff > 0 check must be skipped
-	return { desired_sender, desired_receiver, gradient_sender != desired_sender };
+	return { desired_sender, desired_receiver, gradient_sender != desired_sender,
+		a_reproduced ? max_a : max_b, a_reproduced ? max_b : max_a };
 }
 
 // How much can actually move this tick. Returns 0 if nothing should be sent.
 float Tendon::calc_nutrient_send_amount(const NutrientFlow& flow, const float rate) const
 {
-	const float diff = *flow.sender - *flow.receiver;
-	if (diff <= 0.0f && !flow.priority)
+	if (flow.sender_max <= 0.f || flow.receiver_max <= 0.f)
 		return 0.0f;
 
-	const float space = 100.f - *flow.receiver; // TODO
+	const float frac_diff = *flow.sender / flow.sender_max - *flow.receiver / flow.receiver_max;
+	if (frac_diff <= 0.0f && !flow.priority)
+		return 0.0f;
+
+	const float space = flow.receiver_max - *flow.receiver;
 	if (space <= 0.0f)
 		return 0.0f;
 
 	float amount = std::min({ rate, *flow.sender, space });
 	if (!flow.priority)
-		amount = std::min(amount, diff);   // gradient transfers never overshoot equilibrium
+	{
+		// exact amount that leaves both cells at the same fill fraction
+		const float equilibrium = frac_diff * flow.sender_max * flow.receiver_max / (flow.sender_max + flow.receiver_max);
+		amount = std::min(amount, equilibrium);
+	}
 	return amount;
 }
 
