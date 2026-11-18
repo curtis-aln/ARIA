@@ -125,9 +125,9 @@ add_executable(ProjectARIA
 
     # ── ImGui tabs: organism
     src/simulation/imgui/tabs/organism/brain_widget.cpp
-    src/simulation/imgui/tabs/organism/cell_details.cpp
+    src/simulation/imgui/tabs/organism/cells_springs/cell_details.cpp
     src/simulation/imgui/tabs/organism/organism_tab.cpp
-    src/simulation/imgui/tabs/organism/spring_details.cpp
+    src/simulation/imgui/tabs/organism/cells_springs/spring_details.cpp
 
     # ── ImGui tabs: organism / energy
     src/simulation/imgui/tabs/organism/energy/budget.cpp
@@ -167,7 +167,23 @@ add_executable(ProjectARIA
     # ── ImPlot (sources must be compiled as part of our target)
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp
- "src/entities/spring/tendon.h" "src/entities/spring/tendon.cpp" "src/Utils/fast_funcs.h" "src/Utils/oscillator.h" "src/Utils/Graphics/post_fx.h" "src/entities/genome/tendon_genome.h" "src/entities/genome/gene.h" "src/entities/genome/helpers.h" "src/simulation/imgui/tabs/organism/genes_tab.cpp" "src/entities/genome/gene_info.h")
+ "src/entities/spring/tendon.h" 
+ "src/entities/spring/tendon.cpp" 
+ "src/Utils/fast_funcs.h" 
+ "src/Utils/oscillator.h" 
+ "src/Utils/Graphics/post_fx.h" 
+ "src/entities/genome/tendon_genome.h" 
+ "src/entities/genome/gene.h" 
+ "src/entities/genome/helpers.h" 
+  
+ "src/entities/genome/gene_info.h" 
+ "src/simulation/imgui/tabs/organism/genomes/genes_ui_common.h" 
+ "src/simulation/imgui/tabs/organism/genomes/genes_inspector.cpp" 
+ "src/simulation/imgui/tabs/organism/genomes/genes_ui_util.cpp" 
+ "src/simulation/imgui/tabs/organism/genomes/genes_tooltips.cpp" 
+ "src/simulation/imgui/tabs/organism/genomes/genes_stats.cpp" 
+ "src/simulation/imgui/tabs/organism/genomes/genes_matrix.cpp" 
+ "src/simulation/imgui/tabs/organism/genomes/genes_tab.cpp")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

@@ -1,4 +1,4 @@
-#include "organism_tab.h"
+#include "../organism_tab.h"
 #include <algorithm>
 #include <cstdio>
 
