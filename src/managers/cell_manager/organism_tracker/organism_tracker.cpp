@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
-// ---- public entry point --------------------------------------------------------------------
+// ================================================================================================
+// Public entry point
+// ================================================================================================
 
 void OrganismTracker::update_primitive(const uint32_t selected_cell_id,
     const o_vector<Cell>& all_cells,
@@ -56,7 +59,9 @@ void OrganismTracker::deactivate()
     bounds = {};
 }
 
-// ---- organism discovery --------------------------------------------------------------------
+// ================================================================================================
+// Organism discovery
+// ================================================================================================
 
 // Expands outward from whatever is already in `cells` until no new cell is found.
 // Each pass scans the springs once; a spring touching any found cell belongs to the organism.
@@ -109,6 +114,10 @@ void OrganismTracker::collect_connected(const o_vector<Cell>& all_cells,
     }
 }
 
+// ================================================================================================
+// Lookups
+// ================================================================================================
+
 bool OrganismTracker::is_tendon_already_found(const Tendon* spring) const
 {
     return std::any_of(springs.begin(), springs.end(),
@@ -135,7 +144,9 @@ const Tendon* OrganismTracker::find_if_tendon_connects_to_cell(const Cell* cell,
     return nullptr;
 }
 
-// ---- statistics ----------------------------------------------------------------------------
+// ================================================================================================
+// Statistics: geometry and locomotion
+// ================================================================================================
 
 void OrganismTracker::update_bounds()
 {
@@ -189,55 +200,70 @@ void OrganismTracker::update_locomotion_stats(const bool changed)
     speed = velocity.length();
 }
 
+// ================================================================================================
+// Statistics: energy, nutrients, life history, reproduction
+// ================================================================================================
+
+// Energy and nutrient capacities are per cell, so the organism's max is the sum of its cells' maxes.
+// NOTE: get_max_energy() / get_max_nutrients() are the assumed names of the new per-cell accessors.
 void OrganismTracker::update_energy()
 {
     cell_count = static_cast<int>(cells.size());
     tendon_count = static_cast<int>(springs.size());
 
+    // Reset every accumulator before summing.
     total_energy = 0.f;
+    max_energy = 0.f;
+    average_energy = 0.f;
     total_nutrients = 0.f;
+    max_nutrients = 0.f;
     frames_alive = 0.f;
     total_food_eaten = 0;
     average_generation = 0.f;
     offspring_count = 0;
     time_since_last_reproduced = 0;
-    cells_ready_to_reproduce = 0; // was never reset before, so it grew every frame
+    cells_ready_to_reproduce = 0;
+    ready_to_reproduce_percentage = 0.f;
     spring_total_work_done = 0.f;
+
+    if (cell_count == 0)
+        return;
 
     for (const Cell& cell : cells)
     {
         total_energy += cell.get_energy();
+        max_energy += cell.max_energy;
+
         total_nutrients += cell.nutrients_;
+        max_nutrients += cell.max_nutrients;
+
         frames_alive += cell.internal_clock_;
         total_food_eaten += cell.total_food_eaten_;
         average_generation += cell.generation();
+
         offspring_count += cell.offspring_count;
         time_since_last_reproduced += cell.repro_timer_;
-
         cells_ready_to_reproduce += cell.should_reproduce();
     }
 
     for (const Tendon& spring : springs)
         spring_total_work_done += spring.work_done;
-    
-    if (cell_count == 0)
-    {
-        average_energy = max_energy = max_nutrients = ready_to_reproduce_percentage = 0.f;
-        return;
-    }
 
+    // Convert the sums into per-cell averages / percentages.
     const float count = static_cast<float>(cell_count);
 
+    average_energy = total_energy / count;
     average_generation /= count;
-    max_energy = count * 0; // TODO
-    max_nutrients = max_energy;
-    average_energy = 0.f;
     frames_alive /= count;
-    ready_to_reproduce_percentage = 100.f * static_cast<float>(cells_ready_to_reproduce) / count; // was integer division
+    ready_to_reproduce_percentage = 100.f * static_cast<float>(cells_ready_to_reproduce) / count;
 
     offspring_count /= cell_count;
     time_since_last_reproduced /= cell_count;
 }
+
+// ================================================================================================
+// Statistics: neighbourhood
+// ================================================================================================
 
 // Currently not called anywhere (update_statistics has its call commented out).
 void OrganismTracker::update_neighbourhood_stats(const SimpleSpatialGrid* food_grid, const SimpleSpatialGrid* cell_grid,
