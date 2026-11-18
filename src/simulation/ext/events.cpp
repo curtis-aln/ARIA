@@ -53,7 +53,7 @@ void Simulation::handle_keyboard_events(const sf::Keyboard::Key& event_key_code)
 {
 	switch (event_key_code)
 	{
-	case sf::Keyboard::Key::Escape: running = false;              break;
+	case sf::Keyboard::Key::Escape: quit();              break;
 	case sf::Keyboard::Key::Space:  handle_pause_toggle();        break;
 	case sf::Keyboard::Key::R:      toggles_.m_rendering_ = !toggles_.m_rendering_; break;
 	case sf::Keyboard::Key::Q:      toggles_.hide_panels = !toggles_.hide_panels; break;
@@ -64,6 +64,24 @@ void Simulation::handle_keyboard_events(const sf::Keyboard::Key& event_key_code)
 	case sf::Keyboard::Key::F11: toggle_fullscreen(); break;
 	case sf::Keyboard::Key::F9:  toggle_titlebar();   break;
 	default: break;
+	}
+}
+
+void Simulation::quit()
+{
+	static constexpr int k_max_iterations_before_warning = 40'000;
+	const int iterations = m_world_.get_statistics().iterations_;
+
+	if (iterations > k_max_iterations_before_warning)
+	{
+		m_control_panel_.warnings.show("Quit simulation", "Every organism will be deleted.\nThis can't be undone.",
+			[&] { running = false; },
+			{},                                   // optional on-cancel
+			WarningPopup::Severity::Danger);
+	}
+	else
+	{
+		running = false;
 	}
 }
 

@@ -10,6 +10,8 @@ public:
     void        draw(const SimSnapshot& snap, ImGuiContext& ctx)   override;
 
 private:
+    WarningPopup warnings;
+
     enum class FFCondition { Duration, Population, Generation };
     FFCondition m_ff_cond_ = FFCondition::Duration;
     float       m_ff_target_ = 300.f;

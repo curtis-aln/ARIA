@@ -217,6 +217,8 @@ void OrganismTracker::update_energy()
     average_energy = 0.f;
     total_nutrients = 0.f;
     max_nutrients = 0.f;
+	total_integrity = 0.f;
+    max_integrity = 0.f;
     frames_alive = 0.f;
     total_food_eaten = 0;
     average_generation = 0.f;
@@ -236,6 +238,9 @@ void OrganismTracker::update_energy()
 
         total_nutrients += cell.nutrients_;
         max_nutrients += cell.max_nutrients;
+
+		total_integrity += cell.get_integrity();
+		max_integrity += cell.max_integrity;
 
         frames_alive += cell.internal_clock_;
         total_food_eaten += cell.total_food_eaten_;

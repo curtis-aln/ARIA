@@ -183,7 +183,7 @@ add_executable(ProjectARIA
  "src/simulation/imgui/tabs/organism/genomes/genes_tooltips.cpp" 
  "src/simulation/imgui/tabs/organism/genomes/genes_stats.cpp" 
  "src/simulation/imgui/tabs/organism/genomes/genes_matrix.cpp" 
- "src/simulation/imgui/tabs/organism/genomes/genes_tab.cpp")
+ "src/simulation/imgui/tabs/organism/genomes/genes_tab.cpp" "src/simulation/imgui/misc/popup_warning.h")
 
 target_compile_definitions(ProjectARIA PRIVATE
     ARIA_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/aria_settings.toml"

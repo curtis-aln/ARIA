@@ -223,56 +223,91 @@ void OrganismTab::draw_no_selection()
 // ─────────────────────────────────────────────────────────────────────────────
 void OrganismTab::draw_overview(const SimSnapshot& snap, ImGuiContext& ctx, const OrganismTracker& protozoa)
 {
-	// ── Identity / Locomotion side-by-side ───────────────────────────────
-	ImGui::Columns(2, nullptr, false);
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+	const float w = ImGui::GetContentRegionAvail().x;
 
-	ImGui::TextDisabled("Identity");
-	ImGui::Text("Cells   %d", protozoa.cell_count);
-	ImGui::Text("Springs %d", protozoa.tendon_count);
+	const float energy_f = protozoa.max_energy > 0.f ? std::clamp(protozoa.total_energy / protozoa.max_energy, 0.f, 1.f) : 0.f;
+	const float integrity_f = protozoa.max_integrity > 0.f ? std::clamp(protozoa.total_integrity / protozoa.max_integrity, 0.f, 1.f) : 0.f;
 
-	ImGui::Spacing();
-	ImGui::TextDisabled("Misc");
-	ImGui::Text("Spring Work %.3f", protozoa.spring_total_work_done);
-	ImGui::NextColumn();
-
-	ImGui::TextDisabled("Locomotion");
-	ImGui::Text("Speed %.4f", protozoa.speed);
-	ImGui::Text("Vel X %.3f", protozoa.velocity.x);
-	ImGui::Text("Vel Y %.3f", protozoa.velocity.y);
-	ImGui::Spacing();
-	ImGui::TextDisabled("Offspring");
-	ImGui::Text("Count %d", protozoa.offspring_count);
-	ImGui::Text("Food  %u", protozoa.total_food_eaten);
-
-	ImGui::Columns(1);
-	ImGui::Spacing();
-
-	// ── Energy ───────────────────────────────────────────────────────────
-	const float energy_f = std::clamp(protozoa.total_energy / protozoa.max_energy, 0.f, 1.f);
-	char energy_lbl[32];
-	snprintf(energy_lbl, sizeof(energy_lbl), "Energy %.0f / %.0f", protozoa.total_energy, protozoa.max_energy);
-	colored_progress(energy_f, fraction_color(energy_f), energy_lbl, { -1, 15 });
-
-	// ── Nutrients ───────
-	ImGui::Spacing();
-	const float nutrients_f = std::clamp(protozoa.total_nutrients / protozoa.max_nutrients, 0.f, 1.f);
-	char nutrients_lbl[32];
-	snprintf(nutrients_lbl, sizeof(nutrients_lbl), "Nutrients %.0f / %.0f", protozoa.total_nutrients, protozoa.max_nutrients);
-	colored_progress(nutrients_f, nutrients_bar_col, nutrients_lbl, { -1, 15 });
-
-	// ── Debug Overlays ────────────────────────────────────────────────────────
-	ImGui::Spacing();
-	ImGui::Separator();
-
-	toggle(snap, ctx, "Debug Mode", &WorldToggles::debug_mode, "D");
-
-	if (snap.world_toggles.debug_mode)   // ← adjust to however the snapshot exposes toggle state
+	// ── Header: id + status pill ─────────────────────────────────────────
 	{
-		ImGui::Indent();
-		toggle(snap, ctx, "Protozoa Bounding Box", &CellManagerToggles::show_bounding_boxes, "B");
-		toggle(snap, ctx, "Cell Bounding Boxes", &CellManagerToggles::show_cell_bounding_boxes, "");
-		toggle(snap, ctx, "Show Nearby", &CellManagerToggles::show_nearby, "");
-		ImGui::Unindent();
+		constexpr float h = 22.f;
+		const ImVec2 p = ImGui::GetCursorScreenPos();
+		ImGui::Dummy({ w, h });
+
+		const char* status = "HEALTHY";
+		ImVec4 sc = { 0.40f, 0.85f, 0.50f, 1.f };
+		if (protozoa.cell_count > 0 && protozoa.cells[0].immortal_) { status = "IMMORTAL";   sc = { 0.80f, 0.60f, 1.00f, 1.f }; }
+		else if (energy_f < 0.02f) { status = "STARVING";   sc = { 1.00f, 0.35f, 0.35f, 1.f }; }
+		else if (integrity_f < 0.40f) { status = "DAMAGED";    sc = { 1.00f, 0.60f, 0.20f, 1.f }; }
+		else if (energy_f < 0.15f) { status = "LOW ENERGY"; sc = { 0.95f, 0.85f, 0.30f, 1.f }; }
+
+		char id[24];
+		snprintf(id, sizeof id, "#%d", static_cast<int>(protozoa.selected_id));
+		const float ty = p.y + (h - ImGui::GetTextLineHeight()) * 0.5f;
+		const float lw = ImGui::CalcTextSize("ORGANISM").x;
+		dl->AddText({ p.x + 2.f, ty }, IM_COL32(140, 146, 162, 255), "ORGANISM");
+		dl->AddText({ p.x + 2.f + lw + 6.f, ty }, IM_COL32(230, 234, 245, 255), id);
+		draw_pill(dl, { p.x + w - 2.f, p.y + h * 0.5f }, status, sc);
+	}
+
+	// ── Tiles (2x2) + velocity compass ───────────────────────────────────
+	{
+		constexpr float gap = 4.f, tile_h = 38.f, compass_w = 78.f, block_h = tile_h * 2.f + gap;
+		const float tile_w = (w - compass_w - gap * 2.f) * 0.5f;
+		const ImVec2 p = ImGui::GetCursorScreenPos();
+		ImGui::Dummy({ w, block_h });
+
+		char v[4][16];
+		snprintf(v[0], sizeof v[0], "%d", protozoa.cell_count);
+		snprintf(v[1], sizeof v[1], "%d", static_cast<int>(protozoa.tendon_count));
+		snprintf(v[2], sizeof v[2], "%d", protozoa.offspring_count);
+		snprintf(v[3], sizeof v[3], "%u", protozoa.total_food_eaten);
+
+		const ImVec2 ts = { tile_w, tile_h };
+		draw_tile(dl, { p.x,                  p.y }, ts, v[0], "Cells", { 0.35f, 0.75f, 0.95f, 1.f });
+		draw_tile(dl, { p.x + tile_w + gap,   p.y }, ts, v[1], "Springs", { 0.85f, 0.35f, 0.55f, 1.f });
+		draw_tile(dl, { p.x,                  p.y + tile_h + gap }, ts, v[2], "Offspring", { 0.55f, 0.85f, 0.45f, 1.f });
+		draw_tile(dl, { p.x + tile_w + gap,   p.y + tile_h + gap }, ts, v[3], "Food", { 0.95f, 0.75f, 0.25f, 1.f });
+
+		const float cx = p.x + w - compass_w * 0.5f;
+		draw_compass(dl, { cx, p.y + 31.f }, 30.f, protozoa.velocity.x, protozoa.velocity.y, protozoa.speed);
+
+		char spd[16];
+		snprintf(spd, sizeof spd, "%.3f", protozoa.speed);
+		dl->AddText({ cx - ImGui::CalcTextSize(spd).x * 0.5f, p.y + 63.f }, IM_COL32(178, 184, 199, 255), spd);
+
+		if (hover_rect({ p.x + w - compass_w, p.y }, { p.x + w, p.y + block_h }))
+			ImGui::SetTooltip("Speed %.4f\nVel X %.3f   Vel Y %.3f", protozoa.speed, protozoa.velocity.x, protozoa.velocity.y);
+	}
+
+	ImGui::Spacing();
+
+	// ── Vitals ───────────────────────────────────────────────────────────
+	stat_bar("Energy", protozoa.total_energy, protozoa.max_energy, fraction_color(energy_f), 0.15f);
+	stat_bar("Nutrients", protozoa.total_nutrients, protozoa.max_nutrients, nutrients_bar_col);
+	stat_bar("Integrity", protozoa.total_integrity, protozoa.max_integrity, integrity_bar_col, 0.15f);
+
+	char work[24];
+	snprintf(work, sizeof work, "%.3f", protozoa.spring_total_work_done);
+	ImGui::TextDisabled("Spring work");
+	ImGui::SameLine(w - ImGui::CalcTextSize(work).x - 1.f);
+	ImGui::TextUnformatted(work);
+
+	// ── Debug overlays ───────────────────────────────────────────────────
+	ImGui::Spacing();
+	if (ImGui::CollapsingHeader("Debug overlays", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		toggle(snap, ctx, "Debug Mode", &WorldToggles::debug_mode, "D");
+
+		if (snap.world_toggles.debug_mode)
+		{
+			ImGui::Indent();
+			toggle(snap, ctx, "Protozoa Bounding Box", &CellManagerToggles::show_bounding_boxes, "B");
+			toggle(snap, ctx, "Cell Bounding Boxes", &CellManagerToggles::show_cell_bounding_boxes, "");
+			toggle(snap, ctx, "Show Nearby", &CellManagerToggles::show_nearby, "");
+			ImGui::Unindent();
+		}
 	}
 }
 

@@ -12,6 +12,7 @@
 #include <simulation/context/sim_snapshot.h>
 #include <limits>
 #include <vector>
+#include <cmath>
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Genes tab: view state (everything else is read from the snapshot each frame)
@@ -119,6 +120,8 @@ static constexpr int k_max_wave_buf = 2048;
 
 // Design constants
 inline static constexpr ImVec4 nutrients_bar_col = { 0.35f, 0.75f, 0.35f, 1.f };
+inline static constexpr ImVec4 integrity_bar_col = { 0.80f, 0.50f, 0.00f, 1.f }; // orange
+
 inline static constexpr ImVec4 selector_color = { 0.2f, 0.2f, 0.8f, 1.0f };
 inline static constexpr ImVec2 spring_cell_box_size = { 300.f, -1.f };
 
@@ -132,6 +135,107 @@ struct WaveParam
 	const char* fmt;
 	CommandType type;
 };
+
+inline constexpr float k_speed_ref = 0.5f;   // speed at which the compass arrow reaches ~76% of its radius; tune to your sim
+
+inline ImU32 col32(const ImVec4& c, const float a) { return ImGui::ColorConvertFloat4ToU32({ c.x, c.y, c.z, a }); }
+
+inline bool hover_rect(const ImVec2 a, const ImVec2 b) { return ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(a, b); }
+
+// Rounded status chip, right-aligned to `right_mid`.
+inline void draw_pill(ImDrawList* dl, const ImVec2 right_mid, const char* text, const ImVec4& col)
+{
+	const ImVec2 ts = ImGui::CalcTextSize(text);
+	constexpr float padx = 7.f;
+	const float h = ts.y + 4.f;
+	const ImVec2 p0 = { right_mid.x - ts.x - padx * 2.f, right_mid.y - h * 0.5f };
+	const ImVec2 p1 = { right_mid.x, right_mid.y + h * 0.5f };
+	dl->AddRectFilled(p0, p1, col32(col, 0.22f), h * 0.5f);
+	dl->AddRect(p0, p1, col32(col, 0.80f), h * 0.5f, 0, 1.f);
+	dl->AddText({ p0.x + padx, p0.y + 2.f }, col32(col, 1.f), text);
+}
+
+// Dark tile: big number, dim label underneath, inset accent bar on the left.
+inline void draw_tile(ImDrawList* dl, const ImVec2 p0, const ImVec2 size, const char* value, const char* label, const ImVec4& accent)
+{
+	const ImVec2 p1 = { p0.x + size.x, p0.y + size.y };
+	dl->AddRectFilled(p0, p1, IM_COL32(26, 28, 34, 255), 5.f);
+	dl->AddRectFilled({ p0.x + 4.f, p0.y + 7.f }, { p0.x + 7.f, p1.y - 7.f }, col32(accent, 1.f), 1.5f);
+	ImFont* font = ImGui::GetFont();
+	const float fs = ImGui::GetFontSize();
+	dl->AddText(font, fs * 1.35f, { p0.x + 13.f, p0.y + 3.f }, IM_COL32(232, 236, 246, 255), value);
+	dl->AddText({ p0.x + 13.f, p0.y + 3.f + fs * 1.35f }, IM_COL32(135, 141, 158, 255), label);
+}
+
+// Velocity compass: arrow points where the organism is heading (screen space, +y down), length = speed.
+inline void draw_compass(ImDrawList* dl, const ImVec2 c, const float r, const float vx, const float vy, const float speed)
+{
+	dl->AddCircleFilled(c, r, IM_COL32(26, 28, 34, 255), 40);
+	dl->AddCircle(c, r * 0.5f, IM_COL32(255, 255, 255, 16), 32, 1.f);
+	dl->AddLine({ c.x - r, c.y }, { c.x + r, c.y }, IM_COL32(255, 255, 255, 16));
+	dl->AddLine({ c.x, c.y - r }, { c.x, c.y + r }, IM_COL32(255, 255, 255, 16));
+	dl->AddCircle(c, r, IM_COL32(255, 255, 255, 45), 40, 1.f);
+
+	const float mag = std::sqrt(vx * vx + vy * vy);
+	const float t = std::tanh(speed / k_speed_ref);
+	const float len = (r - 5.f) * t;
+	if (mag > 1e-6f && len > 2.f)
+	{
+		const ImVec2 d = { vx / mag, vy / mag };
+		const ImVec2 n = { -d.y, d.x };
+		const ImU32 col = IM_COL32(static_cast<int>(100 + 30 * t), static_cast<int>(150 + 85 * t), static_cast<int>(210 + 45 * t), 255);
+		const float head = std::min(7.f, len * 0.7f);
+		const ImVec2 tip = { c.x + d.x * len, c.y + d.y * len };
+		const ImVec2 base = { tip.x - d.x * head, tip.y - d.y * head };
+		dl->AddLine(c, base, col, 2.5f);
+		dl->AddTriangleFilled(tip, { base.x + n.x * head * 0.55f, base.y + n.y * head * 0.55f },
+			{ base.x - n.x * head * 0.55f, base.y - n.y * head * 0.55f }, col);
+	}
+	dl->AddCircleFilled(c, 2.5f, IM_COL32(220, 228, 245, 255), 12);
+}
+
+// Rounded stat bar: name left, value right, gloss strip, red pulsing outline below `pulse_below`.
+inline void stat_bar(const char* name, const float value, const float max_value, const ImVec4& col, const float pulse_below = 0.f)
+{
+	constexpr float h = 18.f;
+	const float w = ImGui::GetContentRegionAvail().x;
+	const ImVec2 p0 = ImGui::GetCursorScreenPos(), p1 = { p0.x + w, p0.y + h };
+	ImGui::Dummy({ w, h });
+
+	const float f = max_value > 0.f ? std::clamp(value / max_value, 0.f, 1.f) : 0.f;
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+
+	dl->AddRectFilled(p0, p1, IM_COL32(26, 28, 34, 255), 5.f);
+	if (f > 0.f)
+	{
+		const float fx = p0.x + w * f;
+		dl->AddRectFilled(p0, { fx, p1.y }, col32(col, 0.90f), 5.f);
+		dl->AddRectFilled({ p0.x + 2.f, p0.y + 2.f }, { std::max(p0.x + 2.f, fx - 2.f), p0.y + h * 0.42f },
+			IM_COL32(255, 255, 255, 30), 3.f);   // gloss
+	}
+
+	if (f < pulse_below)
+	{
+		const float pulse = 0.5f + 0.5f * std::sin(static_cast<float>(ImGui::GetTime()) * 6.f);
+		dl->AddRect(p0, p1, IM_COL32(255, 70, 70, static_cast<int>(70 + 150 * pulse)), 5.f, 0, 1.5f);
+	}
+	else
+		dl->AddRect(p0, p1, IM_COL32(255, 255, 255, 22), 5.f);
+
+	char val[32];
+	snprintf(val, sizeof val, "%.0f / %.0f", value, max_value);
+	const float ty = p0.y + (h - ImGui::GetTextLineHeight()) * 0.5f;
+	const auto shadowed = [&](const ImVec2 p, const char* s)
+		{
+			dl->AddText({ p.x + 1.f, p.y + 1.f }, IM_COL32(0, 0, 0, 170), s);
+			dl->AddText(p, IM_COL32(240, 243, 250, 255), s);
+		};
+	shadowed({ p0.x + 7.f, ty }, name);
+	shadowed({ p1.x - 6.f - ImGui::CalcTextSize(val).x, ty }, val);
+
+	if (hover_rect(p0, p1))
+		ImGui::SetTooltip("%s  %.1f%%", name, f * 100.f);
+}
 
 class OrganismTab : public ITab
 {

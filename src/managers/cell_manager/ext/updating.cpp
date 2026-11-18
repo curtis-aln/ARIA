@@ -340,7 +340,11 @@ Cell* CellManager::find_cell_at_point(const sf::Vector2f mouse_position, bool ma
 	{
 		Body* body = bodies_->at(cell->body_id_);
 		float dist_sq = (mouse_position - body->get_pos()).lengthSquared();
-		if (dist_sq < body->get_radius() * body->get_radius())
+
+		float buffer = 0.35f; // a small n% buffer to make it easier to select cells
+		float rad = body->get_radius() * (1.0f + buffer);
+
+		if (dist_sq < rad * rad)
 		{
 			// We tell the cell manager which cell is selected, 
 			// so it can be used in other parts of the program (like rendering debug info for the selected cell).

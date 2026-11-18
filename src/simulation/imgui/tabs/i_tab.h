@@ -2,6 +2,7 @@
 #include "../../context/sim_snapshot.h"
 #include "../../context/sim_command.h"
 #include <optional>
+#include <simulation/imgui/misc/popup_warning.h>
 
 // Horizontal progress bar with a colour override and an overlay string.
 static void colored_bar(const float fraction, const ImVec4& color,

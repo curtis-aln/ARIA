@@ -14,6 +14,8 @@ public:
 	ControlPanel();
 	~ControlPanel();
 
+	WarningPopup warnings;
+
 	// Call once with the sf::RenderWindow that ImGui-SFML was initialised with.
 	// Without it the "Pop out" button is disabled.
 	void set_main_window(sf::RenderWindow& main);
@@ -46,6 +48,8 @@ private:
 
 	bool m_collapsed_ = false;
 	bool m_visible_ = true;
+
+	float m_bg_alpha_ = 0.94f;
 
 	// ── Pop-out ───────────────────────────────────────────────────────────
 	bool              m_popped_out_ = false;

@@ -75,6 +75,10 @@ public:
     float total_nutrients = 0.f;
     float max_nutrients = 0.f;
 
+	// ---- integrity ------------------------------------------------------------------------
+	float total_integrity = 0.f;
+	float max_integrity = 0.f;
+
     // ---- life history ---------------------------------------------------------------------
     float average_generation = 0.f;
     float frames_alive = 0.f;

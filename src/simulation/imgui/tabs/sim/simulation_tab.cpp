@@ -110,10 +110,14 @@ void SimulationTab::draw_playback_panel(const SimSnapshot& snap, ImGuiContext& c
 	ImGui::Spacing();
 	if (ImGui::Button("Reset Simulation", { -1.f, 0.f }))
 	{
-		SimCommand cmd{ .section = CommandSection::WorldEvent, .type = CommandType::ResetSimulation };
-		ctx.push(cmd);
+		warnings.show("Reset world", "Every organism will be deleted.\nThis can't be undone.",
+			[&] { ctx.push({ .section = CommandSection::WorldEvent, .type = CommandType::ResetSimulation }); },
+			{},                                   // optional on-cancel
+			WarningPopup::Severity::Danger);
 	}
 	tip("Throw away the current world and start a fresh simulation.");
+
+	warnings.draw();
 
 	ImGui::EndChild();
 }
@@ -286,32 +290,43 @@ void SimulationTab::draw_toggles(const SimSnapshot& snap, ImGuiContext& ctx, con
 
 	ImGui::Columns(2, nullptr, false);
 
+	// ---- Column 1: simulation + grids ----
+	ImGui::SeparatorText("Simulation");
 	toggle(snap, ctx, "Collisions", &WorldToggles::toggle_collisions, "C");
 	tip("Turn collisions between bodies on or off.");
 	toggle(snap, ctx, "Rendering", &SimulationToggles::m_rendering_, "R");
 	tip("Turn world drawing on or off. The simulation keeps running, which is useful for speed.");
-	toggle(snap, ctx, "Debug Mode", &WorldToggles::debug_mode, "D");
-	tip("Show debug overlays and extra debug information.");
-	toggle(snap, ctx, "collision grid", &CellManagerToggles::show_newborn_grid);
-	tip("Shows the collision grid behin the objects of the simulation");
-	toggle(snap, ctx, "background grid", &WorldToggles::draw_background_grid);
-	tip("Shows a visual only grid in the background of the simulation");
-	toggle(snap, ctx, "render cells", &WorldToggles::render_cells);
-	toggle(snap, ctx, "render food", &WorldToggles::render_food);
-	toggle(snap, ctx, "render cell matter", &WorldToggles::render_cells_matter);
+	toggle(snap, ctx, "Track Stats", &WorldToggles::track_statistics, "T");
+	tip("Record statistics over time for the graphs. Turn it off to save a little CPU.");
 
-	ImGui::NextColumn();
-
+	ImGui::SeparatorText("Grids");
 	toggle(snap, ctx, "Cell Grid", &WorldToggles::draw_collision_grid, "G");
 	tip("Draw the collision grid that cells are sorted into.");
 	toggle(snap, ctx, "Food Grid", &WorldToggles::draw_food_grid, "F");
 	tip("Draw the grid that food is sorted into.");
-	toggle(snap, ctx, "Track Stats", &WorldToggles::track_statistics, "T");
-	tip("Record statistics over time for the graphs. Turn it off to save a little CPU.");
-	toggle(snap, ctx, "show only newborns", &CellManagerToggles::show_only_newborns);
-	tip("Only show cells that have been recently born. Useful for debugging reproduction.");
-	toggle(snap, ctx, "show world border", &WorldToggles::draw_world_border);
+	toggle(snap, ctx, "Collision Grid", &CellManagerToggles::show_newborn_grid);
+	tip("Shows the collision grid behind the objects of the simulation.");
+	toggle(snap, ctx, "Background Grid", &WorldToggles::draw_background_grid);
+	tip("Shows a visual-only grid in the background of the simulation.");
+
+	ImGui::NextColumn();
+
+	// ---- Column 2: render filters + debug ----
+	ImGui::SeparatorText("Render");
+	toggle(snap, ctx, "Cells", &WorldToggles::render_cells);
+	tip("Draw cells.");
+	toggle(snap, ctx, "Food", &WorldToggles::render_food);
+	tip("Draw food.");
+	toggle(snap, ctx, "Cell Matter", &WorldToggles::render_cells_matter);
+	tip("Draw cell matter.");
+	toggle(snap, ctx, "World Border", &WorldToggles::draw_world_border);
 	tip("Draw the world border. Useful for debugging world bounds.");
+
+	ImGui::SeparatorText("Debug");
+	toggle(snap, ctx, "Debug Mode", &WorldToggles::debug_mode, "D");
+	tip("Show debug overlays and extra debug information.");
+	toggle(snap, ctx, "Only Newborns", &CellManagerToggles::show_only_newborns);
+	tip("Only show cells that have been recently born. Useful for debugging reproduction.");
 
 	ImGui::Columns(1);
 

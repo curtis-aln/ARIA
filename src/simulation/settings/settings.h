@@ -34,14 +34,33 @@ struct SimulationSettings
 	inline static sf::Color window_color = { 0, 0, 0 };
 
 	inline static const std::vector<BackgroundPreset> bg_presets = {
-	{ "Deep Space", { {0, 0, 0},   {0, 5, 40} } },
-	{ "Void Black", { {0, 0, 0},   {0, 0, 0} } },
-	{ "Ocean",      { {0, 10, 20}, {0, 40, 60} } },
-	{ "Twilight",   { {10, 0, 20}, {40, 5, 60} } },
-	{ "Custom",     {} } // populated live from the color pickers
+		// existing
+		{ "Deep Space",{ { 0, 0, 0 },{ 0, 5, 40 } } },
+		{ "Void Black",{ { 0, 0, 0 },{ 0, 0, 0 } } },
+		{ "Ocean",{ { 0, 10, 20 },{ 0, 40, 60 } } },
+		{ "Twilight",{ { 10, 0, 20 },{ 40, 5, 60 } } },
+
+		// lighter blues / teals
+		{ "Deep Ocean",{ { 10, 30, 50 },{ 20, 70, 100 } } },
+		{ "Lagoon",{ { 5, 45, 55 },{ 15, 95, 105 } } },
+		{ "Midnight Blue",{ { 15, 20, 50 },{ 35, 50, 100 } } },
+		{ "Teal Haze",{ { 10, 40, 45 },{ 30, 90, 95 } } },
+
+		// purples / warm
+		{ "Dusk",{ { 30, 20, 55 },{ 75, 45, 110 } } },
+		{ "Aubergine",{ { 35, 15, 40 },{ 80, 35, 85 } } },
+		{ "Ember",{ { 40, 15, 15 },{ 90, 40, 35 } } },
+
+		// neutral / organic
+		{ "Slate",{ { 30, 35, 45 },{ 60, 70, 85 } } },
+		{ "Overcast",{ { 45, 50, 55 },{ 85, 95, 100 } } },
+		{ "Forest",{ { 10, 30, 25 },{ 25, 70, 55 } } },
+		{ "Petri Dish",{ { 20, 40, 35 },{ 50, 85, 70 } } },
+
+		{ "Custom",{} } // populated live from the color pickers
 	};
 
-	inline static int bg_preset_index = 0; // index into bg_presets currently active
+	inline static int bg_preset_index = 5; // index into bg_presets currently active
 
 	inline static bool full_screen;
 	inline static bool vsync;

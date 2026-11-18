@@ -29,9 +29,9 @@ struct CellSettings
 	inline static float drag_min = 0.00f; // glide
 	inline static float drag_max = 0.9f;  // grip
 
-	inline static constexpr float mass_to_max_energy = 1.5f; // how much energy a cell can store per unit of mass
-	inline static constexpr float mass_to_max_nutrients = 1.5f; // how much nutrients a cell can store per unit of mass
-	inline static constexpr float mass_to_max_integrity = 1.5f; // how much integrity a cell can store per unit of mass
+	inline static constexpr float mass_to_max_energy = 1.0f; // how much energy a cell can store per unit of mass
+	inline static constexpr float mass_to_max_nutrients = 1.0f; // how much nutrients a cell can store per unit of mass
+	inline static constexpr float mass_to_max_integrity = 1.0f; // how much integrity a cell can store per unit of mass
 
 
 };

@@ -66,6 +66,7 @@ class Simulation : SimulationSettings
 
 	World           m_world_{};
 	ControlPanel    m_control_panel_;
+	
 
 	SimulationStatistics sim_state_{};
 
@@ -100,6 +101,7 @@ public:
 	void check_end_of_sim_conditions();
 
 	void print_end_of_sim_conditions();
+	void quit();
 
 private:
 	void init_imGUI();

@@ -99,8 +99,8 @@ struct FoodToggles
 	bool spawn_random_food = true;
 	bool food_mitosis = true;
 
-	bool update_pheromone_grid = false;
-	bool render_pheromone_grid = false;
+	bool update_pheromone_grid = true;
+	bool render_pheromone_grid = true;
 
 	bool food_vibration = true;
 
@@ -132,7 +132,7 @@ struct SimulationStatistics
 
 struct WorldStatistics
 {
-	int   mouse_mode = 0;      // 0 = Add, 1 = Remove
+	int   mouse_mode = -1;      // 0 = Add, 1 = Remove
 	float mouse_intensity = 1;
 	float mouse_radius = 300.f;
 

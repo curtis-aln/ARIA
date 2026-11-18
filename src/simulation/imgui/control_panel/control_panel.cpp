@@ -79,6 +79,14 @@ void ControlPanel::draw_header()
 	ImGui::TextUnformatted(control_panel_window_name);
 	ImGui::PopStyleColor();
 
+	if (!m_popped_out_)
+	{
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(70.f);
+		ImGui::SliderFloat("##opacity", &m_bg_alpha_, 0.2f, 1.f, "", ImGuiSliderFlags_AlwaysClamp);
+		ImGui::SetItemTooltip("Panel opacity: %.0f%%", m_bg_alpha_ * 100.f);
+	}
+
 	float total = mode_w;
 	if (!m_popped_out_) total += btn + style.ItemSpacing.x + style.ItemSpacing.x + btn;   // [minimize] [mode] [X]
 
@@ -149,7 +157,7 @@ void ControlPanel::draw_docked(const SimSnapshot& snap, ImGuiContext& ctx)
 
 	ImGui::SetNextWindowPos({ 10.f, 10.f }, ImGuiCond_Always);
 	ImGui::SetNextWindowSize({ PANEL_W, m_collapsed_ ? 0.f : PANEL_H }, ImGuiCond_Always);
-	ImGui::SetNextWindowBgAlpha(0.94f);
+	ImGui::SetNextWindowBgAlpha(m_bg_alpha_);
 
 	constexpr ImGuiWindowFlags flags =
 		ImGuiWindowFlags_NoResize |          // user can't drag the window edges to resize it
@@ -267,4 +275,6 @@ void ControlPanel::draw(const SimSnapshot& snap, ImGuiContext& ctx, float dt)
 		draw_popped_out(snap, ctx);
 	else
 		draw_docked(snap, ctx);
+
+	warnings.draw();
 }
