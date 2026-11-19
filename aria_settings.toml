@@ -53,7 +53,7 @@ infant_time = 500 # time in ticks that a cell is considered an infant and can fo
 initial_energy                = 70.0
 bite_amount = 20.0 
 
-integrity_conversion_rate = 0.01
+energy_repair_rate = 0.01
 nutrients_conversion_rate = 0.07
 
 friction_energy_loss_const = 0.0075

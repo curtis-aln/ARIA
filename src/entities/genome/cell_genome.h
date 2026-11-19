@@ -4,18 +4,32 @@
 #include "../body/body.h"
 
 
-inline constexpr size_t CellExtraGenes = 17;
+inline constexpr size_t CellExtraGenes = 19;
 
 class CellGenome : public GenomeBase<CellExtraGenes>
 {
 public:
 	enum CellGene : size_t
 	{
-		Mass = SharedCount, Amplitude, Frequency, Offset, VerticalShift,
-		BirthEnergyThresh, BirthIntegrityThresh, BirthNutrientsThresh, OffspringEnergyToGive,
-		ConnectiveTendonSpringConst, ConnectiveTendonDamping,
-		AddCellChance, RemoveCellChance, AddTendonChance, RemoveTendonChance,
-		NewbornSearchRadius, QuorumFraction,
+		Amplitude = SharedCount,
+		Frequency, 
+		Offset, 
+		VerticalShift,
+		BirthEnergyThresh, 
+		BirthIntegrityThresh, 
+		BirthNutrientsThresh, 
+		OffspringEnergyToGive,
+		ConnectiveTendonSpringConst, 
+		ConnectiveTendonDamping,
+		AddCellChance, 
+		RemoveCellChance, 
+		AddTendonChance, 
+		RemoveTendonChance,
+		NewbornSearchRadius, 
+		QuorumFraction,
+		Mass,
+		InitialGrowthRate,
+		GrowthDecay,
 		CellGeneEnd
 	};
 	static_assert(CellGeneEnd == gene_count, "CellGene enum and CellExtraGenes are out of sync");
@@ -34,12 +48,7 @@ private:
 	// Must stay in the same order as the CellGene enum
 	static std::array<Gene, CellExtraGenes> make_genes()
 	{
-		constexpr float mass_max = 135.f;
-		constexpr float newborn_max = mass_max * 4.f;
-
 		return {
-			make_gene({ .limits = { 55.f, mass_max } }),                                              // Mass
-
 			// Drag-level wave: level = clamp(vertical_shift + amplitude * sin(frequency * t + offset), 0, 1)
 			make_gene({ .limits = { 0.f, 1.f },               .spawn = { 0.05f, 0.9f } }),            // Amplitude
 			make_gene({ .limits = { 1.f / 240.f, 1.f / 3.f }, .spawn = { 1.f / 20.f, 1.f / 5.f } }),  // Frequency
@@ -62,8 +71,13 @@ private:
 			make_gene({ .limits = { 0.f, 1.f },               .spawn = { 0.05f, 0.05f } }),           // AddTendonChance
 			make_gene({ .limits = { 0.f, 1.f },               .spawn = { 0.05f, 0.05f } }),           // RemoveTendonChance
 
-			make_gene({ .limits = { 0.f, newborn_max },       .spawn = { newborn_max * 0.9f, newborn_max } }), // NewbornSearchRadius
-			make_gene({ .limits = { 0.2f, 1.f },              .spawn = { 0.5f, 0.5f } }),             // QuorumFraction
+			make_gene({ .limits = { 0.f, 10 },                .spawn = { 0.20f, 0.80f } }),           // NewbornSearchRadius
+			make_gene({ .limits = { 0.2f, 1.f },              .spawn = { 0.50f, 0.50f } }),             // QuorumFraction
+			
+			// Mass genes
+			make_gene({ .limits = { 25.f, 75.f },             .spawn = { 25.f, 75.f } }),           // Mass
+			make_gene({ .limits = { 0.001f, 0.1f },           .spawn = { 0.01f, 0.4f } }),           // InitialGrowthRate
+			make_gene({ .limits = { 0.f, .01f },               .spawn = { 0.00001f, 0.0002f } }),           // GrowthDecay
 		};
 	}
 };

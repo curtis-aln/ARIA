@@ -16,7 +16,7 @@ struct CellSettings
 	inline static float initial_energy; // energy the protozoa spawn with
 	inline static float initial_integrity = 100.f;
 
-	inline static float integrity_conversion_rate;
+	inline static float energy_repair_rate;
 	inline static float nutrients_conversion_rate;
 
 	inline static float friction_energy_loss_const;

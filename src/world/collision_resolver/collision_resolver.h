@@ -39,6 +39,9 @@ class CollisionResolver : public ResolutionSettings
 {
 	int thread_count_{};
 
+	std::vector<uint32_t>  active_cells_;
+	uint32_t              batch_size_{ 1 };
+
 	o_vector<Body>* collision_bodies_; // pointer to the particle vector, not owned by this class
 
 	// The grid used for collision resolution
@@ -46,12 +49,10 @@ class CollisionResolver : public ResolutionSettings
 
 	// for multithreadded collision resolution
 	BarrierThreadPool collision_thread_pool_;
-	BarrierThreadPool add_to_grid_thread_pool_;
 	BarrierThreadPool quick_collision_thread_pool_;
 
 	// Pre-Creating the thread jobs for the collision detection and resolution
 	std::vector<std::function<void()>> collision_jobs_;
-	std::vector<std::function<void()>> add_to_grid_jobs_;
 	std::vector<std::function<void()>> quick_collision_jobs_;
 
 	// This is used in the collision detection to collect all the nearby particles for a given cell
@@ -64,7 +65,20 @@ class CollisionResolver : public ResolutionSettings
 	int resolution_frame_ = 0;  // toggles 0/1 each frame
 
 	int  current_total_cells_ = 0;
-	bool quick_collision_jobs_built_ = false;
+
+	std::atomic<uint32_t> next_work_{ 0 };
+
+	template <class F>
+	static void drain(std::atomic<uint32_t>& counter, uint32_t total, uint32_t batch, F&& fn)
+	{
+		for (;;)
+		{
+			const uint32_t s = counter.fetch_add(batch, std::memory_order_relaxed);
+			if (s >= total) return;
+			const uint32_t e = std::min(s + batch, total);
+			for (uint32_t i = s; i < e; ++i) fn(i);
+		}
+	}
 
 public:
 	CollisionResolver(sf::Rect<float>* bounds, o_vector<Body>* entities, 
@@ -81,57 +95,9 @@ public:
 		
 		add_particles_to_grid();
 		run_collision_detection();
+		handle_collision_resolutions();
 	}
 
-	void ensure_quick_collision_jobs_built()
-	{
-		if (quick_collision_jobs_built_)
-			return;
-
-		quick_collision_jobs_.clear();
-		quick_collision_jobs_.reserve(thread_count_);
-
-		for (int t = 0; t < (int)thread_count_; ++t)
-		{
-			quick_collision_jobs_.emplace_back([this, t] {
-				const int total_cells = current_total_cells_;
-				if (total_cells == 0)
-					return;
-
-				const int chunk = std::max(1, (total_cells + (int)thread_count_ - 1) / (int)thread_count_);
-				const int begin = t * chunk;
-				if (begin >= total_cells)
-					return;
-				const int end = std::min(begin + chunk, total_cells);
-
-				for (int k = begin; k < end; ++k)
-				{
-					const BodyId body_id = collision_bodies_->occupied_list[k];
-					Body* obj = collision_bodies_->at(body_id);
-
-					for (uint8_t j = 0; j < obj->nearby_ids_size_; ++j)
-					{
-						const BodyId idx = obj->nearby_ids_[j];
-
-						// forward pairs only (also covers self), and stay inside the store
-						if (idx <= obj->id_ || idx >= (BodyId)collision_bodies_->raw_object_store_.size())
-							continue;
-
-						Body* other_body = collision_bodies_->at(idx);
-
-						// skip empty, dead, or recycled-and-not-yet-initialised bodies
-						if (other_body == nullptr || !other_body->active || other_body->get_mass() <= 0.f)
-							continue;
-
-						body2bodycollisiondetection(obj, other_body, collision_indexes_[t]);
-					}
-				}
-				});
-		}
-
-		quick_collision_thread_pool_.set_jobs(quick_collision_jobs_);  // only ever called this once
-		quick_collision_jobs_built_ = true;
-	}
 
 	void resolve_existing_detections();
 
@@ -155,7 +121,8 @@ public:
 
 private:
 	// The collision jobs for the threads are pre-calculated so there is no overhead of creating them each frame
-	void init_collision_jobs();
+	void init_collision_jobs();            // once
+	void prepare_collision_detection();    // every detection frame
 	
 	// Collision Detection Functions
 	void primitive_detect_collisions_for_grid_cell(const int grid_cell_id, CollisionVector& collision_vector);

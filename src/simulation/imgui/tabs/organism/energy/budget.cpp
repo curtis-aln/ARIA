@@ -221,7 +221,7 @@ void OrganismTab::draw_energy_constants()
 
 	table_section_header("Conversion (per frame, per cell)");
 	table_row_number("Nutrients -> Energy", CellSettings::nutrients_conversion_rate, 5);
-	table_row_number("Energy -> Integrity", CellSettings::integrity_conversion_rate, 5);
+	table_row_number("Energy -> Integrity", CellSettings::energy_repair_rate, 5);
 	table_row_number("Spring work cost", SpringSettings::spring_work_const, 5);
 
 	table_section_header("Limits (per cell)");

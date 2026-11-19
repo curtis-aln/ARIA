@@ -32,10 +32,9 @@ struct alignas(64) BiteResolution
 
 	void add(const Bite& b)
 	{
-		if (size_ < static_cast<int>(bites_.size()))
-		{
-			bites_[size_++] = b;
-		}
+		if (size_ == static_cast<int>(bites_.size())) [[unlikely]]
+			bites_.resize(bites_.empty() ? 64 : bites_.size() * 2);
+		bites_[size_++] = b;
 	}
 
 

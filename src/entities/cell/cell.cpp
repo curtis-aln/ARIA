@@ -10,8 +10,6 @@
 #include <Utils/oscillator.h>
 
 
-
-
 void Cell::recreate()
 {
 	// Energy, Integrity, And Nutrients
@@ -38,12 +36,18 @@ void Cell::recreate()
 
 	new_connections_made = uint8_t(0);
 
+	
+
 	repro_timer_ = 0;
 
 	nearby_food_ids_size_ = 0;
 
 	randomize();
 	tendon_genome.randomize();   // <-- clears stale genome from recycled pool slot
+
+	mass_curve_ceiling = get<Mass>();
+	growth_rate = get<InitialGrowthRate>();
+	set_max_energy_nut_integrity();
 
 	reproduce_ = false;
 	dead_ = false;
@@ -53,29 +57,6 @@ void Cell::recreate()
 	tendon_links_.clear_connections();
 }
 
-void Cell::set_max_energy_nut_integrity()
-{
-	max_nutrients = get<Mass>() * mass_to_max_nutrients;
-	max_integrity = get<Mass>() * mass_to_max_integrity;
-	max_energy = get<Mass>() * mass_to_max_energy;
-}
-
-bool Cell::eat(const float nutrients)
-{
-	// This function returns false if the cell has failed to eat the food
-	// and true if it has eaten the food
-
-	if (time_since_last_ate_ < digestive_time || nutrients_ >= max_nutrients)
-		return false;
-
-	nutrients_ += nutrients;
-	nutrients_ = std::min(nutrients_, max_nutrients);
-
-	time_since_last_ate_ = 0;
-	++total_food_eaten_;
-
-	return true;
-}
 
 bool  Cell::consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f& food_pos, const float combined_rad)
 {
@@ -125,10 +106,17 @@ void Cell::create_offspring(Body* this_body, Cell* child, Body* child_body, cons
 
 	// The mass is an evolutionary paramater that needs to be told to the body
 	child->apply_to_body(child_body);
+	child->set_init_mass_curve_ceiling();
 
 	child->phase_ = phase_; // newborn starts in step with its parent
 
 	child->set_max_energy_nut_integrity();
+}
+
+void Cell::set_init_mass_curve_ceiling()
+{
+	mass_curve_ceiling = get<Mass>();
+	growth_rate = get<InitialGrowthRate>();
 }
 
 void Cell::turn_off_reproduction()
@@ -182,8 +170,6 @@ float Cell::drag_coeff() const
 
 void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_death)
 {
-	set_max_energy_nut_integrity();
-
 	phase_ = osc::wrap_two_pi(phase_ + get<Frequency>());
 	sinwave_current_value_ = calculate_sin_output();
 	cell_calculated_drag_ = drag_coeff();
@@ -201,6 +187,7 @@ void Cell::update_organics(bool immune, bool friction_energy_loss, bool old_age_
 
 	repair_integrity();
 	update_reproduction_flag();
+	atrophy();
 
 	flush_deltas();
 }
@@ -226,36 +213,12 @@ void Cell::apply_old_age_decay()
 	delta_integrity -= death_integrity_rate * (1.f + ticks_over * death_decay_growth);
 }
 
-// Applies accumulated change_energy()/change_integrity() calls from this tick
-// (tendons, impulse damage, etc.) in one clamped step.
-void Cell::flush_deltas()
-{
-	energy = std::clamp(energy + delta_energy, 0.f, max_energy);
-	delta_energy = 0.f;
 
-	integrity = std::clamp(integrity + delta_integrity, 0.f, max_integrity);
-	delta_integrity = 0.f;
-}
-
-bool Cell::check_death()
+void Cell::check_death()
 {
 	/* Check if the cell is dead or should die */
-
-	if (energy <= 0.f) // if the cell has no energy, it dies
-	{
-		static constexpr float integrity_to_energy_conversion = 3.f; // how much integrity is lost for every 1 energy lost
-
-		integrity -= abs(energy * integrity_to_energy_conversion);
-		energy = 0.f;
-	}
-	
 	if (integrity <= 0.f) // if the cell has no integrity, it dies
-	{
-		integrity = 0.f;
 		kill();
-	}
-
-	return dead_;
 }
 
 void Cell::update_reproduction_flag()
@@ -267,21 +230,39 @@ void Cell::update_reproduction_flag()
 		&& check_repro_cooldown();
 }
 
+void Cell::grow(Body* body)
+{
+	static const float growth_cost = .3f;
+	static const float rate_cap = 2.f;
+
+	float mass = body->get_mass();
+
+	mass_curve_ceiling += growth_rate;
+	growth_rate = std::max(0.f, growth_rate - get<GrowthDecay>());
+
+	float wanted = mass_curve_ceiling - mass;
+	float affordable = energy / growth_cost;
+	float delta_mass = std::max(0.f, std::min({ wanted, rate_cap, affordable }));
+
+	if (delta_mass > 0)
+	{
+		body->add_mass(delta_mass);
+		energy -= delta_mass * growth_cost;
+
+		set_max_energy_nut_integrity();
+		body->set_radius();
+	}
+}
+
+// ------------------------------------- ENERGY , NUTRIENTS, INTEGRITY -------------------------------------
 void Cell::process_nutrients()
 {
 	/* convert nutrients to energy */
-	if (nutrients_ <= 0.f) // no nutrients to convert
-	{
-		nutrients_ = 0.f;
-		return;
-	}
-
 	const float energy_capacity = max_energy - energy;
-	if (energy_capacity <= 0.f) // no room for energy
-	{
-		energy = max_energy;
+
+	// no nutrients to convert or no room for energy
+	if (nutrients_ <= 0.f || energy_capacity <= 0.f) 
 		return;
-	}
 
 	// Convert nutrients to energy, but don't exceed the conversion rate or the energy capacity
 	const float amount = std::min({ nutrients_, nutrients_conversion_rate, energy_capacity });
@@ -292,12 +273,54 @@ void Cell::process_nutrients()
 void Cell::repair_integrity()
 {
 	/* convert energy to integrity */
-	if (integrity >= max_integrity)
+	if (integrity >= max_integrity || energy < energy_repair_rate)
 		return;
 
-	if (energy < integrity_conversion_rate)
-		return; // don't drain below 0 and trigger death for free next frame
+	delta_energy -= energy_repair_rate;
+	delta_integrity += energy_repair_rate;
+}
 
-	delta_energy -= integrity_conversion_rate;
-	delta_integrity += integrity_conversion_rate;
+// Applies accumulated change_energy()/change_integrity() calls from this tick
+// (tendons, impulse damage, etc.) in one clamped step.
+void Cell::flush_deltas()
+{
+	energy = std::clamp(energy + delta_energy, 0.f, max_energy);
+	delta_energy = 0.f;
+
+	integrity = std::clamp(integrity + delta_integrity, 0.f, max_integrity);
+	delta_integrity = 0.f;
+
+	nutrients_ = std::clamp(nutrients_, 0.f, max_nutrients);
+}
+
+// This function sets the maximum energy, nutrients, and integrity of the cell based on its mass. It is called whenever the cell's mass changes (e.g., when it grows or shrinks).
+void Cell::set_max_energy_nut_integrity()
+{
+	max_nutrients = get<Mass>() * mass_to_max_nutrients;
+	max_integrity = get<Mass>() * mass_to_max_integrity;
+	max_energy = get<Mass>() * mass_to_max_energy;
+}
+
+bool Cell::eat(const float nutrients)
+{
+	// This function returns false if the cell has failed to eat the food
+	// and true if it has eaten the food
+	if (time_since_last_ate_ < digestive_time || nutrients_ + nutrients > max_nutrients)
+		return false;
+
+	nutrients_ += nutrients;
+	time_since_last_ate_ = 0;
+	++total_food_eaten_;
+
+	return true;
+}
+
+void Cell::atrophy()
+{
+	if (energy > 0.f) // if the cell has no energy, it dies
+		return;
+	
+	static constexpr float atrophy_rate = 0.3f; // how much integrity is lost for every 1 energy lost
+
+	integrity -= atrophy_rate;
 }

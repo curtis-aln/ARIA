@@ -7,6 +7,9 @@ void CollisionResolver::run_collision_detection()
 	for (auto& collision_vector : collision_indexes_)
 		collision_vector.clear();
 
+	prepare_collision_detection();
+	if (active_cells_.empty())
+		return;
 	collision_thread_pool_.run_and_wait();
 }
 
@@ -134,9 +137,9 @@ void CollisionResolver::check_collisions_for_body(
 		body2bodycollisiondetection(body, other, collision_vector);
 
 
-		// TODO skin
-
-		const float reach = ra + other->get_radius();// +skin;
+		
+		const float skin = 0.5f * ra;
+		const float reach = ra + other->get_radius() + skin;
 		if ((pa - other->get_pos()).lengthSquared() < reach * reach &&
 			body->nearby_ids_size_ < body->nearby_ids_.size())
 			body->nearby_ids_[body->nearby_ids_size_++] = id;

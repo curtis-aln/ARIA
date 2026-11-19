@@ -112,6 +112,7 @@ void CellManager::update_cell(Cell* cell)
 	Body* body = bodies_->at(cell->body_id_);
 	cell->update_statistics();
 	cell->update_organics(spawn_immune, toggles_.friction_energy_loss, toggles_.old_age_death);
+	cell->grow(body);
 	
 	body->apply_drag(cell->cell_calculated_drag_);
 

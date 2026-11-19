@@ -17,14 +17,11 @@ CollisionResolver::CollisionResolver(sf::Rect<float>* bounds, o_vector<Body>* en
 	collision_bodies_(entities), thread_count_(init_thread_count),
 	spatial_grid_(2 << grid_power, 2 << grid_power, cell_max_capacity, bounds->size.x, bounds->size.y),
 	collision_thread_pool_(static_cast<int>(thread_count_)),
-	add_to_grid_thread_pool_(static_cast<int>(thread_count_)),
 	quick_collision_thread_pool_(static_cast<int>(thread_count_))
 {
-
-	init_collision_jobs();
 	collision_indexes_.resize(thread_count_, CollisionVector(max_collisions_per_thread));
-
-	collision_thread_pool_.set_jobs(collision_jobs_);  // once
+	init_collision_jobs();
+	collision_thread_pool_.set_jobs(collision_jobs_);
 }
 
 
@@ -35,9 +32,9 @@ void CollisionResolver::resolve_existing_detections()
 
 	current_total_cells_ = collision_bodies_->occupied_count;
 	if (current_total_cells_ == 0)
-		return;   // nothing active — skip the pool entirely, jobs stay untouched
+		return;
 
-	ensure_quick_collision_jobs_built();
+	next_work_.store(0, std::memory_order_relaxed);
 	quick_collision_thread_pool_.run_and_wait();
 }
 

@@ -39,6 +39,9 @@ private:
 	float energy = initial_energy;
 	float integrity = max_integrity;
 
+	float mass_curve_ceiling = get<Mass>();
+	float growth_rate = get<InitialGrowthRate>();
+
 public:
 	uint32_t id_ = 0;        // The unique identifier for this cell
 	uint32_t body_id_ = 0;   // Reference to the body 
@@ -135,7 +138,9 @@ public:
 	void update_organics(bool immune, bool drag_energy_loss, bool old_age_death);
 
 	[[nodiscard]] bool eat(const float nutrients);
+	
 	void create_offspring(Body* this_body, Cell* child, Body* child_body, const bool mutate);
+	void set_init_mass_curve_ceiling();
 	static bool consume_food_check(const sf::Vector2f& cell_pos, const sf::Vector2f& food_pos, const float combined_rad);
 
 	void recreate();
@@ -159,17 +164,24 @@ public:
 	[[nodiscard]] float integrity_threshold() const { return get<BirthIntegrityThresh>() * max_integrity; }
 	[[nodiscard]] float nutrients_threshold() const { return get<BirthNutrientsThresh>() * max_nutrients; }
 
+
+	void grow(Body* body);
+
 private:
 	// ------------ Organics sub-steps, run in this order by update_organics ------------
 	void apply_immunity();
 	void apply_passive_decay();
 	void apply_old_age_decay();
 	void flush_deltas();
-	[[nodiscard]] bool check_death();       // returns true (and sets dead_) if energy or integrity hit 0
+	void check_death();       // returns true (and sets dead_) if energy or integrity hit 0
 	void update_reproduction_flag();
+
+	
 
 	void process_nutrients();
 	void repair_integrity();
+
+	void atrophy();
 
 	sf::Vector2f get_pos_nearby_min_max(const sf::Vector2f parent_pos, float min_radius, float max_mass);
 

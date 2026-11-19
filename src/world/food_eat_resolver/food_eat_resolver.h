@@ -35,6 +35,20 @@ inline static thread_local FixedSpan<uint32_t> tl_nearby_ids_{ 100 };
 
 class FoodEatResolver : private FoodResolutionSettings
 {
+	std::atomic<uint32_t> next_work_{ 0 };
+
+	template <class F>
+	static void drain(std::atomic<uint32_t>& counter, uint32_t total, uint32_t batch, F&& fn)
+	{
+		for (;;)
+		{
+			const uint32_t s = counter.fetch_add(batch, std::memory_order_relaxed);
+			if (s >= total) return;
+			const uint32_t e = std::min(s + batch, total);
+			for (uint32_t i = s; i < e; ++i) fn(i);
+		}
+	}
+
 	// pointers to the food and cell vectors
 	o_vector<Food>* food_vector_ = nullptr;
 	o_vector<Body>* body_vector_ = nullptr;
@@ -94,6 +108,7 @@ public:
 		world_bounds_(world_bounds), thread_pool_(thread_count), quick_collision_thread_pool_(thread_count)
 	{
 		init_bite_resolutions(reserve_per_thread);
+		init_jobs();
 	}
 
 	void ensure_detection_jobs_built()
@@ -198,6 +213,30 @@ public:
 
 
 private:
+	void init_jobs()
+	{
+		for (int t = 0; t < threads; ++t)
+		{
+			detection_jobs_.emplace_back([this, t] {
+				drain(next_work_, (uint32_t)current_total_cells_, 64, [&](uint32_t k) {
+					Cell* cell = cell_vector_->at(cell_vector_->occupied_list[k]);
+					detect_bite_for_cell(cell, body_vector_->at(cell->body_id_), bite_resolutions_[t]);
+					});
+				});
+
+			quick_collision_jobs_.emplace_back([this, t] {
+				drain(next_work_, (uint32_t)current_total_cells_, 128, [&](uint32_t k) {
+					Cell* cell = cell_vector_->at(cell_vector_->occupied_list[k]);
+					if (cell->nearby_food_ids_size_ == 0) return;
+					resolve_bites_against_candidates(cell, body_vector_->at(cell->body_id_),
+						cell->nearby_food_ids_, cell->nearby_food_ids_size_, bite_resolutions_[t]);
+					});
+				});
+		}
+		thread_pool_.set_jobs(detection_jobs_);
+		quick_collision_thread_pool_.set_jobs(quick_collision_jobs_);
+	}
+
 	void init_bite_resolutions(int reserve_per_thread)
 	{
 		bite_resolutions_.resize(threads, BiteResolution(reserve_per_thread));
@@ -226,8 +265,10 @@ private:
 	void food_bite_detection()
 	{
 		clear_bite_resolutions();
+		next_work_.store(0, std::memory_order_relaxed);
 		thread_pool_.run_and_wait();
 	}
+	
 
 	void detect_bite_for_cell(Cell* cell, Body* body, BiteResolution& resolution)
 	{
@@ -239,7 +280,10 @@ private:
 
 		const int cache_capacity = (int)cell->nearby_food_ids_.size();
 		for (int i = 0; i < tl_nearby_ids_.count && i < cache_capacity; ++i)
+		{
+
 			cell->nearby_food_ids_[cell->nearby_food_ids_size_++] = tl_nearby_ids_[i];
+		}
 
 		resolve_bites_against_candidates(cell, body, tl_nearby_ids_, tl_nearby_ids_.count, resolution);
 	}
@@ -253,6 +297,7 @@ private:
 			return;
 
 		ensure_quick_collision_jobs_built();
+		next_work_.store(0, std::memory_order_relaxed);
 		quick_collision_thread_pool_.run_and_wait();
 
 		food_bite_resolution();

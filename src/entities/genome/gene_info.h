@@ -106,9 +106,6 @@ namespace gene_info_detail
 
 // ---------------- Cell genes (must follow the CellGene enum order) ---------------- //
 inline constexpr auto k_cell_gene_info = gene_info_detail::with_shared(std::array<GeneInfo, CellExtraGenes>{ {
-	{ CellGenome::Mass, "Mass", GeneGroup::Body, GeneFmt::Tenth, GeneDerive::None, true,
-		"Body mass. Sets the radius, so it also sets collision size and inertia." },
-
 	{ CellGenome::Amplitude, "Amplitude", GeneGroup::FrictionWave, GeneFmt::Plain, GeneDerive::None, true,
 		"Swing of the grip wave: level = clamp(shift + amplitude * sin(phase), 0, 1). 0 = glide, 1 = grip." },
 	{ CellGenome::Frequency, "Frequency", GeneGroup::FrictionWave, GeneFmt::Fine, GeneDerive::Period, true,
@@ -145,6 +142,14 @@ inline constexpr auto k_cell_gene_info = gene_info_detail::with_shared(std::arra
 		"Search radius a newborn uses when looking for cells to link to." },
 	{ CellGenome::QuorumFraction, "Quorum", GeneGroup::Social, GeneFmt::Plain, GeneDerive::Percent, true,
 		"Fraction of the organism that must be ready before it reproduces. The sim averages this over all its cells." },
+	
+	{ CellGenome::Mass, "Mass", GeneGroup::Body, GeneFmt::Tenth, GeneDerive::None, true,
+	"Body mass. Sets the radius, so it also sets collision size and inertia." },
+
+	{ CellGenome::InitialGrowthRate, "Growth rate", GeneGroup::Body, GeneFmt::Plain, GeneDerive::None, true,
+		"How fast the cell grows toward its target mass." },
+	{ CellGenome::GrowthDecay, "Growth decay", GeneGroup::Body, GeneFmt::Plain, GeneDerive::None, true,
+		"How fast the decays the growth rate." }
 	} });
 
 // ---------------- Tendon genes (must follow the TendonGene enum order) ---------------- //

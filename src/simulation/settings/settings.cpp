@@ -69,7 +69,7 @@ static void load_cell_settings(toml::table& tbl)
 
     REQUIRE(CellSettings::infant_time, tbl["cell"]["infant_time"]);
 
-	REQUIRE(CellSettings::integrity_conversion_rate, tbl["cell"]["integrity_conversion_rate"]);
+	REQUIRE(CellSettings::energy_repair_rate, tbl["cell"]["energy_repair_rate"]);
 	REQUIRE(CellSettings::nutrients_conversion_rate, tbl["cell"]["nutrients_conversion_rate"]);
 
 	REQUIRE(CellSettings::friction_energy_loss_const, tbl["cell"]["friction_energy_loss_const"]);
